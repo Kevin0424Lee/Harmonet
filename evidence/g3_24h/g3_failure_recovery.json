@@ -1,0 +1,67 @@
+{
+  "kind": "failure_recovery",
+  "base_url": "http://localhost:8080",
+  "passed": true,
+  "steps": [
+    {
+      "name": "baseline_readyz",
+      "probe": {
+        "endpoint": "/readyz",
+        "ok": true,
+        "status": 200,
+        "latency_ms": 1.2636540923267603,
+        "error": ""
+      }
+    },
+    {
+      "name": "stop_redis",
+      "result": {
+        "command": "docker compose stop redis",
+        "returncode": 0,
+        "stdout": "",
+        "stderr": " Container harmonet-redis  Stopping\n Container harmonet-redis  Stopped\n",
+        "elapsed_seconds": 0.3729
+      }
+    },
+    {
+      "name": "readyz_without_redis",
+      "probe": {
+        "endpoint": "/readyz",
+        "ok": true,
+        "status": 200,
+        "latency_ms": 12.133082025684416,
+        "error": ""
+      }
+    },
+    {
+      "name": "restart_redis",
+      "result": {
+        "command": "docker compose start redis",
+        "returncode": 0,
+        "stdout": "",
+        "stderr": " Container harmonet-redis  Starting\n Container harmonet-redis  Started\n",
+        "elapsed_seconds": 0.3586
+      }
+    },
+    {
+      "name": "readyz_after_redis_restore",
+      "probe": {
+        "endpoint": "/readyz",
+        "ok": true,
+        "status": 200,
+        "latency_ms": 4.6616640174761415,
+        "error": ""
+      }
+    },
+    {
+      "name": "harmonet_container_status",
+      "result": {
+        "command": "docker compose ps",
+        "returncode": 0,
+        "stdout": "NAME                  IMAGE                           COMMAND                   SERVICE      CREATED        STATUS                            PORTS\nharmonet              harmonet-v2-20260602-harmonet   \"python -m harmonet.…\"   harmonet     24 hours ago   Up 24 hours (healthy)             0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp\nharmonet-grafana      grafana/grafana:10.1.0          \"/run.sh\"                 grafana      24 hours ago   Up 24 hours                       0.0.0.0:3001->3000/tcp, [::]:3001->3000/tcp\nharmonet-prometheus   prom/prometheus:v2.47.0         \"/bin/prometheus --c…\"   prometheus   24 hours ago   Up 24 hours                       0.0.0.0:9090->9090/tcp, [::]:9090->9090/tcp\nharmonet-redis        redis:7-alpine                  \"docker-entrypoint.s…\"   redis        24 hours ago   Up 6 seconds (health: starting)   0.0.0.0:6379->6379/tcp, [::]:6379->6379/tcp\n",
+        "stderr": "",
+        "elapsed_seconds": 0.1118
+      }
+    }
+  ]
+}

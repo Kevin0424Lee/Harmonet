@@ -1,0 +1,257 @@
+{
+  "kind": "g3_summary",
+  "gates": {
+    "reliability": true,
+    "load": true,
+    "failure_recovery": true,
+    "security": true
+  },
+  "passed": true,
+  "results": {
+    "reliability": {
+      "kind": "reliability",
+      "base_url": "http://localhost:8080",
+      "duration_seconds": 86400.0,
+      "interval_seconds": 30.0,
+      "summary": {
+        "samples": 8637,
+        "ok": 8637,
+        "failed": 0,
+        "availability_pct": 100.0,
+        "avg_latency_ms": 3.8054,
+        "p95_latency_ms": 6.0587,
+        "p99_latency_ms": 6.6242,
+        "max_latency_ms": 9.1698
+      },
+      "by_endpoint": {
+        "/healthz": {
+          "samples": 2879,
+          "ok": 2879,
+          "failed": 0,
+          "availability_pct": 100.0,
+          "avg_latency_ms": 3.1801,
+          "p95_latency_ms": 4.1525,
+          "p99_latency_ms": 4.6984,
+          "max_latency_ms": 6.601
+        },
+        "/readyz": {
+          "samples": 2879,
+          "ok": 2879,
+          "failed": 0,
+          "availability_pct": 100.0,
+          "avg_latency_ms": 3.8153,
+          "p95_latency_ms": 5.0233,
+          "p99_latency_ms": 5.6547,
+          "max_latency_ms": 8.4352
+        },
+        "/metrics": {
+          "samples": 2879,
+          "ok": 2879,
+          "failed": 0,
+          "availability_pct": 100.0,
+          "avg_latency_ms": 4.4209,
+          "p95_latency_ms": 6.5082,
+          "p99_latency_ms": 7.5852,
+          "max_latency_ms": 9.1698
+        }
+      }
+    },
+    "load": {
+      "kind": "load",
+      "base_url": "http://localhost:8080",
+      "levels": [
+        {
+          "samples": 1000,
+          "ok": 1000,
+          "failed": 0,
+          "availability_pct": 100.0,
+          "avg_latency_ms": 0.458,
+          "p95_latency_ms": 1.0142,
+          "p99_latency_ms": 1.3067,
+          "max_latency_ms": 5.0973,
+          "concurrency": 1,
+          "requests": 1000,
+          "elapsed_seconds": 0.47,
+          "throughput_rps": 2127.867
+        },
+        {
+          "samples": 1000,
+          "ok": 1000,
+          "failed": 0,
+          "availability_pct": 100.0,
+          "avg_latency_ms": 1.7746,
+          "p95_latency_ms": 4.3282,
+          "p99_latency_ms": 6.9301,
+          "max_latency_ms": 12.8887,
+          "concurrency": 5,
+          "requests": 1000,
+          "elapsed_seconds": 0.3626,
+          "throughput_rps": 2757.5469
+        },
+        {
+          "samples": 1000,
+          "ok": 1000,
+          "failed": 0,
+          "availability_pct": 100.0,
+          "avg_latency_ms": 2.5123,
+          "p95_latency_ms": 3.5753,
+          "p99_latency_ms": 4.4365,
+          "max_latency_ms": 5.325,
+          "concurrency": 10,
+          "requests": 1000,
+          "elapsed_seconds": 0.2551,
+          "throughput_rps": 3920.2473
+        },
+        {
+          "samples": 1000,
+          "ok": 1000,
+          "failed": 0,
+          "availability_pct": 100.0,
+          "avg_latency_ms": 5.9248,
+          "p95_latency_ms": 8.4066,
+          "p99_latency_ms": 8.8324,
+          "max_latency_ms": 12.8641,
+          "concurrency": 25,
+          "requests": 1000,
+          "elapsed_seconds": 0.2426,
+          "throughput_rps": 4122.8063
+        },
+        {
+          "samples": 1000,
+          "ok": 1000,
+          "failed": 0,
+          "availability_pct": 100.0,
+          "avg_latency_ms": 9.3214,
+          "p95_latency_ms": 15.3167,
+          "p99_latency_ms": 19.3397,
+          "max_latency_ms": 24.9743,
+          "concurrency": 50,
+          "requests": 1000,
+          "elapsed_seconds": 0.2113,
+          "throughput_rps": 4732.599
+        }
+      ],
+      "overall": {
+        "samples": 5000,
+        "ok": 5000,
+        "failed": 0,
+        "availability_pct": 100.0,
+        "avg_latency_ms": 3.9982,
+        "p95_latency_ms": 11.1315,
+        "p99_latency_ms": 15.3167,
+        "max_latency_ms": 24.9743
+      }
+    },
+    "failure_recovery": {
+      "kind": "failure_recovery",
+      "base_url": "http://localhost:8080",
+      "passed": true,
+      "steps": [
+        {
+          "name": "baseline_readyz",
+          "probe": {
+            "endpoint": "/readyz",
+            "ok": true,
+            "status": 200,
+            "latency_ms": 1.2636540923267603,
+            "error": ""
+          }
+        },
+        {
+          "name": "stop_redis",
+          "result": {
+            "command": "docker compose stop redis",
+            "returncode": 0,
+            "stdout": "",
+            "stderr": " Container harmonet-redis  Stopping\n Container harmonet-redis  Stopped\n",
+            "elapsed_seconds": 0.3729
+          }
+        },
+        {
+          "name": "readyz_without_redis",
+          "probe": {
+            "endpoint": "/readyz",
+            "ok": true,
+            "status": 200,
+            "latency_ms": 12.133082025684416,
+            "error": ""
+          }
+        },
+        {
+          "name": "restart_redis",
+          "result": {
+            "command": "docker compose start redis",
+            "returncode": 0,
+            "stdout": "",
+            "stderr": " Container harmonet-redis  Starting\n Container harmonet-redis  Started\n",
+            "elapsed_seconds": 0.3586
+          }
+        },
+        {
+          "name": "readyz_after_redis_restore",
+          "probe": {
+            "endpoint": "/readyz",
+            "ok": true,
+            "status": 200,
+            "latency_ms": 4.6616640174761415,
+            "error": ""
+          }
+        },
+        {
+          "name": "harmonet_container_status",
+          "result": {
+            "command": "docker compose ps",
+            "returncode": 0,
+            "stdout": "NAME                  IMAGE                           COMMAND                   SERVICE      CREATED        STATUS                            PORTS\nharmonet              harmonet-v2-20260602-harmonet   \"python -m harmonet.…\"   harmonet     24 hours ago   Up 24 hours (healthy)             0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp\nharmonet-grafana      grafana/grafana:10.1.0          \"/run.sh\"                 grafana      24 hours ago   Up 24 hours                       0.0.0.0:3001->3000/tcp, [::]:3001->3000/tcp\nharmonet-prometheus   prom/prometheus:v2.47.0         \"/bin/prometheus --c…\"   prometheus   24 hours ago   Up 24 hours                       0.0.0.0:9090->9090/tcp, [::]:9090->9090/tcp\nharmonet-redis        redis:7-alpine                  \"docker-entrypoint.s…\"   redis        24 hours ago   Up 6 seconds (health: starting)   0.0.0.0:6379->6379/tcp, [::]:6379->6379/tcp\n",
+            "stderr": "",
+            "elapsed_seconds": 0.1118
+          }
+        }
+      ]
+    },
+    "security": {
+      "kind": "security_scan",
+      "scanned_files": 694,
+      "findings": [],
+      "passed": true,
+      "tool_availability": {
+        "trivy": false,
+        "docker_scout": false
+      }
+    },
+    "cost": {
+      "kind": "cost_analysis",
+      "systems": [
+        {
+          "system": "harmonet_v2",
+          "success_rate": 100.0,
+          "avg_total_tokens": 224,
+          "avg_latency_seconds": 2.22
+        },
+        {
+          "system": "langgraph",
+          "success_rate": 95.8,
+          "avg_total_tokens": 1791,
+          "avg_latency_seconds": 9.13
+        },
+        {
+          "system": "autogen",
+          "success_rate": 100.0,
+          "avg_total_tokens": 814,
+          "avg_latency_seconds": 5.63
+        },
+        {
+          "system": "crewai",
+          "success_rate": 99.2,
+          "avg_total_tokens": 295,
+          "avg_latency_seconds": 6.16
+        }
+      ],
+      "comparison": {
+        "baseline_system": "langgraph",
+        "harmonet_token_ratio_pct": 12.507,
+        "token_reduction_pct": 87.493
+      }
+    }
+  }
+}

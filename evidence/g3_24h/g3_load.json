@@ -1,0 +1,86 @@
+{
+  "kind": "load",
+  "base_url": "http://localhost:8080",
+  "levels": [
+    {
+      "samples": 1000,
+      "ok": 1000,
+      "failed": 0,
+      "availability_pct": 100.0,
+      "avg_latency_ms": 0.458,
+      "p95_latency_ms": 1.0142,
+      "p99_latency_ms": 1.3067,
+      "max_latency_ms": 5.0973,
+      "concurrency": 1,
+      "requests": 1000,
+      "elapsed_seconds": 0.47,
+      "throughput_rps": 2127.867
+    },
+    {
+      "samples": 1000,
+      "ok": 1000,
+      "failed": 0,
+      "availability_pct": 100.0,
+      "avg_latency_ms": 1.7746,
+      "p95_latency_ms": 4.3282,
+      "p99_latency_ms": 6.9301,
+      "max_latency_ms": 12.8887,
+      "concurrency": 5,
+      "requests": 1000,
+      "elapsed_seconds": 0.3626,
+      "throughput_rps": 2757.5469
+    },
+    {
+      "samples": 1000,
+      "ok": 1000,
+      "failed": 0,
+      "availability_pct": 100.0,
+      "avg_latency_ms": 2.5123,
+      "p95_latency_ms": 3.5753,
+      "p99_latency_ms": 4.4365,
+      "max_latency_ms": 5.325,
+      "concurrency": 10,
+      "requests": 1000,
+      "elapsed_seconds": 0.2551,
+      "throughput_rps": 3920.2473
+    },
+    {
+      "samples": 1000,
+      "ok": 1000,
+      "failed": 0,
+      "availability_pct": 100.0,
+      "avg_latency_ms": 5.9248,
+      "p95_latency_ms": 8.4066,
+      "p99_latency_ms": 8.8324,
+      "max_latency_ms": 12.8641,
+      "concurrency": 25,
+      "requests": 1000,
+      "elapsed_seconds": 0.2426,
+      "throughput_rps": 4122.8063
+    },
+    {
+      "samples": 1000,
+      "ok": 1000,
+      "failed": 0,
+      "availability_pct": 100.0,
+      "avg_latency_ms": 9.3214,
+      "p95_latency_ms": 15.3167,
+      "p99_latency_ms": 19.3397,
+      "max_latency_ms": 24.9743,
+      "concurrency": 50,
+      "requests": 1000,
+      "elapsed_seconds": 0.2113,
+      "throughput_rps": 4732.599
+    }
+  ],
+  "overall": {
+    "samples": 5000,
+    "ok": 5000,
+    "failed": 0,
+    "availability_pct": 100.0,
+    "avg_latency_ms": 3.9982,
+    "p95_latency_ms": 11.1315,
+    "p99_latency_ms": 15.3167,
+    "max_latency_ms": 24.9743
+  }
+}

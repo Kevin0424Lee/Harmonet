@@ -1,0 +1,38 @@
+groups:
+  - name: harmonet-g3-alerts
+    rules:
+      - alert: HarmoNetHealthDown
+        expr: up{job="harmonet"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: HarmoNet health endpoint is down
+          description: Prometheus cannot scrape HarmoNet /metrics for more than 2 minutes.
+
+      - alert: HarmoNetLLMErrorSpike
+        expr: increase(harmonet_llm_requests_total{outcome="error"}[5m]) > 5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: HarmoNet LLM error spike
+          description: LLM errors increased above the configured G3 threshold.
+
+      - alert: HarmoNetTokenSpike
+        expr: increase(harmonet_llm_tokens_total[10m]) > 100000
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: HarmoNet token usage spike
+          description: Token usage exceeded the G3 budget threshold.
+
+      - alert: HarmoNetRedisFallback
+        expr: increase(harmonet_redis_operations_total{outcome="fallback"}[5m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: HarmoNet Redis fallback detected
+          description: Redis fallback mode was used recently.

@@ -1,0 +1,22 @@
+
+================================================================================
+External Standard G1: HumanEval / MBPP
+================================================================================
+system                                                         pass     tokens    lat(s)      p99
+--------------------------------------------------------------------------------
+harmonet_v2                                                 100.0%+/-0.0         224      2.22     5.60
+langraph_runyourai_anthropic_claude_haiku_4_5                95.8%+/-3.6        1791      9.13    14.56
+autogen_anthropic_claude_haiku_4_5                          100.0%+/-0.0         814      5.63     9.10
+crewai_anthropic_claude_haiku_4_5                            99.2%+/-1.6         295      6.16     8.26
+
+By benchmark
+  humaneval:
+    harmonet_v2                                            pass=100.0% tokens=    198 lat=  1.84s
+    langraph_runyourai_anthropic_claude_haiku_4_5          pass= 95.0% tokens=   1758 lat=  8.93s
+    autogen_anthropic_claude_haiku_4_5                     pass=100.0% tokens=    860 lat=  5.50s
+    crewai_anthropic_claude_haiku_4_5                      pass= 98.3% tokens=    356 lat=  6.47s
+  mbpp:
+    harmonet_v2                                            pass=100.0% tokens=    251 lat=  2.60s
+    langraph_runyourai_anthropic_claude_haiku_4_5          pass= 96.7% tokens=   1823 lat=  9.32s
+    autogen_anthropic_claude_haiku_4_5                     pass=100.0% tokens=    769 lat=  5.76s
+    crewai_anthropic_claude_haiku_4_5                      pass=100.0% tokens=    234 lat=  5.84s

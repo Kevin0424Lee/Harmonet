@@ -1,0 +1,128 @@
+# HarmoNet production-readiness stack.
+#
+# Services:
+#   harmonet   - health and metrics API
+#   redis      - shared seed store
+#   prometheus - metrics collection
+#   grafana    - dashboard UI
+#   jaeger     - optional tracing profile
+
+services:
+  harmonet:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    container_name: harmonet
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      HARMONET_LOG_LEVEL: ${HARMONET_LOG_LEVEL:-INFO}
+      HARMONET_LOG_FORMAT: json
+      HARMONET_TRACING: ${HARMONET_TRACING:-false}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
+      OTEL_SERVICE_NAME: harmonet
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8080/healthz', timeout=3).read()",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - harmonet-net
+    volumes:
+      - harmonet-logs:/app/logs
+
+  redis:
+    image: redis:7-alpine
+    container_name: harmonet-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - harmonet-net
+    volumes:
+      - redis-data:/data
+
+  prometheus:
+    image: prom/prometheus:v2.47.0
+    container_name: harmonet-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=15d"
+      - "--web.enable-lifecycle"
+    volumes:
+      - ./deploy/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./deploy/prometheus-alerts.yml:/etc/prometheus/prometheus-alerts.yml:ro
+      - prometheus-data:/prometheus
+    networks:
+      - harmonet-net
+    depends_on:
+      - harmonet
+
+  grafana:
+    image: grafana/grafana:10.1.0
+    container_name: harmonet-grafana
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-harmonet}
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_INSTALL_PLUGINS: ""
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./deploy/grafana/provisioning:/etc/grafana/provisioning:ro
+    networks:
+      - harmonet-net
+    depends_on:
+      - prometheus
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.49
+    container_name: harmonet-jaeger
+    restart: unless-stopped
+    ports:
+      - "16686:16686"
+      - "4317:4317"
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    networks:
+      - harmonet-net
+    profiles:
+      - tracing
+
+networks:
+  harmonet-net:
+    driver: bridge
+
+volumes:
+  redis-data:
+  prometheus-data:
+  grafana-data:
+  harmonet-logs:

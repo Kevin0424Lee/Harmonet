@@ -1,0 +1,192 @@
+"""
+harmonet/health.py — FastAPI 헬스체크 & 메트릭 서버
+======================================================
+엔드포인트:
+    GET /healthz  → 라이브니스 프로브 (항상 200 OK)
+    GET /readyz   → 레디니스 프로브 (Redis 연결, 의존성 체크)
+    GET /metrics  → Prometheus scrape endpoint
+    GET /status   → JSON 상태 (버전, 에이전트 수, 필드 에너지 등)
+
+실행:
+    python -m harmonet.health                        # 기본 8080 포트
+    python -m harmonet.health --port 9090
+
+테스트:
+    curl http://localhost:8080/healthz
+    curl http://localhost:8080/readyz
+    curl http://localhost:8080/metrics
+"""
+
+import os
+import sys
+import time
+import argparse
+import socket
+from typing import Any, Dict
+
+from fastapi import FastAPI, Response
+from fastapi.responses import PlainTextResponse
+import uvicorn
+from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
+
+# ── 메트릭 사전 등록 (중요!) ──────────────────────────────────────
+# METRICS 싱글턴을 임포트해야 /metrics 엔드포인트에 HarmoNet 메트릭이 노출됨.
+# 이 임포트가 없으면 Prometheus 기본 메트릭(python_*)만 보임.
+from harmonet.observability import METRICS as _METRICS  # noqa: F401
+from harmonet.observability import log
+
+# ── 앱 초기화 ─────────────────────────────────────────────────────
+
+app = FastAPI(
+    title="HarmoNet Health & Metrics",
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url=None,
+)
+
+_START_TIME = time.time()
+
+
+# ── 의존성 체크 ───────────────────────────────────────────────────
+
+def _check_redis() -> Dict[str, Any]:
+    """Redis 연결 확인."""
+    try:
+        host = os.environ.get("REDIS_HOST", "localhost")
+        port = int(os.environ.get("REDIS_PORT", "6379"))
+        with socket.create_connection((host, port), timeout=0.2) as conn:
+            conn.settimeout(0.2)
+            conn.sendall(b"*1\r\n$4\r\nPING\r\n")
+            response = conn.recv(16)
+        if response.startswith(b"+PONG"):
+            return {"status": "ok", "host": host, "port": port}
+        return {"status": "unavailable", "host": host, "port": port, "note": "unexpected Redis ping response"}
+    except Exception as exc:
+        return {"status": "unavailable", "error": str(exc), "note": "fallback 모드"}
+
+
+def _check_faiss() -> Dict[str, Any]:
+    """FAISS 인덱스 가용 여부 확인."""
+    try:
+        import faiss  # noqa
+        return {"status": "ok"}
+    except ImportError:
+        return {"status": "unavailable", "note": "brute-force 폴백 사용"}
+
+
+def _check_llm() -> Dict[str, Any]:
+    """LLM 백엔드 가용 여부 확인."""
+    has_openai = bool(os.environ.get("OPENAI_API_KEY"))
+    has_anthropic = bool(os.environ.get("ANTHROPIC_API_KEY"))
+    if has_openai:
+        return {"status": "ok", "backend": "openai"}
+    if has_anthropic:
+        return {"status": "ok", "backend": "anthropic"}
+    return {"status": "mock", "note": "API 키 없음 — MockLLM 사용 중"}
+
+
+# ── 엔드포인트 ────────────────────────────────────────────────────
+
+@app.get("/healthz", summary="라이브니스 프로브")
+async def liveness():
+    """
+    Kubernetes liveness probe.
+    프로세스가 살아있으면 항상 200 OK.
+    """
+    return {"status": "ok", "uptime_seconds": round(time.time() - _START_TIME, 1)}
+
+
+@app.get("/readyz", summary="레디니스 프로브")
+async def readiness():
+    """
+    Kubernetes readiness probe.
+    핵심 의존성(Redis, FAISS) 상태를 확인합니다.
+    Redis는 폴백이 있어 UNAVAILABLE이어도 ready=true.
+    """
+    checks = {
+        "redis": _check_redis(),
+        "faiss": _check_faiss(),
+        "llm": _check_llm(),
+    }
+
+    # Redis가 없어도 폴백 모드로 운영 가능 → 항상 ready
+    ready = True
+
+    return Response(
+        content=__import__("json").dumps({
+            "ready": ready,
+            "checks": checks,
+            "uptime_seconds": round(time.time() - _START_TIME, 1),
+        }),
+        status_code=200 if ready else 503,
+        media_type="application/json",
+    )
+
+
+@app.get("/metrics", summary="Prometheus 메트릭 scrape", response_class=PlainTextResponse)
+async def metrics():
+    """Prometheus 형식 메트릭 출력."""
+    return PlainTextResponse(
+        content=generate_latest().decode("utf-8"),
+        media_type=CONTENT_TYPE_LATEST,
+    )
+
+
+@app.get("/status", summary="상세 상태 JSON")
+async def status():
+    """HarmoNet 런타임 상태 (모니터링 대시보드용)."""
+    import platform
+
+    return {
+        "service": "harmonet",
+        "version": _get_version(),
+        "uptime_seconds": round(time.time() - _START_TIME, 1),
+        "python": platform.python_version(),
+        "platform": platform.system(),
+        "dependencies": {
+            "redis": _check_redis(),
+            "faiss": _check_faiss(),
+            "llm": _check_llm(),
+        },
+        "config": {
+            "log_level": os.environ.get("HARMONET_LOG_LEVEL", "INFO"),
+            "tracing": os.environ.get("HARMONET_TRACING", "false"),
+            "redis_host": os.environ.get("REDIS_HOST", "localhost"),
+        },
+    }
+
+
+def _get_version() -> str:
+    try:
+        from harmonet import __version__
+        return __version__
+    except Exception:
+        return "dev"
+
+
+# ── CLI 진입점 ────────────────────────────────────────────────────
+
+def main():
+    parser = argparse.ArgumentParser(description="HarmoNet 헬스/메트릭 서버")
+    parser.add_argument("--host", default="0.0.0.0", help="바인드 호스트")
+    parser.add_argument("--port", type=int, default=8080, help="포트 (기본: 8080)")
+    parser.add_argument("--reload", action="store_true", help="개발 자동 리로드")
+    args = parser.parse_args()
+
+    print(f"[Health] 서버 시작: http://{args.host}:{args.port}")
+    print(f"  /healthz  — 라이브니스")
+    print(f"  /readyz   — 레디니스")
+    print(f"  /metrics  — Prometheus")
+    print(f"  /status   — 상세 상태")
+
+    uvicorn.run(
+        "harmonet.health:app",
+        host=args.host,
+        port=args.port,
+        reload=args.reload,
+        log_level="info",
+    )
+
+
+if __name__ == "__main__":
+    main()

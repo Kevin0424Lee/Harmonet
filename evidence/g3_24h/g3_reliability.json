@@ -1,0 +1,48 @@
+{
+  "kind": "reliability",
+  "base_url": "http://localhost:8080",
+  "duration_seconds": 86400.0,
+  "interval_seconds": 30.0,
+  "summary": {
+    "samples": 8637,
+    "ok": 8637,
+    "failed": 0,
+    "availability_pct": 100.0,
+    "avg_latency_ms": 3.8054,
+    "p95_latency_ms": 6.0587,
+    "p99_latency_ms": 6.6242,
+    "max_latency_ms": 9.1698
+  },
+  "by_endpoint": {
+    "/healthz": {
+      "samples": 2879,
+      "ok": 2879,
+      "failed": 0,
+      "availability_pct": 100.0,
+      "avg_latency_ms": 3.1801,
+      "p95_latency_ms": 4.1525,
+      "p99_latency_ms": 4.6984,
+      "max_latency_ms": 6.601
+    },
+    "/readyz": {
+      "samples": 2879,
+      "ok": 2879,
+      "failed": 0,
+      "availability_pct": 100.0,
+      "avg_latency_ms": 3.8153,
+      "p95_latency_ms": 5.0233,
+      "p99_latency_ms": 5.6547,
+      "max_latency_ms": 8.4352
+    },
+    "/metrics": {
+      "samples": 2879,
+      "ok": 2879,
+      "failed": 0,
+      "availability_pct": 100.0,
+      "avg_latency_ms": 4.4209,
+      "p95_latency_ms": 6.5082,
+      "p99_latency_ms": 7.5852,
+      "max_latency_ms": 9.1698
+    }
+  }
+}

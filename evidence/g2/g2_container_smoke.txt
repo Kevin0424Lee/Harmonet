@@ -1,0 +1,16 @@
+[healthz]
+{"status":"ok","uptime_seconds":11.6}
+[readyz]
+{"ready": true, "checks": {"redis": {"status": "ok", "host": "redis", "port": 6379}, "faiss": {"status": "ok"}, "llm": {"status": "mock", "note": "API \ud0a4 \uc5c6\uc74c \u2014 MockLLM \uc0ac\uc6a9 \uc911"}}, "uptime_seconds": 11.7}
+[metrics]
+# HELP harmonet_seeds_created_total 씨앗 생성 횟수
+# TYPE harmonet_seeds_created_total counter
+# HELP harmonet_task_tokens_used 작업당 LLM 토큰 사용량
+# TYPE harmonet_task_tokens_used histogram
+# HELP harmonet_llm_requests_total LLM API 호출 횟수
+# TYPE harmonet_llm_requests_total counter
+
+[ps]
+NAME             IMAGE                           COMMAND                   SERVICE    CREATED          STATUS                    PORTS
+harmonet         harmonet-v2-20260602-harmonet   "python -m harmonet.…"   harmonet   23 seconds ago   Up 12 seconds (healthy)   0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp
+harmonet-redis   redis:7-alpine                  "docker-entrypoint.s…"   redis      23 seconds ago   Up 23 seconds (healthy)   0.0.0.0:6379->6379/tcp, [::]:6379->6379/tcp

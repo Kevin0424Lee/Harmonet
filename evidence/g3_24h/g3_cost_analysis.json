@@ -1,0 +1,34 @@
+{
+  "kind": "cost_analysis",
+  "systems": [
+    {
+      "system": "harmonet_v2",
+      "success_rate": 100.0,
+      "avg_total_tokens": 224,
+      "avg_latency_seconds": 2.22
+    },
+    {
+      "system": "langgraph",
+      "success_rate": 95.8,
+      "avg_total_tokens": 1791,
+      "avg_latency_seconds": 9.13
+    },
+    {
+      "system": "autogen",
+      "success_rate": 100.0,
+      "avg_total_tokens": 814,
+      "avg_latency_seconds": 5.63
+    },
+    {
+      "system": "crewai",
+      "success_rate": 99.2,
+      "avg_total_tokens": 295,
+      "avg_latency_seconds": 6.16
+    }
+  ],
+  "comparison": {
+    "baseline_system": "langgraph",
+    "harmonet_token_ratio_pct": 12.507,
+    "token_reduction_pct": 87.493
+  }
+}

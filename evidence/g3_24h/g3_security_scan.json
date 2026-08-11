@@ -1,0 +1,10 @@
+{
+  "kind": "security_scan",
+  "scanned_files": 694,
+  "findings": [],
+  "passed": true,
+  "tool_availability": {
+    "trivy": false,
+    "docker_scout": false
+  }
+}
