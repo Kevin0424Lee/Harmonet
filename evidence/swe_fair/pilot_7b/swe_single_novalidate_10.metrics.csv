@@ -1,0 +1,11 @@
+instance_id,system,passed_generation,patch_applies,initial_patch_applies,valid_after_repair,dropped_invalid,repair_attempts,malformed_repairs,hunk_repairs,other_repairs,failure_kind,repair_modes,prompt_tokens,completion_tokens,total_tokens,latency_seconds,patch_chars,changed_files,error,apply_error
+astropy__astropy-12907,single_novalidate,True,True,True,False,False,0,0,0,0,none,,2934,316,3250,15.1146,1133,astropy/modeling/separable.py,,
+astropy__astropy-14182,single_novalidate,True,True,True,False,False,0,0,0,0,none,,1144,127,1271,5.2244,375,astropy/io/ascii/rst.py,,
+astropy__astropy-14365,single_novalidate,True,True,True,False,False,0,0,0,0,none,,4071,177,4248,5.9567,455,astropy/io/ascii/qdp.py,,
+astropy__astropy-14995,single_novalidate,True,True,True,False,False,0,0,0,0,none,,5146,149,5295,6.0666,556,astropy/nddata/mixins/ndarithmetic.py,,
+astropy__astropy-6938,single_novalidate,True,True,True,False,False,0,0,0,0,none,,3099,141,3240,5.7327,457,astropy/io/fits/fitsrec.py,,
+astropy__astropy-7746,single_novalidate,True,True,True,False,False,0,0,0,0,none,,3707,171,3878,6.0131,579,astropy/wcs/wcs.py,,
+django__django-10914,single_novalidate,True,True,True,False,False,0,0,0,0,none,,4590,127,4717,13.5361,398,django/conf/global_settings.py,,
+django__django-10924,single_novalidate,True,True,True,False,False,0,0,0,0,none,,4289,140,4429,6.5272,533,django/db/models/fields/__init__.py,,
+django__django-11001,single_novalidate,True,True,True,False,False,0,0,0,0,none,,3570,247,3817,7.4956,1006,django/db/models/sql/compiler.py,,
+django__django-11019,single_novalidate,True,True,True,False,False,0,0,0,0,none,,6427,136,6563,7.6632,493,django/forms/widgets.py,,

@@ -331,11 +331,15 @@ class AnthropicClient(LLMClient):
         "Always produce complete, functional implementations with proper error handling."
     )
 
-    def __init__(self, api_key: Optional[str] = None, model: str = "claude-sonnet-4-5"):
+    def __init__(self, api_key: Optional[str] = None, model: Optional[str] = None):
         self.api_key = api_key or os.getenv("ANTHROPIC_API_KEY")
         if not self.api_key:
             raise ValueError("Anthropic API key is missing.")
-        self.model = model
+        # 모델·생성 파라미터는 환경변수로 조정 가능 (벤치마크에서 다른 백엔드와 조건을 맞추기 위함)
+        self.model = model or os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-5")
+        self.max_tokens = int(os.getenv("ANTHROPIC_MAX_TOKENS", "2048"))
+        _t = os.getenv("ANTHROPIC_TEMPERATURE")
+        self.temperature = float(_t) if _t else None  # None이면 API 기본값
         from anthropic import Anthropic, AsyncAnthropic
         self.client = Anthropic(api_key=self.api_key)
         # AsyncAnthropic: httpx 기반 진짜 비동기 — asyncio.to_thread 불필요
@@ -349,26 +353,29 @@ class AnthropicClient(LLMClient):
 
     @_retry_sync(max_retries=3, base_delay=2.0)
     def generate(self, prompt: str, system_prompt: Optional[str] = None) -> str:
-        response = self.client.messages.create(
-            model=self.model,
-            max_tokens=2048,
-            system=self._build_system_blocks(system_prompt),
-            messages=[{"role": "user", "content": prompt}],
-        )
+        response = self.client.messages.create(**self._msg_kwargs(prompt, self._build_system_blocks(system_prompt)))
         METER.record_from_response(response)
         return response.content[0].text
+
+    def _msg_kwargs(self, prompt: str, system_blocks) -> dict:
+        kwargs = {
+            "model": self.model,
+            "max_tokens": self.max_tokens,
+            "system": system_blocks,
+            "messages": [{"role": "user", "content": prompt}],
+        }
+        if self.temperature is not None:
+            # anthropic SDK 1.x는 temperature를 명명 인자로 받지 않는다 (4.6+ 모델에서 제거된 파라미터).
+            # Haiku 4.5 등 지원 모델에 한해 extra_body로 전달한다.
+            kwargs["extra_body"] = {"temperature": self.temperature}
+        return kwargs
 
     async def generate_async(self, prompt: str, system_prompt: Optional[str] = None) -> str:
         """AsyncAnthropic으로 이벤트 루프 블로킹 없이 진짜 비동기 처리 (지수 백오프 재시도)."""
         system_blocks = self._build_system_blocks(system_prompt)
 
         async def _call():
-            return await self.async_client.messages.create(
-                model=self.model,
-                max_tokens=2048,
-                system=system_blocks,
-                messages=[{"role": "user", "content": prompt}],
-            )
+            return await self.async_client.messages.create(**self._msg_kwargs(prompt, system_blocks))
 
         response = await _call_with_async_retry(_call, base_delay=2.0)
         METER.record_from_response(response)

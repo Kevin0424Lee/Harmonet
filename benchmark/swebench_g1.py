@@ -96,7 +96,9 @@ def _patch_files(patch: str) -> List[str]:
 
 def _ensure_repo(repo: str, cache_dir: Path, base_commit: str) -> Path:
     cache_dir.mkdir(parents=True, exist_ok=True)
-    repo_dir = cache_dir / repo.replace("/", "__")
+    # 절대경로로 고정: 상대경로면 tempfile이 상대 worktree 경로를 만들고, git이 그것을 repo 기준으로 해석해
+    # 이후 `git apply --check`의 cwd가 존재하지 않게 된다 (Windows에서 WinError 267).
+    repo_dir = (cache_dir / repo.replace("/", "__")).resolve()
     url = f"https://github.com/{repo}.git"
     if not repo_dir.exists():
         _run(["git", "clone", "--no-checkout", "--filter=blob:none", url, str(repo_dir)], timeout=600)

@@ -1,0 +1,19 @@
+instance_id,system,passed_generation,patch_applies,initial_patch_applies,valid_after_repair,dropped_invalid,repair_attempts,malformed_repairs,hunk_repairs,other_repairs,failure_kind,repair_modes,prompt_tokens,completion_tokens,total_tokens,latency_seconds,patch_chars,changed_files,error,apply_error
+astropy__astropy-12907,single_validate,False,False,False,False,True,1,0,1,0,hunk_failed,hunk_failed,8545,330,8875,22.708,0,astropy/modeling/separable.py,,"error: patch failed: astropy/modeling/separable.py:140
+error: astropy/modeling/separable.py: patch does not apply"
+astropy__astropy-14182,single_validate,False,False,False,False,True,1,0,1,0,hunk_failed,hunk_failed,3667,479,4146,13.1125,0,astropy/io/ascii/rst.py,,"error: patch failed: astropy/io/ascii/rst.py:10
+error: astropy/io/ascii/rst.py: patch does not apply"
+astropy__astropy-14365,single_validate,True,True,True,False,False,0,0,0,0,none,,4071,303,4374,8.4112,826,astropy/io/ascii/qdp.py,,
+astropy__astropy-14995,single_validate,False,False,False,False,True,1,0,1,0,hunk_failed,hunk_failed,13030,310,13340,11.9212,0,astropy/nddata/mixins/ndarithmetic.py,,"error: patch failed: astropy/nddata/mixins/ndarithmetic.py:458
+error: astropy/nddata/mixins/ndarithmetic.py: patch does not apply"
+astropy__astropy-6938,single_validate,False,False,False,False,True,1,0,1,0,hunk_failed,hunk_failed,8858,282,9140,11.5869,0,astropy/io/fits/fitsrec.py,,"error: patch failed: astropy/io/fits/fitsrec.py:200
+error: astropy/io/fits/fitsrec.py: patch does not apply"
+astropy__astropy-7746,single_validate,False,False,False,False,True,1,0,1,0,hunk_failed,hunk_failed,10342,414,10756,12.9422,0,astropy/wcs/wcs.py,,"error: patch failed: astropy/wcs/wcs.py:1351
+error: astropy/wcs/wcs.py: patch does not apply"
+django__django-10914,single_validate,True,True,True,False,False,0,0,0,0,none,,4590,192,4782,16.1896,620,django/conf/global_settings.py,,
+django__django-10924,single_validate,False,False,False,False,True,1,0,1,0,hunk_failed,hunk_failed,11350,278,11628,30.4133,0,django/db/models/fields/__init__.py,,"error: patch failed: django/db/models/fields/__init__.py:1103
+error: django/db/models/fields/__init__.py: patch does not apply"
+django__django-11001,single_validate,False,False,False,False,True,1,0,1,0,hunk_failed,hunk_failed,10289,476,10765,28.5023,0,django/db/models/sql/compiler.py,,"error: patch failed: django/db/models/sql/compiler.py:123
+error: django/db/models/sql/compiler.py: patch does not apply"
+django__django-11019,single_validate,False,False,False,False,True,1,0,1,0,hunk_failed,hunk_failed,15405,238,15643,20.0627,0,django/forms/widgets.py,,"error: patch failed: django/forms/widgets.py:145
+error: django/forms/widgets.py: patch does not apply"

@@ -1,0 +1,20 @@
+instance_id,system,passed_generation,patch_applies,initial_patch_applies,valid_after_repair,dropped_invalid,repair_attempts,malformed_repairs,hunk_repairs,other_repairs,failure_kind,repair_modes,prompt_tokens,completion_tokens,total_tokens,latency_seconds,patch_chars,changed_files,error,apply_error
+astropy__astropy-12907,harmonet_validate,True,True,True,False,False,0,0,0,0,none,,2977,158,3135,15.4048,587,astropy/modeling/separable.py,,
+astropy__astropy-14182,harmonet_validate,False,False,False,False,True,1,0,1,0,hunk_failed,hunk_failed,3787,510,4297,14.534,0,astropy/io/ascii/rst.py,,"error: patch failed: astropy/io/ascii/rst.py:34
+error: astropy/io/ascii/rst.py: patch does not apply"
+astropy__astropy-14365,harmonet_validate,False,False,False,False,True,1,0,1,0,hunk_failed,hunk_failed,11114,498,11612,15.2066,0,astropy/io/ascii/qdp.py,,"error: patch failed: astropy/io/ascii/qdp.py:100
+error: astropy/io/ascii/qdp.py: patch does not apply"
+astropy__astropy-14995,harmonet_validate,False,False,False,False,True,1,0,1,0,hunk_failed,hunk_failed,13118,296,13414,13.9992,0,astropy/nddata/mixins/ndarithmetic.py,,"error: patch failed: astropy/nddata/mixins/ndarithmetic.py:458
+error: astropy/nddata/mixins/ndarithmetic.py: patch does not apply"
+astropy__astropy-6938,harmonet_validate,False,False,False,False,True,1,0,1,0,hunk_failed,hunk_failed,8762,277,9039,12.4711,0,astropy/io/fits/fitsrec.py,,"error: patch failed: astropy/io/fits/fitsrec.py:123
+error: astropy/io/fits/fitsrec.py: patch does not apply"
+astropy__astropy-7746,harmonet_validate,False,False,False,False,True,1,0,1,0,hunk_failed,hunk_failed,10278,278,10556,13.3705,0,astropy/wcs/wcs.py,,"error: patch failed: astropy/wcs/wcs.py:1350
+error: astropy/wcs/wcs.py: patch does not apply"
+django__django-10914,harmonet_validate,False,False,False,False,True,1,0,1,0,hunk_failed,hunk_failed,12318,408,12726,28.7359,0,django/conf/global_settings.py,,"error: patch failed: django/conf/global_settings.py:123
+error: django/conf/global_settings.py: patch does not apply"
+django__django-10924,harmonet_validate,False,False,False,False,True,1,0,1,0,hunk_failed,hunk_failed,11253,260,11513,28.0244,0,django/db/models/fields/__init__.py,,"error: patch failed: django/db/models/fields/__init__.py:1000
+error: django/db/models/fields/__init__.py: patch does not apply"
+django__django-11001,harmonet_validate,False,False,False,False,True,1,0,1,0,hunk_failed,hunk_failed,10165,267,10432,20.864,0,django/db/models/sql/compiler.py,,"error: patch failed: django/db/models/sql/compiler.py:123
+error: django/db/models/sql/compiler.py: patch does not apply"
+django__django-11019,harmonet_validate,False,False,False,False,True,1,0,1,0,hunk_failed,hunk_failed,15458,403,15861,23.258,0,django/forms/widgets.py,,"error: patch failed: django/forms/widgets.py:70
+error: django/forms/widgets.py: patch does not apply"

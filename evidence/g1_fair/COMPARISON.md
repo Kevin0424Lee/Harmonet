@@ -30,6 +30,21 @@
 | 실측 증빙 | `verify_usage_output.txt` — `measured=True`, prompt 32 / completion 2 (시스템 프롬프트 포함 확인) |
 | 브랜치 | `fair-measurement` (패치 0001, 0002 + 베이스라인 어댑터 수정) |
 
+### 1-A. Ollama 컨텍스트 절단 검증 (2026-09-11 추가)
+
+Ollama는 프롬프트가 컨텍스트 창을 넘으면 앞부분을 잘라 버리고 `prompt_eval_count`에는 잘린 뒤의 수만 남긴다.
+G1 실행이 잘린 채 채점됐는지 서버 로그(`%LOCALAPPDATA%\Ollama\server.log`)로 확인했다.
+
+- 이 환경의 실제 창: `n_ctx_slot = 4096`, `OLLAMA_NUM_PARALLEL=1`.
+- Ollama는 절단 시 `level=WARN msg="truncating input prompt"`를 남긴다. 전체 로그에서 이 경고는 **2건**뿐이며,
+  둘 다 21:58:51~54의 의도적 13k 토큰 프로브 호출(G1 종료 후, 32k 모델 생성 전)이다.
+- 러너가 본 프롬프트 길이(`task.n_tokens`) 2,857건 중 G1 구간(18:04~21:44 모델 로드)에 1,024 토큰 이상인 요청은 **0건**.
+  1,024 이상인 요청은 전부 21:58 이후(프로브 2건 + SWE-bench 파일럿, 32k 모델)이다.
+- CSV 교차 확인: 행별 `prompt_tokens`(3회 호출 합) 최대는 CrewAI 1,322, LangGraph 1,110 — 단일 호출은 그보다 작다. 2,048 근처 군집 없음.
+
+**판정: G1 재측정(§3, §10)은 절단 없이 채점됐다. 결과 유효.**
+SWE-bench처럼 긴 프롬프트가 필요한 실험은 `qwen2.5-coder:7b-32k`(num_ctx 32768) 파생 모델을 쓴다.
+
 RunYourAI를 쓸 수 없어 상용 모델 대신 로컬 7B로 돌렸다. 따라서 **절대값은 구 측정(claude-haiku-4-5)과 비교 불가**하고,
 시스템 간 **비율**만 의미가 있다. 논문용 최종 수치는 BACKEND.md 2단계(상용 API)로 다시 뽑는 것을 권장한다.
 
