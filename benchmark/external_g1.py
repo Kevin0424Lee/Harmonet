@@ -529,7 +529,7 @@ def main() -> int:
     parser.add_argument(
         "--adapters",
         default="harmonet,langraph",
-        help="Comma-separated adapters: harmonet, harmonet_v2, langraph, autogen, crewai",
+        help="Comma-separated adapters: single, harmonet, harmonet_v2, langraph, autogen, crewai",
     )
     parser.add_argument("--skip-harmonet", action="store_true")
     parser.add_argument("--skip-langraph", action="store_true")
@@ -544,6 +544,11 @@ def main() -> int:
     adapters = []
     if "harmonet" in adapter_names and not args.skip_harmonet:
         adapters.append(HarmoNetAdapter(ticks=args.harmonet_ticks))
+    if "single" in adapter_names:
+        from benchmark.agents_single import SingleCallAdapter
+
+        adapters.append(SingleCallAdapter())
+
     if "harmonet_v2" in adapter_names and not args.skip_harmonet:
         from benchmark.agents_harmonet_v2 import HarmoNetV2Adapter
 
