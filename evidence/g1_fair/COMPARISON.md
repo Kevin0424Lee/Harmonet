@@ -11,6 +11,9 @@
 - **토큰 격차의 주된 원인은 호출 횟수다.** 베이스라인 3개는 고정 3회 호출(architect→builder→validator),
   HarmoNet v2는 평균 1.13회(builder 1회 + 정적 검증 실패 시에만 escalation). 논문에서는 이 점을 함께 서술해야 한다.
 - 구 수치(224.4 토큰, 87.5% 절감)는 폐기하고 이 문서의 값으로 대체한다.
+- **(추가, §10) 단일 호출 베이스라인과 비교하면 HarmoNet의 기제는 우위가 없다.** 오케스트레이션 없이 LLM 1회 호출(`single`)이
+  244 토큰 / 95.0%로, HarmoNet v2(274 / 92.5%)와 v1(281 / 92.5%)보다 토큰은 적고 정확도는 같거나 높다.
+  LangGraph 대비 우위는 "호출 횟수 감소"로 전부 설명되며, 이 설정에서 HarmoNet 고유 기제의 기여는 측정되지 않는다.
 
 ---
 
@@ -169,3 +172,69 @@ python compare_runs.py evidence\g1\g1_v2_final_4way_20x3.csv g1_fair_20x3.csv
 
 파일: `g1_fair_20x3.{json,csv,_report.txt}`, `g1_fair_norepair_20x3.{json,csv,_report.txt}`,
 `g1_fair_pilot_5x1.{json,csv}` (5×1 예비 실행), `verify_usage_output.txt`, `compare_{repair,norepair}.txt`, `tables_{repair,norepair}.md`.
+
+---
+
+## 10. 어블레이션 — 단일 호출 베이스라인 vs HarmoNet (2026-09-11 추가)
+
+**핵심 질문: HarmoNet의 기제(공명 게이팅, 저비용 검증, 지연 에스컬레이션)가 "그냥 한 번 호출하기"보다 나은가?**
+
+§7-1에서 토큰 격차가 호출 횟수(1.1 vs 3)로 설명된다는 점이 드러났으므로, 대조군으로 오케스트레이션이 전혀 없는
+`SingleCallAdapter`(`benchmark/agents_single.py`, 패치 0003)를 같은 조건으로 돌렸다. 시스템 프롬프트 1개 + 과제 프롬프트, LLM 정확히 1회 호출, 검증·수리·에스컬레이션 없음.
+
+조건: Task 6과 동일 (`G1_DISABLE_EVAL_REPAIR=1`, humaneval+mbpp 20문제 × 3회, qwen2.5-coder:7b, temp 0.2, max_tokens 1024).
+HarmoNet v2는 Task 6 데이터, HarmoNet v1은 Task 5 데이터(v1에는 `repair_after_eval`가 없어 두 조건이 동일).
+
+### 10-A. 결과
+
+| system | n | pass rate (95% CI) | avg prompt | avg completion | avg total | sd | tokens/call | calls/run | token_source |
+|---|---|---|---|---|---|---|---|---|---|
+| **single** | 120 | **95.0%** (±3.9) | 161 | 83 | **244** | 74 | 244 | 1.00 | measured |
+| harmonet (v1) | 120 | 92.5% (±4.7) | 197 | 84 | 281 | 75 | 281 | 1.00 | measured |
+| harmonet_v2 | 120 | 92.5% (±4.7) | 171 | 103 | 274 | 95 | 261 | 1.05 | measured |
+
+| system | HumanEval pass | HumanEval tokens | MBPP pass | MBPP tokens | latency avg |
+|---|---|---|---|---|---|
+| single | 95.0% | 292 | 95.0% | 196 | 1.04s |
+| harmonet (v1) | 90.0% | 331 | 95.0% | 230 | 1.97s |
+| harmonet_v2 | 95.0% | 300 | 90.0% | 248 | 1.24s |
+
+### 10-B. 과제별 짝 비교 (같은 40문제, 3회 통과 수 기준)
+
+| 비교 | HarmoNet이 나은 과제 | 같음 | HarmoNet이 나쁜 과제 |
+|---|---|---|---|
+| harmonet_v2 vs single | **0** | 38 | 2 (mbpp_2, mbpp_7) |
+| harmonet (v1) vs single | **0** | 39 | 1 (HumanEval/8) |
+
+- `single`이 틀린 과제는 HumanEval/10, mbpp_20 — 5개 시스템 전부 틀리는 모델 한계 과제(§7-4)뿐이다.
+- HarmoNet v2는 여기에 mbpp_2(2/3 실패), mbpp_7(1/3 실패)을 더 틀렸다. v1은 HumanEval/8(3/3 실패)을 더 틀렸다.
+- 토큰: v2가 `single`보다 많이 쓴 과제 24/40, 과제별 중앙값 비율 v2/single = 1.03.
+
+### 10-C. v2 에스컬레이션이 실제로 한 일
+
+| v2 행 구분 | n | pass | avg tokens |
+|---|---|---|---|
+| builder 1회로 끝남 | 114 | 94.7% | 260 |
+| 정적 검증 실패 → repair 호출 (mbpp_2 ×3, mbpp_7 ×3) | 6 | 50.0% | 544 |
+
+에스컬레이션이 발동한 두 과제(mbpp_2, mbpp_7)는 **`single`이 3/3 통과한 과제**다. 즉 v2의 저비용 검증이 잡아낸 것은
+v2 자신의 builder 프롬프트가 만든 실패이고, repair는 그중 절반만 되돌리면서 토큰을 2배 썼다.
+builder 1회로 끝난 114행만 보아도 94.7% / 260 토큰으로 `single`(95.0% / 244)을 넘지 못한다.
+
+### 10-D. 판정
+
+**HarmoNet ≤ single.** 이 설정에서 HarmoNet의 기제는 "한 번 호출하기"보다 낫지 않다.
+
+- 토큰: v2가 12% 많고(274 vs 244), v1은 15% 많다(281 vs 244). 차이의 대부분은 프롬프트(171·197 vs 161) — HarmoNet의 시스템 프롬프트·씨앗 헤더가 더 길다.
+- 정확도: 2.5pp 낮고 CI 안이지만, 짝 비교에서 HarmoNet이 이긴 과제가 0개다. "동률"이 아니라 "같거나 나쁨"으로 읽는 것이 정확하다.
+- 따라서 §4의 "LangGraph 대비 75.5% 절감"은 **HarmoNet의 기여가 아니라 3회 호출 대신 1회 호출한 결과**다.
+  같은 절감은 `single`이 더 크게(80.9%) 달성한다.
+
+이 결론이 뒤집힐 수 있는 조건은 두 가지뿐이고, 둘 다 이번 데이터로는 검증되지 않았다:
+1. 7B가 아닌 더 약한/더 강한 모델에서 검증-에스컬레이션이 실제 실패를 구제하는 경우 (7B에서는 6회 중 3회, 그것도 자기 유발 실패).
+2. HumanEval/MBPP처럼 단일 함수 과제가 아닌, 다단계 협업이 필요한 과제.
+
+논문에서 HarmoNet의 기여를 주장하려면 이 `single` 행을 반드시 같은 표에 넣어야 하고, 현재 수치로는 "그래프 오케스트레이션 대비 절감"을
+"단일 호출로 충분한 과제에서 3단계 파이프라인이 낭비"라는 일반적 관찰 이상으로 해석할 수 없다.
+
+파일: `g1_fair_single_norepair_20x3.{json,csv,_report.txt}`, 실행 스크립트 `run_single.ps1`.

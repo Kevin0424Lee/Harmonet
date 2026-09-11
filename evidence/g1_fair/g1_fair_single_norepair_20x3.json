@@ -1,0 +1,2432 @@
+{
+  "metadata": {
+    "benchmarks": [
+      "humaneval",
+      "mbpp"
+    ],
+    "task_count": 40,
+    "sources": {
+      "humaneval": "https://raw.githubusercontent.com/openai/human-eval/master/data/HumanEval.jsonl.gz",
+      "mbpp": "https://raw.githubusercontent.com/google-research/google-research/master/mbpp/sanitized-mbpp.json"
+    },
+    "backend": "openai_compatible",
+    "runyourai_model": ""
+  },
+  "systems": [
+    {
+      "summary": {
+        "system": "single",
+        "runs": 120,
+        "pass_rate": 0.95,
+        "pass_rate_ci95": 0.0392,
+        "avg_total_tokens": 244.0,
+        "avg_total_tokens_ci95": 13.3,
+        "avg_latency_s": 1.045,
+        "avg_latency_ci95_s": 0.137,
+        "p99_latency_s": 2.673
+      },
+      "measurements": [
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/0",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 186,
+          "completion_tokens": 165,
+          "total_tokens": 351,
+          "latency_seconds": 5.7876,
+          "eval_error": "",
+          "output_chars": 542,
+          "extracted_chars": 701,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 5.6874
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/0",
+          "repeat": 2,
+          "passed": true,
+          "prompt_tokens": 186,
+          "completion_tokens": 165,
+          "total_tokens": 351,
+          "latency_seconds": 1.8887,
+          "eval_error": "",
+          "output_chars": 542,
+          "extracted_chars": 701,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 1.7962
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/0",
+          "repeat": 3,
+          "passed": true,
+          "prompt_tokens": 186,
+          "completion_tokens": 165,
+          "total_tokens": 351,
+          "latency_seconds": 1.8834,
+          "eval_error": "",
+          "output_chars": 542,
+          "extracted_chars": 701,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 1.7922
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/1",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 177,
+          "completion_tokens": 201,
+          "total_tokens": 378,
+          "latency_seconds": 2.2913,
+          "eval_error": "",
+          "output_chars": 929,
+          "extracted_chars": 1088,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 2.1928
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/1",
+          "repeat": 2,
+          "passed": true,
+          "prompt_tokens": 177,
+          "completion_tokens": 112,
+          "total_tokens": 289,
+          "latency_seconds": 1.3182,
+          "eval_error": "",
+          "output_chars": 489,
+          "extracted_chars": 648,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 1.2254
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/1",
+          "repeat": 3,
+          "passed": true,
+          "prompt_tokens": 177,
+          "completion_tokens": 112,
+          "total_tokens": 289,
+          "latency_seconds": 1.3146,
+          "eval_error": "",
+          "output_chars": 489,
+          "extracted_chars": 648,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 1.2221
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/2",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 147,
+          "completion_tokens": 91,
+          "total_tokens": 238,
+          "latency_seconds": 1.1058,
+          "eval_error": "",
+          "output_chars": 374,
+          "extracted_chars": 533,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 1.0124
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/2",
+          "repeat": 2,
+          "passed": true,
+          "prompt_tokens": 147,
+          "completion_tokens": 91,
+          "total_tokens": 238,
+          "latency_seconds": 1.0818,
+          "eval_error": "",
+          "output_chars": 374,
+          "extracted_chars": 533,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.9907
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/2",
+          "repeat": 3,
+          "passed": true,
+          "prompt_tokens": 147,
+          "completion_tokens": 91,
+          "total_tokens": 238,
+          "latency_seconds": 1.0814,
+          "eval_error": "",
+          "output_chars": 374,
+          "extracted_chars": 533,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.99
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/3",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 181,
+          "completion_tokens": 54,
+          "total_tokens": 235,
+          "latency_seconds": 0.7071,
+          "eval_error": "",
+          "output_chars": 229,
+          "extracted_chars": 388,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.6147
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/3",
+          "repeat": 2,
+          "passed": true,
+          "prompt_tokens": 181,
+          "completion_tokens": 54,
+          "total_tokens": 235,
+          "latency_seconds": 0.683,
+          "eval_error": "",
+          "output_chars": 229,
+          "extracted_chars": 388,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.5901
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/3",
+          "repeat": 3,
+          "passed": true,
+          "prompt_tokens": 181,
+          "completion_tokens": 54,
+          "total_tokens": 235,
+          "latency_seconds": 0.6813,
+          "eval_error": "",
+          "output_chars": 229,
+          "extracted_chars": 388,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.5871
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/4",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 179,
+          "completion_tokens": 148,
+          "total_tokens": 327,
+          "latency_seconds": 1.7307,
+          "eval_error": "",
+          "output_chars": 558,
+          "extracted_chars": 717,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 1.6368
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/4",
+          "repeat": 2,
+          "passed": true,
+          "prompt_tokens": 179,
+          "completion_tokens": 148,
+          "total_tokens": 327,
+          "latency_seconds": 1.7051,
+          "eval_error": "",
+          "output_chars": 558,
+          "extracted_chars": 717,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 1.6138
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/4",
+          "repeat": 3,
+          "passed": true,
+          "prompt_tokens": 179,
+          "completion_tokens": 148,
+          "total_tokens": 327,
+          "latency_seconds": 1.7033,
+          "eval_error": "",
+          "output_chars": 558,
+          "extracted_chars": 717,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 1.6108
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/5",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 154,
+          "completion_tokens": 128,
+          "total_tokens": 282,
+          "latency_seconds": 1.51,
+          "eval_error": "",
+          "output_chars": 456,
+          "extracted_chars": 615,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 1.4096
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/5",
+          "repeat": 2,
+          "passed": true,
+          "prompt_tokens": 154,
+          "completion_tokens": 128,
+          "total_tokens": 282,
+          "latency_seconds": 1.4892,
+          "eval_error": "",
+          "output_chars": 456,
+          "extracted_chars": 615,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 1.3991
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/5",
+          "repeat": 3,
+          "passed": true,
+          "prompt_tokens": 154,
+          "completion_tokens": 128,
+          "total_tokens": 282,
+          "latency_seconds": 1.4885,
+          "eval_error": "",
+          "output_chars": 450,
+          "extracted_chars": 609,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 1.3932
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/6",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 174,
+          "completion_tokens": 190,
+          "total_tokens": 364,
+          "latency_seconds": 2.189,
+          "eval_error": "",
+          "output_chars": 788,
+          "extracted_chars": 947,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 2.0929
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/6",
+          "repeat": 2,
+          "passed": true,
+          "prompt_tokens": 174,
+          "completion_tokens": 190,
+          "total_tokens": 364,
+          "latency_seconds": 2.1644,
+          "eval_error": "",
+          "output_chars": 788,
+          "extracted_chars": 947,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 2.0746
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/6",
+          "repeat": 3,
+          "passed": true,
+          "prompt_tokens": 174,
+          "completion_tokens": 190,
+          "total_tokens": 364,
+          "latency_seconds": 2.1646,
+          "eval_error": "",
+          "output_chars": 788,
+          "extracted_chars": 947,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 2.0735
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/7",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 155,
+          "completion_tokens": 105,
+          "total_tokens": 260,
+          "latency_seconds": 1.2594,
+          "eval_error": "",
+          "output_chars": 393,
+          "extracted_chars": 552,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 1.1644
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/7",
+          "repeat": 2,
+          "passed": true,
+          "prompt_tokens": 155,
+          "completion_tokens": 105,
+          "total_tokens": 260,
+          "latency_seconds": 1.2457,
+          "eval_error": "",
+          "output_chars": 393,
+          "extracted_chars": 552,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 1.1505
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/7",
+          "repeat": 3,
+          "passed": true,
+          "prompt_tokens": 155,
+          "completion_tokens": 105,
+          "total_tokens": 260,
+          "latency_seconds": 1.2433,
+          "eval_error": "",
+          "output_chars": 393,
+          "extracted_chars": 552,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 1.1506
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/8",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 174,
+          "completion_tokens": 159,
+          "total_tokens": 333,
+          "latency_seconds": 1.8729,
+          "eval_error": "",
+          "output_chars": 575,
+          "extracted_chars": 734,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 1.7797
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/8",
+          "repeat": 2,
+          "passed": true,
+          "prompt_tokens": 174,
+          "completion_tokens": 159,
+          "total_tokens": 333,
+          "latency_seconds": 1.8384,
+          "eval_error": "",
+          "output_chars": 575,
+          "extracted_chars": 734,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 1.7467
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/8",
+          "repeat": 3,
+          "passed": true,
+          "prompt_tokens": 174,
+          "completion_tokens": 159,
+          "total_tokens": 333,
+          "latency_seconds": 1.8331,
+          "eval_error": "",
+          "output_chars": 575,
+          "extracted_chars": 734,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 1.7413
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/9",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 162,
+          "completion_tokens": 156,
+          "total_tokens": 318,
+          "latency_seconds": 1.8182,
+          "eval_error": "",
+          "output_chars": 570,
+          "extracted_chars": 729,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 1.7183
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/9",
+          "repeat": 2,
+          "passed": true,
+          "prompt_tokens": 162,
+          "completion_tokens": 150,
+          "total_tokens": 312,
+          "latency_seconds": 1.75,
+          "eval_error": "",
+          "output_chars": 540,
+          "extracted_chars": 699,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 1.6557
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/9",
+          "repeat": 3,
+          "passed": true,
+          "prompt_tokens": 162,
+          "completion_tokens": 150,
+          "total_tokens": 312,
+          "latency_seconds": 1.7335,
+          "eval_error": "",
+          "output_chars": 540,
+          "extracted_chars": 699,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 1.6372
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/10",
+          "repeat": 1,
+          "passed": false,
+          "prompt_tokens": 204,
+          "completion_tokens": 160,
+          "total_tokens": 364,
+          "latency_seconds": 1.8916,
+          "eval_error": "Traceback (most recent call last):\n  File \"C:\\Users\\User\\AppData\\Local\\Temp\\harmonet_ext_g1_pn7e5ux6\\candidate_test.py\", line 50, in <module>\n    check(make_palindrome)\n  File \"C:\\Users\\User\\AppData\\Local\\Temp\\harmonet_ext_g1_pn7e5ux6\\candidate_test.py\", line 45, in check\n    assert candidate('xyz') == 'xyzyx'\nAssertionError",
+          "output_chars": 623,
+          "extracted_chars": 782,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 1.7878
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/10",
+          "repeat": 2,
+          "passed": false,
+          "prompt_tokens": 204,
+          "completion_tokens": 161,
+          "total_tokens": 365,
+          "latency_seconds": 1.8944,
+          "eval_error": "    check(make_palindrome)\n  File \"C:\\Users\\User\\AppData\\Local\\Temp\\harmonet_ext_g1_yyzyy7ur\\candidate_test.py\", line 45, in check\n    assert candidate('') == ''\n  File \"C:\\Users\\User\\AppData\\Local\\Temp\\harmonet_ext_g1_yyzyy7ur\\candidate_test.py\", line 25, in make_palindrome\n    if is_palindrome(string):\nNameError: name 'is_palindrome' is not defined. Did you mean: 'make_palindrome'?",
+          "output_chars": 675,
+          "extracted_chars": 834,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 1.7975
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/10",
+          "repeat": 3,
+          "passed": false,
+          "prompt_tokens": 204,
+          "completion_tokens": 161,
+          "total_tokens": 365,
+          "latency_seconds": 1.8885,
+          "eval_error": "    check(make_palindrome)\n  File \"C:\\Users\\User\\AppData\\Local\\Temp\\harmonet_ext_g1_sxrb5uch\\candidate_test.py\", line 45, in check\n    assert candidate('') == ''\n  File \"C:\\Users\\User\\AppData\\Local\\Temp\\harmonet_ext_g1_sxrb5uch\\candidate_test.py\", line 25, in make_palindrome\n    if is_palindrome(string):\nNameError: name 'is_palindrome' is not defined. Did you mean: 'make_palindrome'?",
+          "output_chars": 675,
+          "extracted_chars": 834,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 1.7983
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/11",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 144,
+          "completion_tokens": 106,
+          "total_tokens": 250,
+          "latency_seconds": 1.3013,
+          "eval_error": "",
+          "output_chars": 337,
+          "extracted_chars": 496,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 1.21
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/11",
+          "repeat": 2,
+          "passed": true,
+          "prompt_tokens": 144,
+          "completion_tokens": 106,
+          "total_tokens": 250,
+          "latency_seconds": 1.2466,
+          "eval_error": "",
+          "output_chars": 337,
+          "extracted_chars": 496,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 1.1554
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/11",
+          "repeat": 3,
+          "passed": true,
+          "prompt_tokens": 144,
+          "completion_tokens": 106,
+          "total_tokens": 250,
+          "latency_seconds": 1.2708,
+          "eval_error": "",
+          "output_chars": 337,
+          "extracted_chars": 496,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 1.1749
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/12",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 164,
+          "completion_tokens": 118,
+          "total_tokens": 282,
+          "latency_seconds": 1.4455,
+          "eval_error": "",
+          "output_chars": 462,
+          "extracted_chars": 621,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 1.3446
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/12",
+          "repeat": 2,
+          "passed": true,
+          "prompt_tokens": 164,
+          "completion_tokens": 118,
+          "total_tokens": 282,
+          "latency_seconds": 1.4177,
+          "eval_error": "",
+          "output_chars": 462,
+          "extracted_chars": 621,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 1.3145
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/12",
+          "repeat": 3,
+          "passed": true,
+          "prompt_tokens": 164,
+          "completion_tokens": 118,
+          "total_tokens": 282,
+          "latency_seconds": 1.4322,
+          "eval_error": "",
+          "output_chars": 462,
+          "extracted_chars": 621,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 1.3313
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/13",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 134,
+          "completion_tokens": 90,
+          "total_tokens": 224,
+          "latency_seconds": 1.118,
+          "eval_error": "",
+          "output_chars": 278,
+          "extracted_chars": 437,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 1.0164
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/13",
+          "repeat": 2,
+          "passed": true,
+          "prompt_tokens": 134,
+          "completion_tokens": 90,
+          "total_tokens": 224,
+          "latency_seconds": 1.0859,
+          "eval_error": "",
+          "output_chars": 278,
+          "extracted_chars": 437,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.9884
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/13",
+          "repeat": 3,
+          "passed": true,
+          "prompt_tokens": 134,
+          "completion_tokens": 90,
+          "total_tokens": 224,
+          "latency_seconds": 1.0956,
+          "eval_error": "",
+          "output_chars": 278,
+          "extracted_chars": 437,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.9948
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/14",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 121,
+          "completion_tokens": 79,
+          "total_tokens": 200,
+          "latency_seconds": 0.9979,
+          "eval_error": "",
+          "output_chars": 282,
+          "extracted_chars": 441,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.8918
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/14",
+          "repeat": 2,
+          "passed": true,
+          "prompt_tokens": 121,
+          "completion_tokens": 79,
+          "total_tokens": 200,
+          "latency_seconds": 0.9763,
+          "eval_error": "",
+          "output_chars": 282,
+          "extracted_chars": 441,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.8759
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/14",
+          "repeat": 3,
+          "passed": true,
+          "prompt_tokens": 121,
+          "completion_tokens": 79,
+          "total_tokens": 200,
+          "latency_seconds": 0.9792,
+          "eval_error": "",
+          "output_chars": 282,
+          "extracted_chars": 441,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.8757
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/15",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 130,
+          "completion_tokens": 84,
+          "total_tokens": 214,
+          "latency_seconds": 1.0461,
+          "eval_error": "",
+          "output_chars": 280,
+          "extracted_chars": 439,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.9458
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/15",
+          "repeat": 2,
+          "passed": true,
+          "prompt_tokens": 130,
+          "completion_tokens": 83,
+          "total_tokens": 213,
+          "latency_seconds": 1.0183,
+          "eval_error": "",
+          "output_chars": 274,
+          "extracted_chars": 439,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.917
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/15",
+          "repeat": 3,
+          "passed": true,
+          "prompt_tokens": 130,
+          "completion_tokens": 83,
+          "total_tokens": 213,
+          "latency_seconds": 1.0194,
+          "eval_error": "",
+          "output_chars": 274,
+          "extracted_chars": 439,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.9191
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/16",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 132,
+          "completion_tokens": 76,
+          "total_tokens": 208,
+          "latency_seconds": 0.9638,
+          "eval_error": "",
+          "output_chars": 309,
+          "extracted_chars": 468,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.8598
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/16",
+          "repeat": 2,
+          "passed": true,
+          "prompt_tokens": 132,
+          "completion_tokens": 76,
+          "total_tokens": 208,
+          "latency_seconds": 0.9425,
+          "eval_error": "",
+          "output_chars": 309,
+          "extracted_chars": 468,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.8406
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/16",
+          "repeat": 3,
+          "passed": true,
+          "prompt_tokens": 132,
+          "completion_tokens": 76,
+          "total_tokens": 208,
+          "latency_seconds": 0.9466,
+          "eval_error": "",
+          "output_chars": 309,
+          "extracted_chars": 468,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.843
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/17",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 234,
+          "completion_tokens": 209,
+          "total_tokens": 443,
+          "latency_seconds": 2.4506,
+          "eval_error": "",
+          "output_chars": 649,
+          "extracted_chars": 808,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 2.3423
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/17",
+          "repeat": 2,
+          "passed": true,
+          "prompt_tokens": 234,
+          "completion_tokens": 209,
+          "total_tokens": 443,
+          "latency_seconds": 2.4202,
+          "eval_error": "",
+          "output_chars": 649,
+          "extracted_chars": 808,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 2.3201
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/17",
+          "repeat": 3,
+          "passed": true,
+          "prompt_tokens": 234,
+          "completion_tokens": 232,
+          "total_tokens": 466,
+          "latency_seconds": 2.6728,
+          "eval_error": "",
+          "output_chars": 796,
+          "extracted_chars": 955,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 2.5695
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/18",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 150,
+          "completion_tokens": 147,
+          "total_tokens": 297,
+          "latency_seconds": 1.7458,
+          "eval_error": "",
+          "output_chars": 531,
+          "extracted_chars": 690,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 1.6473
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/18",
+          "repeat": 2,
+          "passed": true,
+          "prompt_tokens": 150,
+          "completion_tokens": 80,
+          "total_tokens": 230,
+          "latency_seconds": 0.9857,
+          "eval_error": "",
+          "output_chars": 294,
+          "extracted_chars": 453,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.8856
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/18",
+          "repeat": 3,
+          "passed": true,
+          "prompt_tokens": 150,
+          "completion_tokens": 80,
+          "total_tokens": 230,
+          "latency_seconds": 0.9837,
+          "eval_error": "",
+          "output_chars": 294,
+          "extracted_chars": 453,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.8834
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/19",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 167,
+          "completion_tokens": 197,
+          "total_tokens": 364,
+          "latency_seconds": 2.3209,
+          "eval_error": "",
+          "output_chars": 650,
+          "extracted_chars": 809,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 2.2178
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/19",
+          "repeat": 2,
+          "passed": true,
+          "prompt_tokens": 167,
+          "completion_tokens": 197,
+          "total_tokens": 364,
+          "latency_seconds": 2.2878,
+          "eval_error": "",
+          "output_chars": 650,
+          "extracted_chars": 809,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 2.191
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/19",
+          "repeat": 3,
+          "passed": true,
+          "prompt_tokens": 167,
+          "completion_tokens": 197,
+          "total_tokens": 364,
+          "latency_seconds": 2.2465,
+          "eval_error": "",
+          "output_chars": 650,
+          "extracted_chars": 809,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 2.1536
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_2",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 208,
+          "completion_tokens": 29,
+          "total_tokens": 237,
+          "latency_seconds": 0.4583,
+          "eval_error": "",
+          "output_chars": 87,
+          "extracted_chars": 246,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.3606
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_2",
+          "repeat": 2,
+          "passed": true,
+          "prompt_tokens": 208,
+          "completion_tokens": 25,
+          "total_tokens": 233,
+          "latency_seconds": 0.3718,
+          "eval_error": "",
+          "output_chars": 84,
+          "extracted_chars": 243,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.2783
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_2",
+          "repeat": 3,
+          "passed": true,
+          "prompt_tokens": 208,
+          "completion_tokens": 29,
+          "total_tokens": 237,
+          "latency_seconds": 0.4141,
+          "eval_error": "",
+          "output_chars": 87,
+          "extracted_chars": 246,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.3199
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_3",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 119,
+          "completion_tokens": 58,
+          "total_tokens": 177,
+          "latency_seconds": 0.7474,
+          "eval_error": "",
+          "output_chars": 173,
+          "extracted_chars": 332,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.6501
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_3",
+          "repeat": 2,
+          "passed": true,
+          "prompt_tokens": 119,
+          "completion_tokens": 58,
+          "total_tokens": 177,
+          "latency_seconds": 0.7277,
+          "eval_error": "",
+          "output_chars": 173,
+          "extracted_chars": 332,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.6336
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_3",
+          "repeat": 3,
+          "passed": true,
+          "prompt_tokens": 119,
+          "completion_tokens": 57,
+          "total_tokens": 176,
+          "latency_seconds": 0.7143,
+          "eval_error": "",
+          "output_chars": 167,
+          "extracted_chars": 332,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.6229
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_4",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 271,
+          "completion_tokens": 61,
+          "total_tokens": 332,
+          "latency_seconds": 0.8035,
+          "eval_error": "",
+          "output_chars": 233,
+          "extracted_chars": 392,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.7013
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_4",
+          "repeat": 2,
+          "passed": true,
+          "prompt_tokens": 271,
+          "completion_tokens": 62,
+          "total_tokens": 333,
+          "latency_seconds": 0.7779,
+          "eval_error": "",
+          "output_chars": 240,
+          "extracted_chars": 399,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.6813
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_4",
+          "repeat": 3,
+          "passed": true,
+          "prompt_tokens": 271,
+          "completion_tokens": 61,
+          "total_tokens": 332,
+          "latency_seconds": 0.7657,
+          "eval_error": "",
+          "output_chars": 235,
+          "extracted_chars": 394,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.6685
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_6",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 146,
+          "completion_tokens": 30,
+          "total_tokens": 176,
+          "latency_seconds": 0.4501,
+          "eval_error": "",
+          "output_chars": 82,
+          "extracted_chars": 241,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.3539
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_6",
+          "repeat": 2,
+          "passed": true,
+          "prompt_tokens": 146,
+          "completion_tokens": 29,
+          "total_tokens": 175,
+          "latency_seconds": 0.4127,
+          "eval_error": "",
+          "output_chars": 76,
+          "extracted_chars": 241,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.32
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_6",
+          "repeat": 3,
+          "passed": true,
+          "prompt_tokens": 146,
+          "completion_tokens": 29,
+          "total_tokens": 175,
+          "latency_seconds": 0.4139,
+          "eval_error": "",
+          "output_chars": 76,
+          "extracted_chars": 241,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.3208
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_7",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 176,
+          "completion_tokens": 29,
+          "total_tokens": 205,
+          "latency_seconds": 0.441,
+          "eval_error": "",
+          "output_chars": 100,
+          "extracted_chars": 259,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.3445
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_7",
+          "repeat": 2,
+          "passed": true,
+          "prompt_tokens": 176,
+          "completion_tokens": 29,
+          "total_tokens": 205,
+          "latency_seconds": 0.4136,
+          "eval_error": "",
+          "output_chars": 94,
+          "extracted_chars": 253,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.3215
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_7",
+          "repeat": 3,
+          "passed": true,
+          "prompt_tokens": 176,
+          "completion_tokens": 29,
+          "total_tokens": 205,
+          "latency_seconds": 0.4143,
+          "eval_error": "",
+          "output_chars": 94,
+          "extracted_chars": 253,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.3214
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_8",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 206,
+          "completion_tokens": 22,
+          "total_tokens": 228,
+          "latency_seconds": 0.3659,
+          "eval_error": "",
+          "output_chars": 74,
+          "extracted_chars": 233,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.2741
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_8",
+          "repeat": 2,
+          "passed": true,
+          "prompt_tokens": 206,
+          "completion_tokens": 22,
+          "total_tokens": 228,
+          "latency_seconds": 0.3391,
+          "eval_error": "",
+          "output_chars": 74,
+          "extracted_chars": 233,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.2469
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_8",
+          "repeat": 3,
+          "passed": true,
+          "prompt_tokens": 206,
+          "completion_tokens": 22,
+          "total_tokens": 228,
+          "latency_seconds": 0.3363,
+          "eval_error": "",
+          "output_chars": 74,
+          "extracted_chars": 233,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.2459
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_9",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 137,
+          "completion_tokens": 48,
+          "total_tokens": 185,
+          "latency_seconds": 0.6399,
+          "eval_error": "",
+          "output_chars": 136,
+          "extracted_chars": 301,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.5475
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_9",
+          "repeat": 2,
+          "passed": true,
+          "prompt_tokens": 137,
+          "completion_tokens": 48,
+          "total_tokens": 185,
+          "latency_seconds": 0.6263,
+          "eval_error": "",
+          "output_chars": 136,
+          "extracted_chars": 301,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.5325
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_9",
+          "repeat": 3,
+          "passed": true,
+          "prompt_tokens": 137,
+          "completion_tokens": 48,
+          "total_tokens": 185,
+          "latency_seconds": 0.6168,
+          "eval_error": "",
+          "output_chars": 136,
+          "extracted_chars": 301,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.5255
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_11",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 136,
+          "completion_tokens": 80,
+          "total_tokens": 216,
+          "latency_seconds": 0.9869,
+          "eval_error": "",
+          "output_chars": 236,
+          "extracted_chars": 395,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.8942
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_11",
+          "repeat": 2,
+          "passed": true,
+          "prompt_tokens": 136,
+          "completion_tokens": 80,
+          "total_tokens": 216,
+          "latency_seconds": 0.9626,
+          "eval_error": "",
+          "output_chars": 236,
+          "extracted_chars": 395,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.8718
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_11",
+          "repeat": 3,
+          "passed": true,
+          "prompt_tokens": 136,
+          "completion_tokens": 79,
+          "total_tokens": 215,
+          "latency_seconds": 0.954,
+          "eval_error": "",
+          "output_chars": 230,
+          "extracted_chars": 395,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.8595
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_12",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 262,
+          "completion_tokens": 18,
+          "total_tokens": 280,
+          "latency_seconds": 0.3338,
+          "eval_error": "",
+          "output_chars": 73,
+          "extracted_chars": 232,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.2407
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_12",
+          "repeat": 2,
+          "passed": true,
+          "prompt_tokens": 262,
+          "completion_tokens": 18,
+          "total_tokens": 280,
+          "latency_seconds": 0.2949,
+          "eval_error": "",
+          "output_chars": 73,
+          "extracted_chars": 232,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.2014
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_12",
+          "repeat": 3,
+          "passed": true,
+          "prompt_tokens": 262,
+          "completion_tokens": 18,
+          "total_tokens": 280,
+          "latency_seconds": 0.2946,
+          "eval_error": "",
+          "output_chars": 73,
+          "extracted_chars": 232,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.2017
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_14",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 137,
+          "completion_tokens": 27,
+          "total_tokens": 164,
+          "latency_seconds": 0.4122,
+          "eval_error": "",
+          "output_chars": 86,
+          "extracted_chars": 251,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.3205
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_14",
+          "repeat": 2,
+          "passed": true,
+          "prompt_tokens": 137,
+          "completion_tokens": 27,
+          "total_tokens": 164,
+          "latency_seconds": 0.3919,
+          "eval_error": "",
+          "output_chars": 86,
+          "extracted_chars": 251,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.2984
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_14",
+          "repeat": 3,
+          "passed": true,
+          "prompt_tokens": 137,
+          "completion_tokens": 27,
+          "total_tokens": 164,
+          "latency_seconds": 0.3904,
+          "eval_error": "",
+          "output_chars": 86,
+          "extracted_chars": 251,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.2979
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_16",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 144,
+          "completion_tokens": 31,
+          "total_tokens": 175,
+          "latency_seconds": 0.4791,
+          "eval_error": "",
+          "output_chars": 104,
+          "extracted_chars": 263,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.3623
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_16",
+          "repeat": 2,
+          "passed": true,
+          "prompt_tokens": 144,
+          "completion_tokens": 31,
+          "total_tokens": 175,
+          "latency_seconds": 0.4251,
+          "eval_error": "",
+          "output_chars": 104,
+          "extracted_chars": 263,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.3344
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_16",
+          "repeat": 3,
+          "passed": true,
+          "prompt_tokens": 144,
+          "completion_tokens": 23,
+          "total_tokens": 167,
+          "latency_seconds": 0.3448,
+          "eval_error": "",
+          "output_chars": 83,
+          "extracted_chars": 242,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.2494
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_17",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 124,
+          "completion_tokens": 20,
+          "total_tokens": 144,
+          "latency_seconds": 0.3422,
+          "eval_error": "",
+          "output_chars": 75,
+          "extracted_chars": 234,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.2458
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_17",
+          "repeat": 2,
+          "passed": true,
+          "prompt_tokens": 124,
+          "completion_tokens": 19,
+          "total_tokens": 143,
+          "latency_seconds": 0.3102,
+          "eval_error": "",
+          "output_chars": 69,
+          "extracted_chars": 234,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.2173
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_17",
+          "repeat": 3,
+          "passed": true,
+          "prompt_tokens": 124,
+          "completion_tokens": 19,
+          "total_tokens": 143,
+          "latency_seconds": 0.3037,
+          "eval_error": "",
+          "output_chars": 69,
+          "extracted_chars": 234,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.21
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_18",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 151,
+          "completion_tokens": 32,
+          "total_tokens": 183,
+          "latency_seconds": 0.468,
+          "eval_error": "",
+          "output_chars": 99,
+          "extracted_chars": 264,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.3673
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_18",
+          "repeat": 2,
+          "passed": true,
+          "prompt_tokens": 151,
+          "completion_tokens": 32,
+          "total_tokens": 183,
+          "latency_seconds": 0.4369,
+          "eval_error": "",
+          "output_chars": 99,
+          "extracted_chars": 264,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.3442
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_18",
+          "repeat": 3,
+          "passed": true,
+          "prompt_tokens": 151,
+          "completion_tokens": 33,
+          "total_tokens": 184,
+          "latency_seconds": 0.4484,
+          "eval_error": "",
+          "output_chars": 105,
+          "extracted_chars": 264,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.3569
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_19",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 150,
+          "completion_tokens": 20,
+          "total_tokens": 170,
+          "latency_seconds": 0.3453,
+          "eval_error": "",
+          "output_chars": 78,
+          "extracted_chars": 237,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.2437
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_19",
+          "repeat": 2,
+          "passed": true,
+          "prompt_tokens": 150,
+          "completion_tokens": 20,
+          "total_tokens": 170,
+          "latency_seconds": 0.3172,
+          "eval_error": "",
+          "output_chars": 78,
+          "extracted_chars": 237,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.2257
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_19",
+          "repeat": 3,
+          "passed": true,
+          "prompt_tokens": 150,
+          "completion_tokens": 20,
+          "total_tokens": 170,
+          "latency_seconds": 0.311,
+          "eval_error": "",
+          "output_chars": 78,
+          "extracted_chars": 237,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.2186
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_20",
+          "repeat": 1,
+          "passed": false,
+          "prompt_tokens": 131,
+          "completion_tokens": 49,
+          "total_tokens": 180,
+          "latency_seconds": 0.6391,
+          "eval_error": "Traceback (most recent call last):\n  File \"C:\\Users\\User\\AppData\\Local\\Temp\\harmonet_ext_g1_7q_6b46_\\candidate_test.py\", line 21, in <module>\n    assert is_woodall(383) == True\nAssertionError",
+          "output_chars": 113,
+          "extracted_chars": 278,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.5438
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_20",
+          "repeat": 2,
+          "passed": false,
+          "prompt_tokens": 131,
+          "completion_tokens": 77,
+          "total_tokens": 208,
+          "latency_seconds": 0.9191,
+          "eval_error": "Traceback (most recent call last):\n  File \"C:\\Users\\User\\AppData\\Local\\Temp\\harmonet_ext_g1__3_secip\\candidate_test.py\", line 26, in <module>\n    assert is_woodall(383) == True\nAssertionError",
+          "output_chars": 205,
+          "extracted_chars": 364,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.8238
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_20",
+          "repeat": 3,
+          "passed": false,
+          "prompt_tokens": 131,
+          "completion_tokens": 62,
+          "total_tokens": 193,
+          "latency_seconds": 0.7567,
+          "eval_error": "Traceback (most recent call last):\n  File \"C:\\Users\\User\\AppData\\Local\\Temp\\harmonet_ext_g1_txo8mpca\\candidate_test.py\", line 23, in <module>\n    assert is_woodall(383) == True\nAssertionError",
+          "output_chars": 149,
+          "extracted_chars": 314,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.6633
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_56",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 119,
+          "completion_tokens": 33,
+          "total_tokens": 152,
+          "latency_seconds": 0.4629,
+          "eval_error": "",
+          "output_chars": 97,
+          "extracted_chars": 256,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.3729
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_56",
+          "repeat": 2,
+          "passed": true,
+          "prompt_tokens": 119,
+          "completion_tokens": 33,
+          "total_tokens": 152,
+          "latency_seconds": 0.4414,
+          "eval_error": "",
+          "output_chars": 97,
+          "extracted_chars": 256,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.3513
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_56",
+          "repeat": 3,
+          "passed": true,
+          "prompt_tokens": 119,
+          "completion_tokens": 33,
+          "total_tokens": 152,
+          "latency_seconds": 0.4498,
+          "eval_error": "",
+          "output_chars": 97,
+          "extracted_chars": 256,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.3574
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_57",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 153,
+          "completion_tokens": 28,
+          "total_tokens": 181,
+          "latency_seconds": 0.4183,
+          "eval_error": "",
+          "output_chars": 111,
+          "extracted_chars": 270,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.3219
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_57",
+          "repeat": 2,
+          "passed": true,
+          "prompt_tokens": 153,
+          "completion_tokens": 27,
+          "total_tokens": 180,
+          "latency_seconds": 0.3818,
+          "eval_error": "",
+          "output_chars": 105,
+          "extracted_chars": 270,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.2916
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_57",
+          "repeat": 3,
+          "passed": true,
+          "prompt_tokens": 153,
+          "completion_tokens": 35,
+          "total_tokens": 188,
+          "latency_seconds": 0.4724,
+          "eval_error": "",
+          "output_chars": 133,
+          "extracted_chars": 292,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.3782
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_58",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 136,
+          "completion_tokens": 25,
+          "total_tokens": 161,
+          "latency_seconds": 0.3874,
+          "eval_error": "",
+          "output_chars": 62,
+          "extracted_chars": 221,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.2954
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_58",
+          "repeat": 2,
+          "passed": true,
+          "prompt_tokens": 136,
+          "completion_tokens": 25,
+          "total_tokens": 161,
+          "latency_seconds": 0.3652,
+          "eval_error": "",
+          "output_chars": 62,
+          "extracted_chars": 221,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.2725
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_58",
+          "repeat": 3,
+          "passed": true,
+          "prompt_tokens": 136,
+          "completion_tokens": 25,
+          "total_tokens": 161,
+          "latency_seconds": 0.3608,
+          "eval_error": "",
+          "output_chars": 62,
+          "extracted_chars": 221,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.271
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_59",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 127,
+          "completion_tokens": 22,
+          "total_tokens": 149,
+          "latency_seconds": 0.3467,
+          "eval_error": "",
+          "output_chars": 55,
+          "extracted_chars": 220,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.2556
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_59",
+          "repeat": 2,
+          "passed": true,
+          "prompt_tokens": 127,
+          "completion_tokens": 22,
+          "total_tokens": 149,
+          "latency_seconds": 0.3308,
+          "eval_error": "",
+          "output_chars": 55,
+          "extracted_chars": 220,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.2411
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_59",
+          "repeat": 3,
+          "passed": true,
+          "prompt_tokens": 127,
+          "completion_tokens": 23,
+          "total_tokens": 150,
+          "latency_seconds": 0.3494,
+          "eval_error": "",
+          "output_chars": 61,
+          "extracted_chars": 220,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.2572
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_61",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 144,
+          "completion_tokens": 71,
+          "total_tokens": 215,
+          "latency_seconds": 0.8679,
+          "eval_error": "",
+          "output_chars": 228,
+          "extracted_chars": 387,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.7798
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_61",
+          "repeat": 2,
+          "passed": true,
+          "prompt_tokens": 144,
+          "completion_tokens": 71,
+          "total_tokens": 215,
+          "latency_seconds": 0.8568,
+          "eval_error": "",
+          "output_chars": 228,
+          "extracted_chars": 387,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.7666
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "single",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_61",
+          "repeat": 3,
+          "passed": true,
+          "prompt_tokens": 144,
+          "completion_tokens": 93,
+          "total_tokens": 237,
+          "latency_seconds": 1.0818,
+          "eval_error": "",
+          "output_chars": 298,
+          "extracted_chars": 463,
+          "metadata": {
+            "llm_calls": 1,
+            "orchestration": "none",
+            "elapsed_adapter_s": 0.9882
+          },
+          "token_source": "measured"
+        }
+      ]
+    }
+  ]
+}
