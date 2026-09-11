@@ -1,0 +1,4 @@
+instance_id,system,passed_generation,patch_applies,initial_patch_applies,valid_after_repair,dropped_invalid,repair_attempts,malformed_repairs,hunk_repairs,other_repairs,failure_kind,repair_modes,prompt_tokens,completion_tokens,total_tokens,latency_seconds,patch_chars,changed_files,error,apply_error
+astropy__astropy-12907,single_novalidate,True,True,True,False,False,0,0,0,0,none,,3519,871,4390,10.2462,1425,astropy/modeling/separable.py,,
+astropy__astropy-14182,single_novalidate,True,True,True,False,False,0,0,0,0,none,,1332,197,1529,3.9965,487,astropy/io/ascii/rst.py,,
+astropy__astropy-14365,single_novalidate,True,True,True,False,False,0,0,0,0,none,,4840,224,5064,5.0996,428,astropy/io/ascii/qdp.py,,

@@ -1,0 +1,438 @@
+﻿python : Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate l
+imits and faster downloads.
+위치 C:\Users\User\Documents\antigravity\harmonet\swe_fair\run_swe_gen.ps1:28 문자:1
++ python -X utf8 -m benchmark.swebench_g1 --name $Cond --offset $Offset ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Warning: You ar...ster downloads.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+Loading faiss with AVX2 support.
+Could not load library with AVX2 support due to:
+ModuleNotFoundError("No module named 'faiss.swigfaiss_avx2'")
+Loading faiss.
+Successfully loaded faiss.
+[RedisStore] Redis ?쒕쾭 ?곌껐 ?ㅽ뙣 (Timeout connecting to server). 濡쒖뺄 ?몃찓紐⑤━ ?泥?紐⑤뱶瑜??ъ슜?⑸땲??
+[FAISSStore] FAISS FlatIP ?몃뜳?ㅺ? ?쒖꽦?붾릺?덉뒿?덈떎 (李⑥썝=256).
+[DataUniverse] 珥덇린???꾨즺: dim=256, grid=16x256
+[DataUniverse] 臾쇰━ ?곸닔: G=0.05, c=1.0, 침=0.01
+[Embedding] SentenceTransformers 濡쒕뱶 ?ㅽ뙣 (huggingface-hub>=1.5.0,<2.0 is required for a normal functioning of this module, but found huggingface-hub==1.4.1.
+Try: `pip install transformers -U` or `pip install -e '.[dev]'` if you're working with git main). ?ㅽ봽?쇱씤 寃곗젙濡좎쟻 ?泥?紐⑤뱶濡??꾪솚?⑸땲??
+[Bench-Architect] ?쨼 ?먯씠?꾪듃 珥덇린?? role=architect, domain=['system design', 'api', 'architecture'], pos=2
+[Bench-Builder] ?쨼 ?먯씠?꾪듃 珥덇린?? role=builder, domain=['python', 'implementation', 'code', 'fastapi'], pos=6
+[Bench-Validator] ?쨼 ?먯씠?꾪듃 珥덇린?? role=validator, domain=['testing', 'security', 'validation', 'review', 'python', 'implementation', 'fastapi'], pos=11
+[DataUniverse] ?뙮 ?⑥븮 ?ы븯: Bench-Architect ???꾩튂[2] ?먮꼫吏=1.00 | 'You are generating a SWE-bench predictio'
+[LLM] Anthropic ?대씪?댁뼵???쒖꽦??(claude-haiku-4-5) [HARMONET_LLM_BACKEND=anthropic]
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+[harmonet_validate] 1/30 astropy__astropy-12907 VALID 3823tok 11.2s
+[RedisStore] Redis ?쒕쾭 ?곌껐 ?ㅽ뙣 (Timeout connecting to server). 濡쒖뺄 ?몃찓紐⑤━ ?泥?紐⑤뱶瑜??ъ슜?⑸땲??
+[FAISSStore] FAISS FlatIP ?몃뜳?ㅺ? ?쒖꽦?붾릺?덉뒿?덈떎 (李⑥썝=256).
+[DataUniverse] 珥덇린???꾨즺: dim=256, grid=16x256
+[DataUniverse] 臾쇰━ ?곸닔: G=0.05, c=1.0, 침=0.01
+[Bench-Architect] ?쨼 ?먯씠?꾪듃 珥덇린?? role=architect, domain=['system design', 'api', 'architecture'], pos=2
+[Bench-Builder] ?쨼 ?먯씠?꾪듃 珥덇린?? role=builder, domain=['python', 'implementation', 'code', 'fastapi'], pos=6
+[Bench-Validator] ?쨼 ?먯씠?꾪듃 珥덇린?? role=validator, domain=['testing', 'security', 'validation', 'review', 'python', 'implementation', 'fastapi'], pos=11
+[DataUniverse] ?뙮 ?⑥븮 ?ы븯: Bench-Architect ???꾩튂[2] ?먮꼫吏=1.00 | 'You are generating a SWE-bench predictio'
+Retrying request to /v1/messages in 0.480668 seconds
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+[harmonet_validate] 2/30 astropy__astropy-14182 VALID 1623tok 7.2s
+[RedisStore] Redis ?쒕쾭 ?곌껐 ?ㅽ뙣 (Timeout connecting to server). 濡쒖뺄 ?몃찓紐⑤━ ?泥?紐⑤뱶瑜??ъ슜?⑸땲??
+[FAISSStore] FAISS FlatIP ?몃뜳?ㅺ? ?쒖꽦?붾릺?덉뒿?덈떎 (李⑥썝=256).
+[DataUniverse] 珥덇린???꾨즺: dim=256, grid=16x256
+[DataUniverse] 臾쇰━ ?곸닔: G=0.05, c=1.0, 침=0.01
+[Bench-Architect] ?쨼 ?먯씠?꾪듃 珥덇린?? role=architect, domain=['system design', 'api', 'architecture'], pos=2
+[Bench-Builder] ?쨼 ?먯씠?꾪듃 珥덇린?? role=builder, domain=['python', 'implementation', 'code', 'fastapi'], pos=6
+[Bench-Validator] ?쨼 ?먯씠?꾪듃 珥덇린?? role=validator, domain=['testing', 'security', 'validation', 'review', 'python', 'implementation', 'fastapi'], pos=11
+[DataUniverse] ?뙮 ?⑥븮 ?ы븯: Bench-Architect ???꾩튂[2] ?먮꼫吏=1.00 | 'You are generating a SWE-bench predictio'
+Retrying request to /v1/messages in 0.427468 seconds
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+[harmonet_validate] 3/30 astropy__astropy-14365 VALID 5160tok 6.9s
+[RedisStore] Redis ?쒕쾭 ?곌껐 ?ㅽ뙣 (Timeout connecting to server). 濡쒖뺄 ?몃찓紐⑤━ ?泥?紐⑤뱶瑜??ъ슜?⑸땲??
+[FAISSStore] FAISS FlatIP ?몃뜳?ㅺ? ?쒖꽦?붾릺?덉뒿?덈떎 (李⑥썝=256).
+[DataUniverse] 珥덇린???꾨즺: dim=256, grid=16x256
+[DataUniverse] 臾쇰━ ?곸닔: G=0.05, c=1.0, 침=0.01
+[Bench-Architect] ?쨼 ?먯씠?꾪듃 珥덇린?? role=architect, domain=['system design', 'api', 'architecture'], pos=2
+[Bench-Builder] ?쨼 ?먯씠?꾪듃 珥덇린?? role=builder, domain=['python', 'implementation', 'code', 'fastapi'], pos=6
+[Bench-Validator] ?쨼 ?먯씠?꾪듃 珥덇린?? role=validator, domain=['testing', 'security', 'validation', 'review', 'python', 'implementation', 'fastapi'], pos=11
+[DataUniverse] ?뙮 ?⑥븮 ?ы븯: Bench-Architect ???꾩튂[2] ?먮꼫吏=1.00 | 'You are generating a SWE-bench predictio'
+Retrying request to /v1/messages in 0.491494 seconds
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+[RedisStore] Redis ?쒕쾭 ?곌껐 ?ㅽ뙣 (Timeout connecting to server). 濡쒖뺄 ?몃찓紐⑤━ ?泥?紐⑤뱶瑜??ъ슜?⑸땲??
+[FAISSStore] FAISS FlatIP ?몃뜳?ㅺ? ?쒖꽦?붾릺?덉뒿?덈떎 (李⑥썝=256).
+[DataUniverse] 珥덇린???꾨즺: dim=256, grid=16x256
+[DataUniverse] 臾쇰━ ?곸닔: G=0.05, c=1.0, 침=0.01
+[Bench-Architect] ?쨼 ?먯씠?꾪듃 珥덇린?? role=architect, domain=['system design', 'api', 'architecture'], pos=2
+[Bench-Builder] ?쨼 ?먯씠?꾪듃 珥덇린?? role=builder, domain=['python', 'implementation', 'code', 'fastapi'], pos=6
+[Bench-Validator] ?쨼 ?먯씠?꾪듃 珥덇린?? role=validator, domain=['testing', 'security', 'validation', 'review', 'python', 'implementation', 'fastapi'], pos=11
+[DataUniverse] ?뙮 ?⑥븮 ?ы븯: Bench-Architect ???꾩튂[2] ?먮꼫吏=1.00 | 'You are generating a SWE-bench predictio'
+Retrying request to /v1/messages in 0.453500 seconds
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+[harmonet_validate] 4/30 astropy__astropy-14995 VALID_REPAIR 14798tok 11.3s
+[RedisStore] Redis ?쒕쾭 ?곌껐 ?ㅽ뙣 (Timeout connecting to server). 濡쒖뺄 ?몃찓紐⑤━ ?泥?紐⑤뱶瑜??ъ슜?⑸땲??
+[FAISSStore] FAISS FlatIP ?몃뜳?ㅺ? ?쒖꽦?붾릺?덉뒿?덈떎 (李⑥썝=256).
+[DataUniverse] 珥덇린???꾨즺: dim=256, grid=16x256
+[DataUniverse] 臾쇰━ ?곸닔: G=0.05, c=1.0, 침=0.01
+[Bench-Architect] ?쨼 ?먯씠?꾪듃 珥덇린?? role=architect, domain=['system design', 'api', 'architecture'], pos=2
+[Bench-Builder] ?쨼 ?먯씠?꾪듃 珥덇린?? role=builder, domain=['python', 'implementation', 'code', 'fastapi'], pos=6
+[Bench-Validator] ?쨼 ?먯씠?꾪듃 珥덇린?? role=validator, domain=['testing', 'security', 'validation', 'review', 'python', 'implementation', 'fastapi'], pos=11
+[DataUniverse] ?뙮 ?⑥븮 ?ы븯: Bench-Architect ???꾩튂[2] ?먮꼫吏=1.00 | 'You are generating a SWE-bench predictio'
+Retrying request to /v1/messages in 0.471497 seconds
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+[RedisStore] Redis ?쒕쾭 ?곌껐 ?ㅽ뙣 (Timeout connecting to server). 濡쒖뺄 ?몃찓紐⑤━ ?泥?紐⑤뱶瑜??ъ슜?⑸땲??
+[FAISSStore] FAISS FlatIP ?몃뜳?ㅺ? ?쒖꽦?붾릺?덉뒿?덈떎 (李⑥썝=256).
+[DataUniverse] 珥덇린???꾨즺: dim=256, grid=16x256
+[DataUniverse] 臾쇰━ ?곸닔: G=0.05, c=1.0, 침=0.01
+[Bench-Architect] ?쨼 ?먯씠?꾪듃 珥덇린?? role=architect, domain=['system design', 'api', 'architecture'], pos=2
+[Bench-Builder] ?쨼 ?먯씠?꾪듃 珥덇린?? role=builder, domain=['python', 'implementation', 'code', 'fastapi'], pos=6
+[Bench-Validator] ?쨼 ?먯씠?꾪듃 珥덇린?? role=validator, domain=['testing', 'security', 'validation', 'review', 'python', 'implementation', 'fastapi'], pos=11
+[DataUniverse] ?뙮 ?⑥븮 ?ы븯: Bench-Architect ???꾩튂[2] ?먮꼫吏=1.00 | 'You are generating a SWE-bench predictio'
+Retrying request to /v1/messages in 0.399282 seconds
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+[harmonet_validate] 5/30 astropy__astropy-6938 VALID_REPAIR 11176tok 10.5s
+[RedisStore] Redis ?쒕쾭 ?곌껐 ?ㅽ뙣 (Timeout connecting to server). 濡쒖뺄 ?몃찓紐⑤━ ?泥?紐⑤뱶瑜??ъ슜?⑸땲??
+[FAISSStore] FAISS FlatIP ?몃뜳?ㅺ? ?쒖꽦?붾릺?덉뒿?덈떎 (李⑥썝=256).
+[DataUniverse] 珥덇린???꾨즺: dim=256, grid=16x256
+[DataUniverse] 臾쇰━ ?곸닔: G=0.05, c=1.0, 침=0.01
+[Bench-Architect] ?쨼 ?먯씠?꾪듃 珥덇린?? role=architect, domain=['system design', 'api', 'architecture'], pos=2
+[Bench-Builder] ?쨼 ?먯씠?꾪듃 珥덇린?? role=builder, domain=['python', 'implementation', 'code', 'fastapi'], pos=6
+[Bench-Validator] ?쨼 ?먯씠?꾪듃 珥덇린?? role=validator, domain=['testing', 'security', 'validation', 'review', 'python', 'implementation', 'fastapi'], pos=11
+[DataUniverse] ?뙮 ?⑥븮 ?ы븯: Bench-Architect ???꾩튂[2] ?먮꼫吏=1.00 | 'You are generating a SWE-bench predictio'
+Retrying request to /v1/messages in 0.477348 seconds
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+[RedisStore] Redis ?쒕쾭 ?곌껐 ?ㅽ뙣 (Timeout connecting to server). 濡쒖뺄 ?몃찓紐⑤━ ?泥?紐⑤뱶瑜??ъ슜?⑸땲??
+[FAISSStore] FAISS FlatIP ?몃뜳?ㅺ? ?쒖꽦?붾릺?덉뒿?덈떎 (李⑥썝=256).
+[DataUniverse] 珥덇린???꾨즺: dim=256, grid=16x256
+[DataUniverse] 臾쇰━ ?곸닔: G=0.05, c=1.0, 침=0.01
+[Bench-Architect] ?쨼 ?먯씠?꾪듃 珥덇린?? role=architect, domain=['system design', 'api', 'architecture'], pos=2
+[Bench-Builder] ?쨼 ?먯씠?꾪듃 珥덇린?? role=builder, domain=['python', 'implementation', 'code', 'fastapi'], pos=6
+[Bench-Validator] ?쨼 ?먯씠?꾪듃 珥덇린?? role=validator, domain=['testing', 'security', 'validation', 'review', 'python', 'implementation', 'fastapi'], pos=11
+[DataUniverse] ?뙮 ?⑥븮 ?ы븯: Bench-Architect ???꾩튂[2] ?먮꼫吏=1.00 | 'You are generating a SWE-bench predictio'
+Retrying request to /v1/messages in 0.482287 seconds
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+[harmonet_validate] 6/30 astropy__astropy-7746 VALID_REPAIR 12831tok 13.9s
+[RedisStore] Redis ?쒕쾭 ?곌껐 ?ㅽ뙣 (Timeout connecting to server). 濡쒖뺄 ?몃찓紐⑤━ ?泥?紐⑤뱶瑜??ъ슜?⑸땲??
+[FAISSStore] FAISS FlatIP ?몃뜳?ㅺ? ?쒖꽦?붾릺?덉뒿?덈떎 (李⑥썝=256).
+[DataUniverse] 珥덇린???꾨즺: dim=256, grid=16x256
+[DataUniverse] 臾쇰━ ?곸닔: G=0.05, c=1.0, 침=0.01
+[Bench-Architect] ?쨼 ?먯씠?꾪듃 珥덇린?? role=architect, domain=['system design', 'api', 'architecture'], pos=2
+[Bench-Builder] ?쨼 ?먯씠?꾪듃 珥덇린?? role=builder, domain=['python', 'implementation', 'code', 'fastapi'], pos=6
+[Bench-Validator] ?쨼 ?먯씠?꾪듃 珥덇린?? role=validator, domain=['testing', 'security', 'validation', 'review', 'python', 'implementation', 'fastapi'], pos=11
+[DataUniverse] ?뙮 ?⑥븮 ?ы븯: Bench-Architect ???꾩튂[2] ?먮꼫吏=1.00 | 'You are generating a SWE-bench predictio'
+Retrying request to /v1/messages in 0.459220 seconds
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+[harmonet_validate] 7/30 django__django-10914 VALID 5844tok 9.9s
+[RedisStore] Redis ?쒕쾭 ?곌껐 ?ㅽ뙣 (Timeout connecting to server). 濡쒖뺄 ?몃찓紐⑤━ ?泥?紐⑤뱶瑜??ъ슜?⑸땲??
+[FAISSStore] FAISS FlatIP ?몃뜳?ㅺ? ?쒖꽦?붾릺?덉뒿?덈떎 (李⑥썝=256).
+[DataUniverse] 珥덇린???꾨즺: dim=256, grid=16x256
+[DataUniverse] 臾쇰━ ?곸닔: G=0.05, c=1.0, 침=0.01
+[Bench-Architect] ?쨼 ?먯씠?꾪듃 珥덇린?? role=architect, domain=['system design', 'api', 'architecture'], pos=2
+[Bench-Builder] ?쨼 ?먯씠?꾪듃 珥덇린?? role=builder, domain=['python', 'implementation', 'code', 'fastapi'], pos=6
+[Bench-Validator] ?쨼 ?먯씠?꾪듃 珥덇린?? role=validator, domain=['testing', 'security', 'validation', 'review', 'python', 'implementation', 'fastapi'], pos=11
+[DataUniverse] ?뙮 ?⑥븮 ?ы븯: Bench-Architect ???꾩튂[2] ?먮꼫吏=1.00 | 'You are generating a SWE-bench predictio'
+Retrying request to /v1/messages in 0.417118 seconds
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+[RedisStore] Redis ?쒕쾭 ?곌껐 ?ㅽ뙣 (Timeout connecting to server). 濡쒖뺄 ?몃찓紐⑤━ ?泥?紐⑤뱶瑜??ъ슜?⑸땲??
+[FAISSStore] FAISS FlatIP ?몃뜳?ㅺ? ?쒖꽦?붾릺?덉뒿?덈떎 (李⑥썝=256).
+[DataUniverse] 珥덇린???꾨즺: dim=256, grid=16x256
+[DataUniverse] 臾쇰━ ?곸닔: G=0.05, c=1.0, 침=0.01
+[Bench-Architect] ?쨼 ?먯씠?꾪듃 珥덇린?? role=architect, domain=['system design', 'api', 'architecture'], pos=2
+[Bench-Builder] ?쨼 ?먯씠?꾪듃 珥덇린?? role=builder, domain=['python', 'implementation', 'code', 'fastapi'], pos=6
+[Bench-Validator] ?쨼 ?먯씠?꾪듃 珥덇린?? role=validator, domain=['testing', 'security', 'validation', 'review', 'python', 'implementation', 'fastapi'], pos=11
+[DataUniverse] ?뙮 ?⑥븮 ?ы븯: Bench-Architect ???꾩튂[2] ?먮꼫吏=1.00 | 'You are generating a SWE-bench predictio'
+Retrying request to /v1/messages in 0.497114 seconds
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+[harmonet_validate] 8/30 django__django-10924 EMPTY 17381tok 21.9s
+[RedisStore] Redis ?쒕쾭 ?곌껐 ?ㅽ뙣 (Timeout connecting to server). 濡쒖뺄 ?몃찓紐⑤━ ?泥?紐⑤뱶瑜??ъ슜?⑸땲??
+[FAISSStore] FAISS FlatIP ?몃뜳?ㅺ? ?쒖꽦?붾릺?덉뒿?덈떎 (李⑥썝=256).
+[DataUniverse] 珥덇린???꾨즺: dim=256, grid=16x256
+[DataUniverse] 臾쇰━ ?곸닔: G=0.05, c=1.0, 침=0.01
+[Bench-Architect] ?쨼 ?먯씠?꾪듃 珥덇린?? role=architect, domain=['system design', 'api', 'architecture'], pos=2
+[Bench-Builder] ?쨼 ?먯씠?꾪듃 珥덇린?? role=builder, domain=['python', 'implementation', 'code', 'fastapi'], pos=6
+[Bench-Validator] ?쨼 ?먯씠?꾪듃 珥덇린?? role=validator, domain=['testing', 'security', 'validation', 'review', 'python', 'implementation', 'fastapi'], pos=11
+[DataUniverse] ?뙮 ?⑥븮 ?ы븯: Bench-Architect ???꾩튂[2] ?먮꼫吏=1.00 | 'You are generating a SWE-bench predictio'
+Retrying request to /v1/messages in 0.445241 seconds
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+[RedisStore] Redis ?쒕쾭 ?곌껐 ?ㅽ뙣 (Timeout connecting to server). 濡쒖뺄 ?몃찓紐⑤━ ?泥?紐⑤뱶瑜??ъ슜?⑸땲??
+[FAISSStore] FAISS FlatIP ?몃뜳?ㅺ? ?쒖꽦?붾릺?덉뒿?덈떎 (李⑥썝=256).
+[DataUniverse] 珥덇린???꾨즺: dim=256, grid=16x256
+[DataUniverse] 臾쇰━ ?곸닔: G=0.05, c=1.0, 침=0.01
+[Bench-Architect] ?쨼 ?먯씠?꾪듃 珥덇린?? role=architect, domain=['system design', 'api', 'architecture'], pos=2
+[Bench-Builder] ?쨼 ?먯씠?꾪듃 珥덇린?? role=builder, domain=['python', 'implementation', 'code', 'fastapi'], pos=6
+[Bench-Validator] ?쨼 ?먯씠?꾪듃 珥덇린?? role=validator, domain=['testing', 'security', 'validation', 'review', 'python', 'implementation', 'fastapi'], pos=11
+[DataUniverse] ?뙮 ?⑥븮 ?ы븯: Bench-Architect ???꾩튂[2] ?먮꼫吏=1.00 | 'You are generating a SWE-bench predictio'
+Retrying request to /v1/messages in 0.460185 seconds
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+[harmonet_validate] 9/30 django__django-11001 VALID_REPAIR 12665tok 18.7s
+[RedisStore] Redis ?쒕쾭 ?곌껐 ?ㅽ뙣 (Timeout connecting to server). 濡쒖뺄 ?몃찓紐⑤━ ?泥?紐⑤뱶瑜??ъ슜?⑸땲??
+[FAISSStore] FAISS FlatIP ?몃뜳?ㅺ? ?쒖꽦?붾릺?덉뒿?덈떎 (李⑥썝=256).
+[DataUniverse] 珥덇린???꾨즺: dim=256, grid=16x256
+[DataUniverse] 臾쇰━ ?곸닔: G=0.05, c=1.0, 침=0.01
+[Bench-Architect] ?쨼 ?먯씠?꾪듃 珥덇린?? role=architect, domain=['system design', 'api', 'architecture'], pos=2
+[Bench-Builder] ?쨼 ?먯씠?꾪듃 珥덇린?? role=builder, domain=['python', 'implementation', 'code', 'fastapi'], pos=6
+[Bench-Validator] ?쨼 ?먯씠?꾪듃 珥덇린?? role=validator, domain=['testing', 'security', 'validation', 'review', 'python', 'implementation', 'fastapi'], pos=11
+[DataUniverse] ?뙮 ?⑥븮 ?ы븯: Bench-Architect ???꾩튂[2] ?먮꼫吏=1.00 | 'You are generating a SWE-bench predictio'
+Retrying request to /v1/messages in 0.421159 seconds
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+[harmonet_validate] 10/30 django__django-11019 VALID 7840tok 11.3s
+[RedisStore] Redis ?쒕쾭 ?곌껐 ?ㅽ뙣 (Timeout connecting to server). 濡쒖뺄 ?몃찓紐⑤━ ?泥?紐⑤뱶瑜??ъ슜?⑸땲??
+[FAISSStore] FAISS FlatIP ?몃뜳?ㅺ? ?쒖꽦?붾릺?덉뒿?덈떎 (李⑥썝=256).
+[DataUniverse] 珥덇린???꾨즺: dim=256, grid=16x256
+[DataUniverse] 臾쇰━ ?곸닔: G=0.05, c=1.0, 침=0.01
+[Bench-Architect] ?쨼 ?먯씠?꾪듃 珥덇린?? role=architect, domain=['system design', 'api', 'architecture'], pos=2
+[Bench-Builder] ?쨼 ?먯씠?꾪듃 珥덇린?? role=builder, domain=['python', 'implementation', 'code', 'fastapi'], pos=6
+[Bench-Validator] ?쨼 ?먯씠?꾪듃 珥덇린?? role=validator, domain=['testing', 'security', 'validation', 'review', 'python', 'implementation', 'fastapi'], pos=11
+[DataUniverse] ?뙮 ?⑥븮 ?ы븯: Bench-Architect ???꾩튂[2] ?먮꼫吏=1.00 | 'You are generating a SWE-bench predictio'
+Retrying request to /v1/messages in 0.411541 seconds
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+[harmonet_validate] 11/30 django__django-11039 VALID 1638tok 11.0s
+[RedisStore] Redis ?쒕쾭 ?곌껐 ?ㅽ뙣 (Timeout connecting to server). 濡쒖뺄 ?몃찓紐⑤━ ?泥?紐⑤뱶瑜??ъ슜?⑸땲??
+[FAISSStore] FAISS FlatIP ?몃뜳?ㅺ? ?쒖꽦?붾릺?덉뒿?덈떎 (李⑥썝=256).
+[DataUniverse] 珥덇린???꾨즺: dim=256, grid=16x256
+[DataUniverse] 臾쇰━ ?곸닔: G=0.05, c=1.0, 침=0.01
+[Bench-Architect] ?쨼 ?먯씠?꾪듃 珥덇린?? role=architect, domain=['system design', 'api', 'architecture'], pos=2
+[Bench-Builder] ?쨼 ?먯씠?꾪듃 珥덇린?? role=builder, domain=['python', 'implementation', 'code', 'fastapi'], pos=6
+[Bench-Validator] ?쨼 ?먯씠?꾪듃 珥덇린?? role=validator, domain=['testing', 'security', 'validation', 'review', 'python', 'implementation', 'fastapi'], pos=11
+[DataUniverse] ?뙮 ?⑥븮 ?ы븯: Bench-Architect ???꾩튂[2] ?먮꼫吏=1.00 | 'You are generating a SWE-bench predictio'
+Retrying request to /v1/messages in 0.391231 seconds
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+[RedisStore] Redis ?쒕쾭 ?곌껐 ?ㅽ뙣 (Timeout connecting to server). 濡쒖뺄 ?몃찓紐⑤━ ?泥?紐⑤뱶瑜??ъ슜?⑸땲??
+[FAISSStore] FAISS FlatIP ?몃뜳?ㅺ? ?쒖꽦?붾릺?덉뒿?덈떎 (李⑥썝=256).
+[DataUniverse] 珥덇린???꾨즺: dim=256, grid=16x256
+[DataUniverse] 臾쇰━ ?곸닔: G=0.05, c=1.0, 침=0.01
+[Bench-Architect] ?쨼 ?먯씠?꾪듃 珥덇린?? role=architect, domain=['system design', 'api', 'architecture'], pos=2
+[Bench-Builder] ?쨼 ?먯씠?꾪듃 珥덇린?? role=builder, domain=['python', 'implementation', 'code', 'fastapi'], pos=6
+[Bench-Validator] ?쨼 ?먯씠?꾪듃 珥덇린?? role=validator, domain=['testing', 'security', 'validation', 'review', 'python', 'implementation', 'fastapi'], pos=11
+[DataUniverse] ?뙮 ?⑥븮 ?ы븯: Bench-Architect ???꾩튂[2] ?먮꼫吏=1.00 | 'You are generating a SWE-bench predictio'
+Retrying request to /v1/messages in 0.489717 seconds
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+[harmonet_validate] 12/30 django__django-11049 EMPTY 10771tok 18.5s
+[RedisStore] Redis ?쒕쾭 ?곌껐 ?ㅽ뙣 (Timeout connecting to server). 濡쒖뺄 ?몃찓紐⑤━ ?泥?紐⑤뱶瑜??ъ슜?⑸땲??
+[FAISSStore] FAISS FlatIP ?몃뜳?ㅺ? ?쒖꽦?붾릺?덉뒿?덈떎 (李⑥썝=256).
+[DataUniverse] 珥덇린???꾨즺: dim=256, grid=16x256
+[DataUniverse] 臾쇰━ ?곸닔: G=0.05, c=1.0, 침=0.01
+[Bench-Architect] ?쨼 ?먯씠?꾪듃 珥덇린?? role=architect, domain=['system design', 'api', 'architecture'], pos=2
+[Bench-Builder] ?쨼 ?먯씠?꾪듃 珥덇린?? role=builder, domain=['python', 'implementation', 'code', 'fastapi'], pos=6
+[Bench-Validator] ?쨼 ?먯씠?꾪듃 珥덇린?? role=validator, domain=['testing', 'security', 'validation', 'review', 'python', 'implementation', 'fastapi'], pos=11
+[DataUniverse] ?뙮 ?⑥븮 ?ы븯: Bench-Architect ???꾩튂[2] ?먮꼫吏=1.00 | 'You are generating a SWE-bench predictio'
+Retrying request to /v1/messages in 0.412055 seconds
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+[harmonet_validate] 13/30 django__django-11099 VALID 1019tok 11.3s
+[RedisStore] Redis ?쒕쾭 ?곌껐 ?ㅽ뙣 (Timeout connecting to server). 濡쒖뺄 ?몃찓紐⑤━ ?泥?紐⑤뱶瑜??ъ슜?⑸땲??
+[FAISSStore] FAISS FlatIP ?몃뜳?ㅺ? ?쒖꽦?붾릺?덉뒿?덈떎 (李⑥썝=256).
+[DataUniverse] 珥덇린???꾨즺: dim=256, grid=16x256
+[DataUniverse] 臾쇰━ ?곸닔: G=0.05, c=1.0, 침=0.01
+[Bench-Architect] ?쨼 ?먯씠?꾪듃 珥덇린?? role=architect, domain=['system design', 'api', 'architecture'], pos=2
+[Bench-Builder] ?쨼 ?먯씠?꾪듃 珥덇린?? role=builder, domain=['python', 'implementation', 'code', 'fastapi'], pos=6
+[Bench-Validator] ?쨼 ?먯씠?꾪듃 珥덇린?? role=validator, domain=['testing', 'security', 'validation', 'review', 'python', 'implementation', 'fastapi'], pos=11
+[DataUniverse] ?뙮 ?⑥븮 ?ы븯: Bench-Architect ???꾩튂[2] ?먮꼫吏=1.00 | 'You are generating a SWE-bench predictio'
+Retrying request to /v1/messages in 0.485662 seconds
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+[harmonet_validate] 14/30 django__django-11133 VALID 4030tok 10.1s
+[RedisStore] Redis ?쒕쾭 ?곌껐 ?ㅽ뙣 (Timeout connecting to server). 濡쒖뺄 ?몃찓紐⑤━ ?泥?紐⑤뱶瑜??ъ슜?⑸땲??
+[FAISSStore] FAISS FlatIP ?몃뜳?ㅺ? ?쒖꽦?붾릺?덉뒿?덈떎 (李⑥썝=256).
+[DataUniverse] 珥덇린???꾨즺: dim=256, grid=16x256
+[DataUniverse] 臾쇰━ ?곸닔: G=0.05, c=1.0, 침=0.01
+[Bench-Architect] ?쨼 ?먯씠?꾪듃 珥덇린?? role=architect, domain=['system design', 'api', 'architecture'], pos=2
+[Bench-Builder] ?쨼 ?먯씠?꾪듃 珥덇린?? role=builder, domain=['python', 'implementation', 'code', 'fastapi'], pos=6
+[Bench-Validator] ?쨼 ?먯씠?꾪듃 珥덇린?? role=validator, domain=['testing', 'security', 'validation', 'review', 'python', 'implementation', 'fastapi'], pos=11
+[DataUniverse] ?뙮 ?⑥븮 ?ы븯: Bench-Architect ???꾩튂[2] ?먮꼫吏=1.00 | 'You are generating a SWE-bench predictio'
+Retrying request to /v1/messages in 0.417259 seconds
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+[harmonet_validate] 15/30 django__django-11179 VALID 3997tok 10.3s
+[RedisStore] Redis ?쒕쾭 ?곌껐 ?ㅽ뙣 (Timeout connecting to server). 濡쒖뺄 ?몃찓紐⑤━ ?泥?紐⑤뱶瑜??ъ슜?⑸땲??
+[FAISSStore] FAISS FlatIP ?몃뜳?ㅺ? ?쒖꽦?붾릺?덉뒿?덈떎 (李⑥썝=256).
+[DataUniverse] 珥덇린???꾨즺: dim=256, grid=16x256
+[DataUniverse] 臾쇰━ ?곸닔: G=0.05, c=1.0, 침=0.01
+[Bench-Architect] ?쨼 ?먯씠?꾪듃 珥덇린?? role=architect, domain=['system design', 'api', 'architecture'], pos=2
+[Bench-Builder] ?쨼 ?먯씠?꾪듃 珥덇린?? role=builder, domain=['python', 'implementation', 'code', 'fastapi'], pos=6
+[Bench-Validator] ?쨼 ?먯씠?꾪듃 珥덇린?? role=validator, domain=['testing', 'security', 'validation', 'review', 'python', 'implementation', 'fastapi'], pos=11
+[DataUniverse] ?뙮 ?⑥븮 ?ы븯: Bench-Architect ???꾩튂[2] ?먮꼫吏=1.00 | 'You are generating a SWE-bench predictio'
+Retrying request to /v1/messages in 0.433742 seconds
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+[harmonet_validate] 16/30 django__django-11283 VALID 2996tok 12.6s
+[RedisStore] Redis ?쒕쾭 ?곌껐 ?ㅽ뙣 (Timeout connecting to server). 濡쒖뺄 ?몃찓紐⑤━ ?泥?紐⑤뱶瑜??ъ슜?⑸땲??
+[FAISSStore] FAISS FlatIP ?몃뜳?ㅺ? ?쒖꽦?붾릺?덉뒿?덈떎 (李⑥썝=256).
+[DataUniverse] 珥덇린???꾨즺: dim=256, grid=16x256
+[DataUniverse] 臾쇰━ ?곸닔: G=0.05, c=1.0, 침=0.01
+[Bench-Architect] ?쨼 ?먯씠?꾪듃 珥덇린?? role=architect, domain=['system design', 'api', 'architecture'], pos=2
+[Bench-Builder] ?쨼 ?먯씠?꾪듃 珥덇린?? role=builder, domain=['python', 'implementation', 'code', 'fastapi'], pos=6
+[Bench-Validator] ?쨼 ?먯씠?꾪듃 珥덇린?? role=validator, domain=['testing', 'security', 'validation', 'review', 'python', 'implementation', 'fastapi'], pos=11
+[DataUniverse] ?뙮 ?⑥븮 ?ы븯: Bench-Architect ???꾩튂[2] ?먮꼫吏=1.00 | 'You are generating a SWE-bench predictio'
+Retrying request to /v1/messages in 0.487604 seconds
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+[harmonet_validate] 17/30 django__django-11422 VALID 4629tok 13.4s
+[RedisStore] Redis ?쒕쾭 ?곌껐 ?ㅽ뙣 (Timeout connecting to server). 濡쒖뺄 ?몃찓紐⑤━ ?泥?紐⑤뱶瑜??ъ슜?⑸땲??
+[FAISSStore] FAISS FlatIP ?몃뜳?ㅺ? ?쒖꽦?붾릺?덉뒿?덈떎 (李⑥썝=256).
+[DataUniverse] 珥덇린???꾨즺: dim=256, grid=16x256
+[DataUniverse] 臾쇰━ ?곸닔: G=0.05, c=1.0, 침=0.01
+[Bench-Architect] ?쨼 ?먯씠?꾪듃 珥덇린?? role=architect, domain=['system design', 'api', 'architecture'], pos=2
+[Bench-Builder] ?쨼 ?먯씠?꾪듃 珥덇린?? role=builder, domain=['python', 'implementation', 'code', 'fastapi'], pos=6
+[Bench-Validator] ?쨼 ?먯씠?꾪듃 珥덇린?? role=validator, domain=['testing', 'security', 'validation', 'review', 'python', 'implementation', 'fastapi'], pos=11
+[DataUniverse] ?뙮 ?⑥븮 ?ы븯: Bench-Architect ???꾩튂[2] ?먮꼫吏=1.00 | 'You are generating a SWE-bench predictio'
+Retrying request to /v1/messages in 0.483394 seconds
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+[harmonet_validate] 18/30 django__django-11564 VALID 4988tok 17.0s
+[RedisStore] Redis ?쒕쾭 ?곌껐 ?ㅽ뙣 (Timeout connecting to server). 濡쒖뺄 ?몃찓紐⑤━ ?泥?紐⑤뱶瑜??ъ슜?⑸땲??
+[FAISSStore] FAISS FlatIP ?몃뜳?ㅺ? ?쒖꽦?붾릺?덉뒿?덈떎 (李⑥썝=256).
+[DataUniverse] 珥덇린???꾨즺: dim=256, grid=16x256
+[DataUniverse] 臾쇰━ ?곸닔: G=0.05, c=1.0, 침=0.01
+[Bench-Architect] ?쨼 ?먯씠?꾪듃 珥덇린?? role=architect, domain=['system design', 'api', 'architecture'], pos=2
+[Bench-Builder] ?쨼 ?먯씠?꾪듃 珥덇린?? role=builder, domain=['python', 'implementation', 'code', 'fastapi'], pos=6
+[Bench-Validator] ?쨼 ?먯씠?꾪듃 珥덇린?? role=validator, domain=['testing', 'security', 'validation', 'review', 'python', 'implementation', 'fastapi'], pos=11
+[DataUniverse] ?뙮 ?⑥븮 ?ы븯: Bench-Architect ???꾩튂[2] ?먮꼫吏=1.00 | 'You are generating a SWE-bench predictio'
+Retrying request to /v1/messages in 0.497912 seconds
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+[harmonet_validate] 19/30 django__django-11583 VALID 6070tok 12.3s
+[RedisStore] Redis ?쒕쾭 ?곌껐 ?ㅽ뙣 (Timeout connecting to server). 濡쒖뺄 ?몃찓紐⑤━ ?泥?紐⑤뱶瑜??ъ슜?⑸땲??
+[FAISSStore] FAISS FlatIP ?몃뜳?ㅺ? ?쒖꽦?붾릺?덉뒿?덈떎 (李⑥썝=256).
+[DataUniverse] 珥덇린???꾨즺: dim=256, grid=16x256
+[DataUniverse] 臾쇰━ ?곸닔: G=0.05, c=1.0, 침=0.01
+[Bench-Architect] ?쨼 ?먯씠?꾪듃 珥덇린?? role=architect, domain=['system design', 'api', 'architecture'], pos=2
+[Bench-Builder] ?쨼 ?먯씠?꾪듃 珥덇린?? role=builder, domain=['python', 'implementation', 'code', 'fastapi'], pos=6
+[Bench-Validator] ?쨼 ?먯씠?꾪듃 珥덇린?? role=validator, domain=['testing', 'security', 'validation', 'review', 'python', 'implementation', 'fastapi'], pos=11
+[DataUniverse] ?뙮 ?⑥븮 ?ы븯: Bench-Architect ???꾩튂[2] ?먮꼫吏=1.00 | 'You are generating a SWE-bench predictio'
+Retrying request to /v1/messages in 0.491411 seconds
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+[RedisStore] Redis ?쒕쾭 ?곌껐 ?ㅽ뙣 (Timeout connecting to server). 濡쒖뺄 ?몃찓紐⑤━ ?泥?紐⑤뱶瑜??ъ슜?⑸땲??
+[FAISSStore] FAISS FlatIP ?몃뜳?ㅺ? ?쒖꽦?붾릺?덉뒿?덈떎 (李⑥썝=256).
+[DataUniverse] 珥덇린???꾨즺: dim=256, grid=16x256
+[DataUniverse] 臾쇰━ ?곸닔: G=0.05, c=1.0, 침=0.01
+[Bench-Architect] ?쨼 ?먯씠?꾪듃 珥덇린?? role=architect, domain=['system design', 'api', 'architecture'], pos=2
+[Bench-Builder] ?쨼 ?먯씠?꾪듃 珥덇린?? role=builder, domain=['python', 'implementation', 'code', 'fastapi'], pos=6
+[Bench-Validator] ?쨼 ?먯씠?꾪듃 珥덇린?? role=validator, domain=['testing', 'security', 'validation', 'review', 'python', 'implementation', 'fastapi'], pos=11
+[DataUniverse] ?뙮 ?⑥븮 ?ы븯: Bench-Architect ???꾩튂[2] ?먮꼫吏=1.00 | 'You are generating a SWE-bench predictio'
+Retrying request to /v1/messages in 0.444937 seconds
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+[harmonet_validate] 20/30 django__django-11620 EMPTY 10836tok 21.8s
+[RedisStore] Redis ?쒕쾭 ?곌껐 ?ㅽ뙣 (Timeout connecting to server). 濡쒖뺄 ?몃찓紐⑤━ ?泥?紐⑤뱶瑜??ъ슜?⑸땲??
+[FAISSStore] FAISS FlatIP ?몃뜳?ㅺ? ?쒖꽦?붾릺?덉뒿?덈떎 (李⑥썝=256).
+[DataUniverse] 珥덇린???꾨즺: dim=256, grid=16x256
+[DataUniverse] 臾쇰━ ?곸닔: G=0.05, c=1.0, 침=0.01
+[Bench-Architect] ?쨼 ?먯씠?꾪듃 珥덇린?? role=architect, domain=['system design', 'api', 'architecture'], pos=2
+[Bench-Builder] ?쨼 ?먯씠?꾪듃 珥덇린?? role=builder, domain=['python', 'implementation', 'code', 'fastapi'], pos=6
+[Bench-Validator] ?쨼 ?먯씠?꾪듃 珥덇린?? role=validator, domain=['testing', 'security', 'validation', 'review', 'python', 'implementation', 'fastapi'], pos=11
+[DataUniverse] ?뙮 ?⑥븮 ?ы븯: Bench-Architect ???꾩튂[2] ?먮꼫吏=1.00 | 'You are generating a SWE-bench predictio'
+Retrying request to /v1/messages in 0.451373 seconds
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+[harmonet_validate] 21/30 django__django-11630 VALID 3286tok 12.9s
+[RedisStore] Redis ?쒕쾭 ?곌껐 ?ㅽ뙣 (Timeout connecting to server). 濡쒖뺄 ?몃찓紐⑤━ ?泥?紐⑤뱶瑜??ъ슜?⑸땲??
+[FAISSStore] FAISS FlatIP ?몃뜳?ㅺ? ?쒖꽦?붾릺?덉뒿?덈떎 (李⑥썝=256).
+[DataUniverse] 珥덇린???꾨즺: dim=256, grid=16x256
+[DataUniverse] 臾쇰━ ?곸닔: G=0.05, c=1.0, 침=0.01
+[Bench-Architect] ?쨼 ?먯씠?꾪듃 珥덇린?? role=architect, domain=['system design', 'api', 'architecture'], pos=2
+[Bench-Builder] ?쨼 ?먯씠?꾪듃 珥덇린?? role=builder, domain=['python', 'implementation', 'code', 'fastapi'], pos=6
+[Bench-Validator] ?쨼 ?먯씠?꾪듃 珥덇린?? role=validator, domain=['testing', 'security', 'validation', 'review', 'python', 'implementation', 'fastapi'], pos=11
+[DataUniverse] ?뙮 ?⑥븮 ?ы븯: Bench-Architect ???꾩튂[2] ?먮꼫吏=1.00 | 'You are generating a SWE-bench predictio'
+Retrying request to /v1/messages in 0.455665 seconds
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+[harmonet_validate] 22/30 django__django-11742 VALID 4195tok 13.0s
+[RedisStore] Redis ?쒕쾭 ?곌껐 ?ㅽ뙣 (Timeout connecting to server). 濡쒖뺄 ?몃찓紐⑤━ ?泥?紐⑤뱶瑜??ъ슜?⑸땲??
+[FAISSStore] FAISS FlatIP ?몃뜳?ㅺ? ?쒖꽦?붾릺?덉뒿?덈떎 (李⑥썝=256).
+[DataUniverse] 珥덇린???꾨즺: dim=256, grid=16x256
+[DataUniverse] 臾쇰━ ?곸닔: G=0.05, c=1.0, 침=0.01
+[Bench-Architect] ?쨼 ?먯씠?꾪듃 珥덇린?? role=architect, domain=['system design', 'api', 'architecture'], pos=2
+[Bench-Builder] ?쨼 ?먯씠?꾪듃 珥덇린?? role=builder, domain=['python', 'implementation', 'code', 'fastapi'], pos=6
+[Bench-Validator] ?쨼 ?먯씠?꾪듃 珥덇린?? role=validator, domain=['testing', 'security', 'validation', 'review', 'python', 'implementation', 'fastapi'], pos=11
+[DataUniverse] ?뙮 ?⑥븮 ?ы븯: Bench-Architect ???꾩튂[2] ?먮꼫吏=1.00 | 'You are generating a SWE-bench predictio'
+Retrying request to /v1/messages in 0.443560 seconds
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+[harmonet_validate] 23/30 django__django-11797 VALID 5320tok 11.6s
+[RedisStore] Redis ?쒕쾭 ?곌껐 ?ㅽ뙣 (Timeout connecting to server). 濡쒖뺄 ?몃찓紐⑤━ ?泥?紐⑤뱶瑜??ъ슜?⑸땲??
+[FAISSStore] FAISS FlatIP ?몃뜳?ㅺ? ?쒖꽦?붾릺?덉뒿?덈떎 (李⑥썝=256).
+[DataUniverse] 珥덇린???꾨즺: dim=256, grid=16x256
+[DataUniverse] 臾쇰━ ?곸닔: G=0.05, c=1.0, 침=0.01
+[Bench-Architect] ?쨼 ?먯씠?꾪듃 珥덇린?? role=architect, domain=['system design', 'api', 'architecture'], pos=2
+[Bench-Builder] ?쨼 ?먯씠?꾪듃 珥덇린?? role=builder, domain=['python', 'implementation', 'code', 'fastapi'], pos=6
+[Bench-Validator] ?쨼 ?먯씠?꾪듃 珥덇린?? role=validator, domain=['testing', 'security', 'validation', 'review', 'python', 'implementation', 'fastapi'], pos=11
+[DataUniverse] ?뙮 ?⑥븮 ?ы븯: Bench-Architect ???꾩튂[2] ?먮꼫吏=1.00 | 'You are generating a SWE-bench predictio'
+Retrying request to /v1/messages in 0.435851 seconds
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+[harmonet_validate] 24/30 django__django-11815 VALID 4986tok 12.1s
+[RedisStore] Redis ?쒕쾭 ?곌껐 ?ㅽ뙣 (Timeout connecting to server). 濡쒖뺄 ?몃찓紐⑤━ ?泥?紐⑤뱶瑜??ъ슜?⑸땲??
+[FAISSStore] FAISS FlatIP ?몃뜳?ㅺ? ?쒖꽦?붾릺?덉뒿?덈떎 (李⑥썝=256).
+[DataUniverse] 珥덇린???꾨즺: dim=256, grid=16x256
+[DataUniverse] 臾쇰━ ?곸닔: G=0.05, c=1.0, 침=0.01
+[Bench-Architect] ?쨼 ?먯씠?꾪듃 珥덇린?? role=architect, domain=['system design', 'api', 'architecture'], pos=2
+[Bench-Builder] ?쨼 ?먯씠?꾪듃 珥덇린?? role=builder, domain=['python', 'implementation', 'code', 'fastapi'], pos=6
+[Bench-Validator] ?쨼 ?먯씠?꾪듃 珥덇린?? role=validator, domain=['testing', 'security', 'validation', 'review', 'python', 'implementation', 'fastapi'], pos=11
+[DataUniverse] ?뙮 ?⑥븮 ?ы븯: Bench-Architect ???꾩튂[2] ?먮꼫吏=1.00 | 'You are generating a SWE-bench predictio'
+Retrying request to /v1/messages in 0.385301 seconds
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+[harmonet_validate] 25/30 django__django-11848 VALID 5178tok 11.7s
+[RedisStore] Redis ?쒕쾭 ?곌껐 ?ㅽ뙣 (Timeout connecting to server). 濡쒖뺄 ?몃찓紐⑤━ ?泥?紐⑤뱶瑜??ъ슜?⑸땲??
+[FAISSStore] FAISS FlatIP ?몃뜳?ㅺ? ?쒖꽦?붾릺?덉뒿?덈떎 (李⑥썝=256).
+[DataUniverse] 珥덇린???꾨즺: dim=256, grid=16x256
+[DataUniverse] 臾쇰━ ?곸닔: G=0.05, c=1.0, 침=0.01
+[Bench-Architect] ?쨼 ?먯씠?꾪듃 珥덇린?? role=architect, domain=['system design', 'api', 'architecture'], pos=2
+[Bench-Builder] ?쨼 ?먯씠?꾪듃 珥덇린?? role=builder, domain=['python', 'implementation', 'code', 'fastapi'], pos=6
+[Bench-Validator] ?쨼 ?먯씠?꾪듃 珥덇린?? role=validator, domain=['testing', 'security', 'validation', 'review', 'python', 'implementation', 'fastapi'], pos=11
+[DataUniverse] ?뙮 ?⑥븮 ?ы븯: Bench-Architect ???꾩튂[2] ?먮꼫吏=1.00 | 'You are generating a SWE-bench predictio'
+Retrying request to /v1/messages in 0.398753 seconds
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+[harmonet_validate] 26/30 django__django-11905 VALID 5564tok 10.8s
+[RedisStore] Redis ?쒕쾭 ?곌껐 ?ㅽ뙣 (Timeout connecting to server). 濡쒖뺄 ?몃찓紐⑤━ ?泥?紐⑤뱶瑜??ъ슜?⑸땲??
+[FAISSStore] FAISS FlatIP ?몃뜳?ㅺ? ?쒖꽦?붾릺?덉뒿?덈떎 (李⑥썝=256).
+[DataUniverse] 珥덇린???꾨즺: dim=256, grid=16x256
+[DataUniverse] 臾쇰━ ?곸닔: G=0.05, c=1.0, 침=0.01
+[Bench-Architect] ?쨼 ?먯씠?꾪듃 珥덇린?? role=architect, domain=['system design', 'api', 'architecture'], pos=2
+[Bench-Builder] ?쨼 ?먯씠?꾪듃 珥덇린?? role=builder, domain=['python', 'implementation', 'code', 'fastapi'], pos=6
+[Bench-Validator] ?쨼 ?먯씠?꾪듃 珥덇린?? role=validator, domain=['testing', 'security', 'validation', 'review', 'python', 'implementation', 'fastapi'], pos=11
+[DataUniverse] ?뙮 ?⑥븮 ?ы븯: Bench-Architect ???꾩튂[2] ?먮꼫吏=1.00 | 'You are generating a SWE-bench predictio'
+Retrying request to /v1/messages in 0.499612 seconds
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+[RedisStore] Redis ?쒕쾭 ?곌껐 ?ㅽ뙣 (Timeout connecting to server). 濡쒖뺄 ?몃찓紐⑤━ ?泥?紐⑤뱶瑜??ъ슜?⑸땲??
+[FAISSStore] FAISS FlatIP ?몃뜳?ㅺ? ?쒖꽦?붾릺?덉뒿?덈떎 (李⑥썝=256).
+[DataUniverse] 珥덇린???꾨즺: dim=256, grid=16x256
+[DataUniverse] 臾쇰━ ?곸닔: G=0.05, c=1.0, 침=0.01
+[Bench-Architect] ?쨼 ?먯씠?꾪듃 珥덇린?? role=architect, domain=['system design', 'api', 'architecture'], pos=2
+[Bench-Builder] ?쨼 ?먯씠?꾪듃 珥덇린?? role=builder, domain=['python', 'implementation', 'code', 'fastapi'], pos=6
+[Bench-Validator] ?쨼 ?먯씠?꾪듃 珥덇린?? role=validator, domain=['testing', 'security', 'validation', 'review', 'python', 'implementation', 'fastapi'], pos=11
+[DataUniverse] ?뙮 ?⑥븮 ?ы븯: Bench-Architect ???꾩튂[2] ?먮꼫吏=1.00 | 'You are generating a SWE-bench predictio'
+Retrying request to /v1/messages in 0.454824 seconds
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+[harmonet_validate] 27/30 django__django-11910 EMPTY 12601tok 23.0s
+[RedisStore] Redis ?쒕쾭 ?곌껐 ?ㅽ뙣 (Timeout connecting to server). 濡쒖뺄 ?몃찓紐⑤━ ?泥?紐⑤뱶瑜??ъ슜?⑸땲??
+[FAISSStore] FAISS FlatIP ?몃뜳?ㅺ? ?쒖꽦?붾릺?덉뒿?덈떎 (李⑥썝=256).
+[DataUniverse] 珥덇린???꾨즺: dim=256, grid=16x256
+[DataUniverse] 臾쇰━ ?곸닔: G=0.05, c=1.0, 침=0.01
+[Bench-Architect] ?쨼 ?먯씠?꾪듃 珥덇린?? role=architect, domain=['system design', 'api', 'architecture'], pos=2
+[Bench-Builder] ?쨼 ?먯씠?꾪듃 珥덇린?? role=builder, domain=['python', 'implementation', 'code', 'fastapi'], pos=6
+[Bench-Validator] ?쨼 ?먯씠?꾪듃 珥덇린?? role=validator, domain=['testing', 'security', 'validation', 'review', 'python', 'implementation', 'fastapi'], pos=11
+[DataUniverse] ?뙮 ?⑥븮 ?ы븯: Bench-Architect ???꾩튂[2] ?먮꼫吏=1.00 | 'You are generating a SWE-bench predictio'
+Retrying request to /v1/messages in 0.397492 seconds
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+[harmonet_validate] 28/30 django__django-11964 VALID 2255tok 11.9s
+[RedisStore] Redis ?쒕쾭 ?곌껐 ?ㅽ뙣 (Timeout connecting to server). 濡쒖뺄 ?몃찓紐⑤━ ?泥?紐⑤뱶瑜??ъ슜?⑸땲??
+[FAISSStore] FAISS FlatIP ?몃뜳?ㅺ? ?쒖꽦?붾릺?덉뒿?덈떎 (李⑥썝=256).
+[DataUniverse] 珥덇린???꾨즺: dim=256, grid=16x256
+[DataUniverse] 臾쇰━ ?곸닔: G=0.05, c=1.0, 침=0.01
+[Bench-Architect] ?쨼 ?먯씠?꾪듃 珥덇린?? role=architect, domain=['system design', 'api', 'architecture'], pos=2
+[Bench-Builder] ?쨼 ?먯씠?꾪듃 珥덇린?? role=builder, domain=['python', 'implementation', 'code', 'fastapi'], pos=6
+[Bench-Validator] ?쨼 ?먯씠?꾪듃 珥덇린?? role=validator, domain=['testing', 'security', 'validation', 'review', 'python', 'implementation', 'fastapi'], pos=11
+[DataUniverse] ?뙮 ?⑥븮 ?ы븯: Bench-Architect ???꾩튂[2] ?먮꼫吏=1.00 | 'You are generating a SWE-bench predictio'
+Retrying request to /v1/messages in 0.488478 seconds
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+[RedisStore] Redis ?쒕쾭 ?곌껐 ?ㅽ뙣 (Timeout connecting to server). 濡쒖뺄 ?몃찓紐⑤━ ?泥?紐⑤뱶瑜??ъ슜?⑸땲??
+[FAISSStore] FAISS FlatIP ?몃뜳?ㅺ? ?쒖꽦?붾릺?덉뒿?덈떎 (李⑥썝=256).
+[DataUniverse] 珥덇린???꾨즺: dim=256, grid=16x256
+[DataUniverse] 臾쇰━ ?곸닔: G=0.05, c=1.0, 침=0.01
+[Bench-Architect] ?쨼 ?먯씠?꾪듃 珥덇린?? role=architect, domain=['system design', 'api', 'architecture'], pos=2
+[Bench-Builder] ?쨼 ?먯씠?꾪듃 珥덇린?? role=builder, domain=['python', 'implementation', 'code', 'fastapi'], pos=6
+[Bench-Validator] ?쨼 ?먯씠?꾪듃 珥덇린?? role=validator, domain=['testing', 'security', 'validation', 'review', 'python', 'implementation', 'fastapi'], pos=11
+[DataUniverse] ?뙮 ?⑥븮 ?ы븯: Bench-Architect ???꾩튂[2] ?먮꼫吏=1.00 | 'You are generating a SWE-bench predictio'
+Retrying request to /v1/messages in 0.379857 seconds
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+[harmonet_validate] 29/30 django__django-11999 EMPTY 13843tok 19.8s
+[RedisStore] Redis ?쒕쾭 ?곌껐 ?ㅽ뙣 (Timeout connecting to server). 濡쒖뺄 ?몃찓紐⑤━ ?泥?紐⑤뱶瑜??ъ슜?⑸땲??
+[FAISSStore] FAISS FlatIP ?몃뜳?ㅺ? ?쒖꽦?붾릺?덉뒿?덈떎 (李⑥썝=256).
+[DataUniverse] 珥덇린???꾨즺: dim=256, grid=16x256
+[DataUniverse] 臾쇰━ ?곸닔: G=0.05, c=1.0, 침=0.01
+[Bench-Architect] ?쨼 ?먯씠?꾪듃 珥덇린?? role=architect, domain=['system design', 'api', 'architecture'], pos=2
+[Bench-Builder] ?쨼 ?먯씠?꾪듃 珥덇린?? role=builder, domain=['python', 'implementation', 'code', 'fastapi'], pos=6
+[Bench-Validator] ?쨼 ?먯씠?꾪듃 珥덇린?? role=validator, domain=['testing', 'security', 'validation', 'review', 'python', 'implementation', 'fastapi'], pos=11
+[DataUniverse] ?뙮 ?⑥븮 ?ы븯: Bench-Architect ???꾩튂[2] ?먮꼫吏=1.00 | 'You are generating a SWE-bench predictio'
+Retrying request to /v1/messages in 0.493423 seconds
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+[harmonet_validate] 30/30 django__django-12113 VALID 3586tok 11.9s
+Saved predictions: swe_fair\swe_harmonet_validate_anthropic_0_30.jsonl
+Saved generation metrics: swe_fair\swe_harmonet_validate_anthropic_0_30.metrics.csv
+EXIT=0

@@ -1,0 +1,36 @@
+instance_id,system,passed_generation,patch_applies,initial_patch_applies,valid_after_repair,dropped_invalid,repair_attempts,malformed_repairs,hunk_repairs,other_repairs,failure_kind,repair_modes,prompt_tokens,completion_tokens,total_tokens,latency_seconds,patch_chars,changed_files,error,apply_error
+astropy__astropy-12907,harmonet_validate,True,True,True,False,False,0,0,0,0,none,,3612,211,3823,11.2234,532,astropy/modeling/separable.py,,
+astropy__astropy-14182,harmonet_validate,True,True,True,False,False,0,0,0,0,none,,1426,197,1623,7.2149,487,astropy/io/ascii/rst.py,,
+astropy__astropy-14365,harmonet_validate,True,True,True,False,False,0,0,0,0,none,,4936,224,5160,6.8866,428,astropy/io/ascii/qdp.py,,
+astropy__astropy-14995,harmonet_validate,True,True,False,True,False,1,0,1,0,none,hunk_failed,14365,433,14798,11.3235,670,astropy/nddata/mixins/ndarithmetic.py,,
+astropy__astropy-6938,harmonet_validate,True,True,False,True,False,1,0,1,0,none,hunk_failed,10780,396,11176,10.4563,510,astropy/io/fits/fitsrec.py,,
+astropy__astropy-7746,harmonet_validate,True,True,False,True,False,1,0,1,0,none,hunk_failed,12273,558,12831,13.8825,695,astropy/wcs/wcs.py,,
+django__django-10914,harmonet_validate,True,True,True,False,False,0,0,0,0,none,,5623,221,5844,9.9074,626,django/conf/global_settings.py,,
+django__django-10924,harmonet_validate,False,False,False,False,True,1,0,1,0,hunk_failed,hunk_failed,16440,941,17381,21.9403,0,django/db/models/fields/__init__.py,,"error: patch failed: django/db/models/fields/__init__.py:1430
+error: django/db/models/fields/__init__.py: patch does not apply"
+django__django-11001,harmonet_validate,True,True,False,True,False,1,0,1,0,none,hunk_failed,12032,633,12665,18.6696,1365,django/db/models/sql/compiler.py,,
+django__django-11019,harmonet_validate,True,True,True,False,False,0,0,0,0,none,,7580,260,7840,11.2657,724,django/forms/widgets.py,,
+django__django-11039,harmonet_validate,True,True,True,False,False,0,0,0,0,none,,1415,223,1638,11.0429,737,django/core/management/commands/sqlmigrate.py,,
+django__django-11049,harmonet_validate,False,False,False,False,True,1,0,1,0,hunk_failed,hunk_failed,10363,408,10771,18.4727,0,django/db/models/fields/__init__.py,,"error: patch failed: django/db/models/fields/__init__.py:1450
+error: django/db/models/fields/__init__.py: patch does not apply"
+django__django-11099,harmonet_validate,True,True,True,False,False,0,0,0,0,none,,694,325,1019,11.329,895,django/contrib/auth/validators.py,,
+django__django-11133,harmonet_validate,True,True,True,False,False,0,0,0,0,none,,3864,166,4030,10.0642,518,django/http/response.py,,
+django__django-11179,harmonet_validate,True,True,True,False,False,0,0,0,0,none,,3795,202,3997,10.2823,608,django/db/models/deletion.py,,
+django__django-11283,harmonet_validate,True,True,True,False,False,0,0,0,0,none,,2476,520,2996,12.6117,1723,django/contrib/auth/migrations/0011_update_proxy_permissions.py,,
+django__django-11422,harmonet_validate,True,True,True,False,False,0,0,0,0,none,,4219,410,4629,13.4348,1355,django/utils/autoreload.py,,
+django__django-11564,harmonet_validate,True,True,True,False,False,0,0,0,0,none,,3964,1024,4988,16.9944,3733,django/conf/__init__.py,,
+django__django-11583,harmonet_validate,True,True,True,False,False,0,0,0,0,none,,5837,233,6070,12.3139,758,django/utils/autoreload.py,,
+django__django-11620,harmonet_validate,False,False,False,False,True,1,0,1,0,hunk_failed,hunk_failed,10078,758,10836,21.7757,0,django/views/debug.py,,"error: patch failed: django/views/debug.py:480
+error: django/views/debug.py: patch does not apply"
+django__django-11630,harmonet_validate,True,True,True,False,False,0,0,0,0,none,,2865,421,3286,12.8684,1345,django/core/checks/model_checks.py,,
+django__django-11742,harmonet_validate,True,True,True,False,False,0,0,0,0,none,,3640,555,4195,12.9777,1842,django/db/models/fields/__init__.py,,
+django__django-11797,harmonet_validate,True,True,True,False,False,0,0,0,0,none,,4996,324,5320,11.6041,1029,django/db/models/lookups.py,,
+django__django-11815,harmonet_validate,True,True,True,False,False,0,0,0,0,none,,4714,272,4986,12.083,792,django/db/migrations/serializer.py,,
+django__django-11848,harmonet_validate,True,True,True,False,False,0,0,0,0,none,,4822,356,5178,11.7305,1085,django/utils/http.py,,
+django__django-11905,harmonet_validate,True,True,True,False,False,0,0,0,0,none,,5347,217,5564,10.7606,608,django/db/models/lookups.py,,
+django__django-11910,harmonet_validate,False,False,False,False,True,1,0,1,0,hunk_failed,hunk_failed,11551,1050,12601,23.0363,0,django/db/migrations/autodetector.py,,"error: patch failed: django/db/migrations/autodetector.py:750
+error: django/db/migrations/autodetector.py: patch does not apply"
+django__django-11964,harmonet_validate,True,True,True,False,False,0,0,0,0,none,,1814,441,2255,11.8836,1238,django/db/models/enums.py,,
+django__django-11999,harmonet_validate,False,False,False,False,True,1,0,1,0,hunk_failed,hunk_failed,13074,769,13843,19.7913,0,django/db/models/fields/__init__.py,,"error: patch failed: django/db/models/fields/__init__.py:1995
+error: django/db/models/fields/__init__.py: patch does not apply"
+django__django-12113,harmonet_validate,True,True,True,False,False,0,0,0,0,none,,3306,280,3586,11.8651,897,django/db/backends/sqlite3/creation.py,,

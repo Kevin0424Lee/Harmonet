@@ -1,0 +1,42 @@
+﻿python : Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate l
+imits and faster downloads.
+위치 C:\Users\User\Documents\antigravity\harmonet\swe_fair\run_swe_gen.ps1:28 문자:1
++ python -X utf8 -m benchmark.swebench_g1 --name $Cond --offset $Offset ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Warning: You ar...ster downloads.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+[LLM] Anthropic ?대씪?댁뼵???쒖꽦??(claude-haiku-4-5) [HARMONET_LLM_BACKEND=anthropic]
+[single_validate] 1/30 astropy__astropy-12907 VALID 4310tok 11.7s
+[single_validate] 2/30 astropy__astropy-14182 VALID 1705tok 6.4s
+[single_validate] 3/30 astropy__astropy-14365 VALID 5064tok 6.6s
+[single_validate] 4/30 astropy__astropy-14995 VALID_REPAIR 15373tok 17.2s
+[single_validate] 5/30 astropy__astropy-6938 EMPTY 10831tok 14.6s
+[single_validate] 6/30 astropy__astropy-7746 VALID_REPAIR 13277tok 18.3s
+[single_validate] 7/30 django__django-10914 VALID 5751tok 10.2s
+[single_validate] 8/30 django__django-10924 EMPTY 16985tok 21.1s
+[single_validate] 9/30 django__django-11001 VALID_REPAIR 12610tok 19.0s
+[single_validate] 10/30 django__django-11019 VALID 7749tok 10.0s
+[single_validate] 11/30 django__django-11039 VALID 1540tok 10.4s
+[single_validate] 12/30 django__django-11049 EMPTY 10738tok 18.8s
+[single_validate] 13/30 django__django-11099 VALID 926tok 11.1s
+[single_validate] 14/30 django__django-11133 VALID 3953tok 10.3s
+[single_validate] 15/30 django__django-11179 VALID 3939tok 10.4s
+[single_validate] 16/30 django__django-11283 VALID 2907tok 12.8s
+[single_validate] 17/30 django__django-11422 VALID_REPAIR 12041tok 22.5s
+[single_validate] 18/30 django__django-11564 VALID_REPAIR 21635tok 47.7s
+[single_validate] 19/30 django__django-11583 VALID 6174tok 13.7s
+[single_validate] 20/30 django__django-11620 EMPTY 11320tok 22.9s
+[single_validate] 21/30 django__django-11630 VALID 3338tok 28.3s
+[single_validate] 22/30 django__django-11742 VALID 4168tok 14.8s
+[single_validate] 23/30 django__django-11797 VALID 5299tok 11.4s
+[single_validate] 24/30 django__django-11815 VALID 4892tok 11.4s
+[single_validate] 25/30 django__django-11848 VALID 5037tok 11.9s
+[single_validate] 26/30 django__django-11905 VALID 5470tok 11.3s
+[single_validate] 27/30 django__django-11910 EMPTY 13201tok 30.8s
+[single_validate] 28/30 django__django-11964 VALID 2744tok 16.5s
+[single_validate] 29/30 django__django-11999 EMPTY 13524tok 19.3s
+[single_validate] 30/30 django__django-12113 VALID 3589tok 12.3s
+Saved predictions: swe_fair\swe_single_validate_anthropic_0_30.jsonl
+Saved generation metrics: swe_fair\swe_single_validate_anthropic_0_30.metrics.csv
+EXIT=0

@@ -1,0 +1,42 @@
+﻿python : Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate l
+imits and faster downloads.
+위치 C:\Users\User\Documents\antigravity\harmonet\swe_fair\run_swe_gen.ps1:28 문자:1
++ python -X utf8 -m benchmark.swebench_g1 --name $Cond --offset $Offset ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Warning: You ar...ster downloads.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+[LLM] Anthropic ?대씪?댁뼵???쒖꽦??(claude-haiku-4-5) [HARMONET_LLM_BACKEND=anthropic]
+[single_novalidate] 1/30 astropy__astropy-12907 PATCH 4019tok 7.8s
+[single_novalidate] 2/30 astropy__astropy-14182 PATCH 1748tok 6.3s
+[single_novalidate] 3/30 astropy__astropy-14365 PATCH 5064tok 5.1s
+[single_novalidate] 4/30 astropy__astropy-14995 PATCH 6065tok 5.6s
+[single_novalidate] 5/30 astropy__astropy-6938 PATCH 3997tok 6.0s
+[single_novalidate] 6/30 astropy__astropy-7746 PATCH 5384tok 12.0s
+[single_novalidate] 7/30 django__django-10914 PATCH 5751tok 5.4s
+[single_novalidate] 8/30 django__django-10924 PATCH 5540tok 6.5s
+[single_novalidate] 9/30 django__django-11001 PATCH 4597tok 5.6s
+[single_novalidate] 10/30 django__django-11019 PATCH 7749tok 5.9s
+[single_novalidate] 11/30 django__django-11039 PATCH 1540tok 5.9s
+[single_novalidate] 12/30 django__django-11049 PATCH 3854tok 5.7s
+[single_novalidate] 13/30 django__django-11099 PATCH 926tok 6.1s
+[single_novalidate] 14/30 django__django-11133 PATCH 3953tok 5.0s
+[single_novalidate] 15/30 django__django-11179 PATCH 3939tok 5.3s
+[single_novalidate] 16/30 django__django-11283 PATCH 2907tok 7.6s
+[single_novalidate] 17/30 django__django-11422 PATCH 4610tok 8.6s
+[single_novalidate] 18/30 django__django-11564 PATCH 4897tok 12.3s
+[single_novalidate] 19/30 django__django-11583 PATCH 6117tok 8.3s
+[single_novalidate] 20/30 django__django-11620 PATCH 4761tok 12.3s
+[single_novalidate] 21/30 django__django-11630 PATCH 3657tok 9.1s
+[single_novalidate] 22/30 django__django-11742 PATCH 4204tok 9.7s
+[single_novalidate] 23/30 django__django-11797 PATCH 5370tok 8.6s
+[single_novalidate] 24/30 django__django-11815 PATCH 4892tok 7.9s
+[single_novalidate] 25/30 django__django-11848 PATCH 5037tok 7.1s
+[single_novalidate] 26/30 django__django-11905 PATCH 5470tok 6.8s
+[single_novalidate] 27/30 django__django-11910 PATCH 4768tok 13.6s
+[single_novalidate] 28/30 django__django-11964 PATCH 2546tok 8.3s
+[single_novalidate] 29/30 django__django-11999 PATCH 5284tok 7.0s
+[single_novalidate] 30/30 django__django-12113 PATCH 3584tok 7.3s
+Saved predictions: swe_fair\swe_single_novalidate_anthropic_0_30.jsonl
+Saved generation metrics: swe_fair\swe_single_novalidate_anthropic_0_30.metrics.csv
+EXIT=0

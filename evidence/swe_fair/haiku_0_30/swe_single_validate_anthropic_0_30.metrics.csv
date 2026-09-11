@@ -1,0 +1,37 @@
+instance_id,system,passed_generation,patch_applies,initial_patch_applies,valid_after_repair,dropped_invalid,repair_attempts,malformed_repairs,hunk_repairs,other_repairs,failure_kind,repair_modes,prompt_tokens,completion_tokens,total_tokens,latency_seconds,patch_chars,changed_files,error,apply_error
+astropy__astropy-12907,single_validate,True,True,True,False,False,0,0,0,0,none,,3519,791,4310,11.6856,432,astropy/modeling/separable.py,,
+astropy__astropy-14182,single_validate,True,True,True,False,False,0,0,0,0,none,,1332,373,1705,6.3809,527,astropy/io/ascii/rst.py,,
+astropy__astropy-14365,single_validate,True,True,True,False,False,0,0,0,0,none,,4840,224,5064,6.6468,428,astropy/io/ascii/qdp.py,,
+astropy__astropy-14995,single_validate,True,True,False,True,False,1,0,1,0,none,hunk_failed,14135,1238,15373,17.2369,641,astropy/nddata/mixins/ndarithmetic.py,,
+astropy__astropy-6938,single_validate,False,False,False,False,True,1,0,1,0,hunk_failed,hunk_failed,10018,813,10831,14.6116,0,astropy/io/fits/fitsrec.py,,"error: patch failed: astropy/io/fits/fitsrec.py:750
+error: astropy/io/fits/fitsrec.py: patch does not apply"
+astropy__astropy-7746,single_validate,True,True,False,True,False,1,0,1,0,none,hunk_failed,11929,1348,13277,18.2901,1011,astropy/wcs/wcs.py,,
+django__django-10914,single_validate,True,True,True,False,False,0,0,0,0,none,,5530,221,5751,10.1949,626,django/conf/global_settings.py,,
+django__django-10924,single_validate,False,False,False,False,True,1,0,1,0,hunk_failed,hunk_failed,16118,867,16985,21.1126,0,django/db/models/fields/__init__.py,,"error: patch failed: django/db/models/fields/__init__.py:1430
+error: django/db/models/fields/__init__.py: patch does not apply"
+django__django-11001,single_validate,True,True,False,True,False,1,0,1,0,none,hunk_failed,11928,682,12610,19.0351,1447,django/db/models/sql/compiler.py,,
+django__django-11019,single_validate,True,True,True,False,False,0,0,0,0,none,,7489,260,7749,9.9788,724,django/forms/widgets.py,,
+django__django-11039,single_validate,True,True,True,False,False,0,0,0,0,none,,1317,223,1540,10.3547,737,django/core/management/commands/sqlmigrate.py,,
+django__django-11049,single_validate,False,False,False,False,True,1,0,1,0,hunk_failed,hunk_failed,10180,558,10738,18.7936,0,django/db/models/fields/__init__.py,,"error: patch failed: django/db/models/fields/__init__.py:1397
+error: django/db/models/fields/__init__.py: patch does not apply"
+django__django-11099,single_validate,True,True,True,False,False,0,0,0,0,none,,601,325,926,11.1484,895,django/contrib/auth/validators.py,,
+django__django-11133,single_validate,True,True,True,False,False,0,0,0,0,none,,3773,180,3953,10.286,576,django/http/response.py,,
+django__django-11179,single_validate,True,True,True,False,False,0,0,0,0,none,,3702,237,3939,10.417,751,django/db/models/deletion.py,,
+django__django-11283,single_validate,True,True,True,False,False,0,0,0,0,none,,2374,533,2907,12.7927,1880,django/contrib/auth/migrations/0011_update_proxy_permissions.py,,
+django__django-11422,single_validate,True,True,False,True,False,1,0,1,0,none,hunk_failed,11177,864,12041,22.4793,1232,django/utils/autoreload.py,,
+django__django-11564,single_validate,True,True,False,True,False,3,2,1,0,none,malformed;malformed;hunk_failed,19077,2558,21635,47.6853,1220,django/conf/__init__.py,,
+django__django-11583,single_validate,True,True,True,False,False,0,0,0,0,none,,5744,430,6174,13.7459,992,django/utils/autoreload.py,,
+django__django-11620,single_validate,False,False,False,False,True,1,0,1,0,hunk_failed,hunk_failed,10334,986,11320,22.9398,0,django/views/debug.py,,"error: patch failed: django/views/debug.py:9
+error: django/views/debug.py: patch does not apply"
+django__django-11630,single_validate,True,True,True,False,False,0,0,0,0,none,,2770,568,3338,28.3468,1930,django/core/checks/model_checks.py,,
+django__django-11742,single_validate,True,True,True,False,False,0,0,0,0,none,,3545,623,4168,14.7936,2197,django/db/models/fields/__init__.py,,
+django__django-11797,single_validate,True,True,True,False,False,0,0,0,0,none,,4902,397,5299,11.4079,1342,django/db/models/lookups.py,,
+django__django-11815,single_validate,True,True,True,False,False,0,0,0,0,none,,4620,272,4892,11.4283,792,django/db/migrations/serializer.py,,
+django__django-11848,single_validate,True,True,True,False,False,0,0,0,0,none,,4731,306,5037,11.853,932,django/utils/http.py,,
+django__django-11905,single_validate,True,True,True,False,False,0,0,0,0,none,,5253,217,5470,11.3027,608,django/db/models/lookups.py,,
+django__django-11910,single_validate,False,False,False,False,True,1,0,1,0,hunk_failed,hunk_failed,11153,2048,13201,30.8275,0,django/db/migrations/autodetector.py,,"error: patch failed: django/db/migrations/autodetector.py:690
+error: django/db/migrations/autodetector.py: patch does not apply"
+django__django-11964,single_validate,True,True,True,False,False,0,0,0,0,none,,1720,1024,2744,16.4899,921,django/db/models/enums.py,,
+django__django-11999,single_validate,False,False,False,False,True,1,0,1,0,hunk_failed,hunk_failed,12929,595,13524,19.2538,0,django/db/models/fields/__init__.py,,"error: patch failed: django/db/models/fields/__init__.py:745
+error: django/db/models/fields/__init__.py: patch does not apply"
+django__django-12113,single_validate,True,True,True,False,False,0,0,0,0,none,,3210,379,3589,12.2839,936,django/db/backends/sqlite3/creation.py,,

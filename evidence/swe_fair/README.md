@@ -61,3 +61,23 @@ powershell -File swe_fair\verify_anthropic.ps1   # measured=True 확인
 .\swe_fair\run_swe_gen.ps1 -Cond single_novalidate -Offset 0 -Limit 3 -Backend anthropic
 # 3) 30개 × 3조건 → eval.sh로 평가 → 기존 100개 결과에서 0–29 구간만 추출해 비교
 ```
+
+## haiku_0_30/ — 결과 (2026-09-11) → 본문은 `evidence/g1_fair/COMPARISON.md` §11
+
+| 조건 | resolved | apply 실패 | 수리 복구 | 수리 호출 | 평균 토큰 | 비용 |
+|---|---|---|---|---|---|---|
+| (a) single_novalidate | 11/30 | 7 (하네스 오류) | — | 0 | 4,408 | $0.187 |
+| (b) single_validate | 14/30 | 11 | 5 | 13 | 7,670 | $0.311 |
+| (c) harmonet_validate | 11/30 | 9 | 4 | 9 | 6,831 | $0.257 |
+
+판정: (a)→(b) +3 (수리로 살린 패치 2개 포함, CI 안 → "구별되지 않음"이나 방향은 기여). (b)→(c) −3 → HarmoNet 프롬프트/구조의 기여 없음. (a)=(c).
+
+## 참고값 (같은 표에 넣지 않음)
+2026-06 "컨텍스트" 조건(RunYourAI/claude-haiku-4-5, 100개) 중 **같은 0–29 구간**만 추출:
+컨텍스트 43/100 실행 → 0–29에서 **14/30**, 시맨틱 수리 50/100 실행 → 0–29에서 15/30 (+django-11630).
+당시 14개 resolved 집합은 이번 (b) single_validate의 14개와 **정확히 동일한 인스턴스**다.
+파이프라인 동일성을 증명할 수 없어 비교표에는 넣지 않지만, 당시 수치가 apply-check 수리 루프 수준이었다는 정황이다.
+
+## 다음 실험
+(d) single + 컨텍스트 검색 — 과거 17→43의 주역을 single 어댑터 위에서 분리.
+Docker 인스턴스 이미지 30개(~90GB)는 (d) 재사용을 위해 남겨 둠. C: 여유 63GB.
