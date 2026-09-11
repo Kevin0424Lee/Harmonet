@@ -61,6 +61,15 @@ async def _call_with_async_retry(coro_factory, max_retries: int = 3, base_delay:
 # LLM 클라이언트 싱글턴 — get_llm_client() 최초 호출 시 생성 후 재사용
 _llm_client_singleton: Optional["LLMClient"] = None
 
+from .usage import METER
+
+
+def _est_tokens(text: str) -> int:
+    """usage 미제공 백엔드용 폴백 추정 (문자수/4). 추정임이 계측기에 표시된다."""
+    return max(1, len(text or "") // 4)
+
+
+
 class LLMClient(ABC):
     """LLM 클라이언트 인터페이스"""
     
@@ -196,6 +205,7 @@ class OpenAIClient(LLMClient):
             messages=messages,
             temperature=0.2,
         )
+        METER.record_from_response(response)
         return response.choices[0].message.content
 
     async def generate_async(self, prompt: str, system_prompt: Optional[str] = None) -> str:
@@ -213,6 +223,7 @@ class OpenAIClient(LLMClient):
             )
 
         response = await _call_with_async_retry(_call)
+        METER.record_from_response(response)
         return response.choices[0].message.content
 
 
@@ -268,6 +279,7 @@ class OpenAICompatibleClient(LLMClient):
             messages.append({"role": "system", "content": system_prompt})
         messages.append({"role": "user", "content": prompt})
         response = self.client.chat.completions.create(**self._chat_kwargs(messages))
+        METER.record_from_response(response)
         return response.choices[0].message.content or ""
 
     async def generate_async(self, prompt: str, system_prompt: Optional[str] = None) -> str:
@@ -282,6 +294,7 @@ class OpenAICompatibleClient(LLMClient):
             )
 
         response = await _call_with_async_retry(_call, base_delay=2.0)
+        METER.record_from_response(response)
         return response.choices[0].message.content or ""
 
 
@@ -342,6 +355,7 @@ class AnthropicClient(LLMClient):
             system=self._build_system_blocks(system_prompt),
             messages=[{"role": "user", "content": prompt}],
         )
+        METER.record_from_response(response)
         return response.content[0].text
 
     async def generate_async(self, prompt: str, system_prompt: Optional[str] = None) -> str:
@@ -357,6 +371,7 @@ class AnthropicClient(LLMClient):
             )
 
         response = await _call_with_async_retry(_call, base_delay=2.0)
+        METER.record_from_response(response)
         return response.content[0].text
 
 
@@ -444,6 +459,34 @@ class OllamaClient(LLMClient):
 
         return await _call_with_async_retry(_call, max_retries=3, base_delay=2.0)
 
+
+
+def _wrap_estimating(cls):
+    """usage를 제공하지 않는 백엔드(Mock/Ollama)의 호출을 추정치로 계측기에 기록.
+    estimated=True로 표시되므로 결과의 token_source가 'estimated'가 된다."""
+    _orig_sync = cls.generate
+
+    def generate(self, prompt, system_prompt=None):
+        out = _orig_sync(self, prompt, system_prompt)
+        METER.record(_est_tokens((system_prompt or "") + (prompt or "")),
+                     _est_tokens(out), estimated=True)
+        return out
+
+    cls.generate = generate
+
+    _orig_async = getattr(cls, "generate_async", None)
+    if _orig_async is not None:
+        async def generate_async(self, prompt, system_prompt=None):
+            out = await _orig_async(self, prompt, system_prompt)
+            METER.record(_est_tokens((system_prompt or "") + (prompt or "")),
+                         _est_tokens(out), estimated=True)
+            return out
+        cls.generate_async = generate_async
+    return cls
+
+
+_wrap_estimating(MockLLMClient)
+_wrap_estimating(OllamaClient)
 
 
 def get_llm_client() -> LLMClient:

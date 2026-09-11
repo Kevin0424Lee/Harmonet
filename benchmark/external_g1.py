@@ -120,6 +120,7 @@ class ExternalMeasurement:
     output_chars: int
     extracted_chars: int
     metadata: Dict[str, Any]
+    token_source: str = "unknown"
 
 
 def _download(url: str, path: Path) -> None:
@@ -314,6 +315,7 @@ def _run_one(adapter: Any, task: ExternalTask, repeat: int, timeout_s: float) ->
             with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
                 result = adapter.run(_to_benchmark_task(task))
         output = str(result.get("output", ""))
+        token_source = str(result.get("token_source", "unknown"))
         prompt_tokens = int(result.get("prompt_tokens", 0))
         completion_tokens = int(result.get("completion_tokens", 0))
         total_tokens = prompt_tokens + completion_tokens
@@ -324,6 +326,7 @@ def _run_one(adapter: Any, task: ExternalTask, repeat: int, timeout_s: float) ->
             not passed
             and os.getenv("HARMONET_V2_EVAL_REPAIR", "1") == "1"
             and hasattr(adapter, "repair_after_eval")
+            and os.getenv("G1_DISABLE_EVAL_REPAIR", "").lower() not in ("1", "true", "yes")
         ):
             repair_started = time.perf_counter()
             repair = adapter.repair_after_eval(_to_benchmark_task(task), output, eval_error)
@@ -353,6 +356,7 @@ def _run_one(adapter: Any, task: ExternalTask, repeat: int, timeout_s: float) ->
         passed=passed,
         prompt_tokens=prompt_tokens,
         completion_tokens=completion_tokens,
+        token_source=locals().get("token_source", "unknown"),
         total_tokens=total_tokens,
         latency_seconds=round(latency, 4),
         eval_error=eval_error,
@@ -486,6 +490,7 @@ def save_artifacts(
             "passed",
             "prompt_tokens",
             "completion_tokens",
+            "token_source",
             "total_tokens",
             "latency_seconds",
             "eval_error",
@@ -500,6 +505,7 @@ def save_artifacts(
                     m.passed,
                     m.prompt_tokens,
                     m.completion_tokens,
+                    m.token_source,
                     m.total_tokens,
                     m.latency_seconds,
                     m.eval_error,

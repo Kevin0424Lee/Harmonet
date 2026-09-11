@@ -19,6 +19,7 @@ from benchmark.tasks import BenchmarkTask
 from harmonet.field import DataUniverseField
 from harmonet.agent import HarmoAgent, AgentRole, SOCController
 from harmonet.resonance import KuraMotoCoupler
+from harmonet.usage import METER
 
 
 def _keyword_hits(output: str, expected_keywords: List[str]) -> int:
@@ -124,6 +125,7 @@ class HarmoNetAdapter:
         return universe, kuramoto, [architect, builder, validator]
 
     def run(self, task: BenchmarkTask) -> Dict[str, Any]:
+        METER.reset()
         """태스크를 HarmoNet 파이프라인으로 실행."""
         t0 = time.perf_counter()
 
@@ -191,16 +193,19 @@ class HarmoNetAdapter:
             )
             repair_used = True
 
-        # 씨앗 협업 특성: 네트워크 전송 토큰은 0 (필드 갱신만)
-        # total_tokens = 로컬 LLM 디코딩 토큰만 포함
-        prompt_tokens = len(task.prompt.split()) * 2  # 씨앗 헤더
-        completion_tokens = max(0, total_tokens - prompt_tokens)
+        # 실측 토큰: 에이전트 간 전달 프롬프트를 포함한 모든 LLM 호출의 API usage 합계.
+        # (이전 구현은 통신 토큰을 0으로 선언하고 프롬프트를 단어수×2로 추정했음 — 비교 불가)
+        _snap = METER.snapshot()
+        prompt_tokens = _snap["prompt_tokens"]
+        completion_tokens = _snap["completion_tokens"]
         final_missing = _missing_keywords(final_output, task.expected_keywords)
 
         return {
             "output": final_output,
             "prompt_tokens": prompt_tokens,
             "completion_tokens": completion_tokens,
+            "token_source": "measured" if _snap["measured"] else "estimated",
+            "llm_calls": _snap["calls"],
             "metadata": {
                 "seeds_created": sum(a.seeds_created for a in agents),
                 "seeds_received": sum(a.seeds_received for a in agents),

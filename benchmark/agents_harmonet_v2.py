@@ -27,6 +27,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from benchmark.tasks import BenchmarkTask
 from harmonet.llm import get_llm_client
+from harmonet.usage import METER
 
 
 _CODE_BLOCK_RE = re.compile(r"```(?:python|py)?\s*(.*?)```", re.I | re.S)
@@ -151,6 +152,7 @@ class HarmoNetV2Adapter:
 
     def run(self, task: BenchmarkTask) -> Dict[str, Any]:
         started = time.perf_counter()
+        METER.reset()
         cache_key = self._cache_key(task)
         if self.enable_cache:
             cached = _CACHE.get(cache_key)
@@ -223,6 +225,8 @@ class HarmoNetV2Adapter:
             "output": final_output,
             "prompt_tokens": prompt_tokens,
             "completion_tokens": completion_tokens,
+            "token_source": "measured" if METER.snapshot()["measured"] else "estimated",
+            "llm_calls": METER.snapshot()["calls"],
             "metadata": {
                 "framework": "harmonet_v2",
                 "calls": calls,
@@ -450,8 +454,13 @@ class HarmoNetV2Adapter:
         return ValidationResult(not reasons, stage, reasons or ["open-ended checks passed"], keyword_hits, keyword_total, len(output))
 
     def _call_llm(self, prompt: str, system_prompt: str) -> Tuple[str, int, int]:
+        """실측 usage 기반. system_prompt를 포함한 API 실사용량을 델타로 반환한다."""
+        before = METER.snapshot()
         output = get_llm_client().generate(prompt, system_prompt=system_prompt)
-        return output, _count_tokens(prompt), _count_tokens(output)
+        after = METER.snapshot()
+        return (output,
+                after["prompt_tokens"] - before["prompt_tokens"],
+                after["completion_tokens"] - before["completion_tokens"])
 
     def _cache_key(self, task: BenchmarkTask) -> str:
         payload = "\n".join(
