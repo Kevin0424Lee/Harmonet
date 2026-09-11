@@ -1,8 +1,13 @@
 """
 CrewAI benchmark adapter.
 
-Uses CrewAI's Agent/Task/Crew primitives with the RunYourAI OpenAI-compatible
-endpoint. The workflow is a sequential architect -> builder -> validator chain.
+Uses CrewAI's Agent/Task/Crew primitives over an OpenAI-compatible endpoint.
+Backend follows HARMONET_LLM_BACKEND so all systems share one model:
+  - openai_compatible : OPENAI_COMPAT_BASE_URL / OPENAI_COMPAT_MODEL (e.g. Ollama /v1)
+  - runyourai (default): RUNYOURAI_* variables
+Token usage is read from harmonet.usage.METER, which the client fills from the
+API's `usage` field, so figures are measured rather than estimated.
+The workflow is a sequential architect -> builder -> validator chain.
 """
 
 from __future__ import annotations
@@ -12,15 +17,50 @@ import time
 from typing import Any, Dict
 
 from benchmark.tasks import BenchmarkTask
-from harmonet.llm import RunYourAIClient
+from harmonet.llm import OpenAICompatibleClient, RunYourAIClient
+from harmonet.usage import METER
 
 
 def _count_tokens(text: str) -> int:
     return max(1, int(len((text or "").split()) * 1.3))
 
 
+def _backend() -> str:
+    return os.getenv("HARMONET_LLM_BACKEND", "runyourai").lower().strip()
+
+
+def _is_compat() -> bool:
+    return _backend() in ("openai_compatible", "compat", "ollama_openai")
+
+
 def _model_name() -> str:
+    if _is_compat():
+        return os.getenv("OPENAI_COMPAT_MODEL", "qwen2.5:7b")
     return os.getenv("RUNYOURAI_MODEL", "anthropic/claude-haiku-4-5")
+
+
+def _base_url() -> str:
+    if _is_compat():
+        return os.getenv("OPENAI_COMPAT_BASE_URL", "http://localhost:11434/v1")
+    return os.getenv("RUNYOURAI_BASE_URL", "https://api.runyour.ai/v1")
+
+
+def _make_client():
+    """HarmoNet과 동일한 OpenAI 호환 클라이언트. usage를 METER에 실측 기록한다."""
+    if _is_compat():
+        return OpenAICompatibleClient(
+            api_key=os.getenv("OPENAI_COMPAT_API_KEY", "ollama"),
+            base_url=_base_url(),
+            model=_model_name(),
+            temperature=float(os.getenv("OPENAI_COMPAT_TEMPERATURE", "0.2")),
+            timeout=float(os.getenv("OPENAI_COMPAT_TIMEOUT_SECONDS", "300")),
+            max_tokens=int(os.getenv("OPENAI_COMPAT_MAX_TOKENS", "1024")),
+            label="OpenAI-Compatible",
+        )
+    api_key = os.getenv("RUNYOURAI_API_KEY")
+    if not api_key:
+        raise RuntimeError("RUNYOURAI_API_KEY is required for CrewAIAdapter")
+    return RunYourAIClient(api_key=api_key)
 
 
 def _is_unified_diff_task(prompt: str) -> bool:
@@ -31,30 +71,27 @@ def _is_unified_diff_task(prompt: str) -> bool:
 class CrewAIAdapter:
     @property
     def name(self) -> str:
-        model = _model_name().replace("/", "_").replace("-", "_")
+        model = _model_name().replace("/", "_").replace("-", "_").replace(":", "_")
         return f"crewai_{model}"
 
     def run(self, task: BenchmarkTask) -> Dict[str, Any]:
         from crewai import Agent, Crew, Process, Task
         from crewai.llms.base_llm import BaseLLM
 
-        api_key = os.getenv("RUNYOURAI_API_KEY")
-        if not api_key:
-            raise RuntimeError("RUNYOURAI_API_KEY is required for CrewAIAdapter")
-
         os.environ.setdefault("CREWAI_DISABLE_TELEMETRY", "true")
         os.environ.setdefault("OTEL_SDK_DISABLED", "true")
 
         class RunYourCrewLLM(BaseLLM):
             def __init__(self):
+                client = _make_client()
                 super().__init__(
-                    model=_model_name(),
-                    temperature=float(os.getenv("RUNYOURAI_TEMPERATURE", "0.2")),
-                    api_key=api_key,
-                    base_url=os.getenv("RUNYOURAI_BASE_URL", "https://api.runyour.ai/v1"),
-                    provider="runyourai",
+                    model=client.model,
+                    temperature=client.temperature,
+                    api_key=client.api_key,
+                    base_url=client.base_url,
+                    provider="openai_compatible" if _is_compat() else "runyourai",
                 )
-                self.client = RunYourAIClient(api_key=api_key)
+                self.client = client
 
             def call(
                 self,
@@ -82,6 +119,7 @@ class CrewAIAdapter:
                 return self.client.generate(prompt, system_prompt=system.strip() or None)
 
         t0 = time.perf_counter()
+        METER.reset()  # 이 run()의 LLM 호출만 집계
         llm = RunYourCrewLLM()
         wants_patch = _is_unified_diff_task(task.prompt)
         if wants_patch:
@@ -163,32 +201,28 @@ class CrewAIAdapter:
         result = crew.kickoff()
         output = str(result)
 
-        usage = getattr(crew, "usage_metrics", None) or getattr(result, "token_usage", None)
-        prompt_tokens = 0
-        completion_tokens = 0
-        if usage:
-            prompt_tokens = int(
-                getattr(usage, "prompt_tokens", 0)
-                or getattr(usage, "input_tokens", 0)
-                or 0
-            )
-            completion_tokens = int(
-                getattr(usage, "completion_tokens", 0)
-                or getattr(usage, "output_tokens", 0)
-                or 0
-            )
+        # 커스텀 BaseLLM은 crew.usage_metrics를 채우지 않으므로, 클라이언트가 API usage로
+        # 기록한 METER를 쓴다. usage 미제공 응답이 하나라도 있으면 estimated로 표시된다.
+        snap = METER.snapshot()
+        prompt_tokens = snap["prompt_tokens"]
+        completion_tokens = snap["completion_tokens"]
+        token_source = "measured" if snap["measured"] and snap["calls"] > 0 else "estimated"
         if prompt_tokens <= 0 and completion_tokens <= 0:
             prompt_tokens = _count_tokens(task.prompt) * 3
             completion_tokens = _count_tokens(output)
+            token_source = "estimated"
 
         return {
             "output": output,
             "prompt_tokens": prompt_tokens,
             "completion_tokens": completion_tokens,
+            "token_source": token_source,
+            "llm_calls": snap["calls"],
             "metadata": {
                 "framework": "crewai",
                 "model": _model_name(),
-                "calls": 3,
+                "backend": _backend(),
+                "calls": snap["calls"],
                 "elapsed_adapter_s": round(time.perf_counter() - t0, 4),
             },
         }

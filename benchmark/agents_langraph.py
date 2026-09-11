@@ -116,6 +116,29 @@ def _try_runyourai():
         return False
 
 
+def _try_openai_compatible():
+    """OpenAI 호환 엔드포인트(Ollama /v1, vLLM 등). HarmoNet과 동일한 OPENAI_COMPAT_* 설정을 읽는다.
+    ChatOpenAI는 응답의 usage를 usage_metadata에 채우므로 토큰이 실측이 된다."""
+    global _LLM, _LLM_BACKEND
+    base_url = os.environ.get("OPENAI_COMPAT_BASE_URL", "http://localhost:11434/v1")
+    model = os.environ.get("OPENAI_COMPAT_MODEL", "qwen2.5:7b")
+    try:
+        from langchain_openai import ChatOpenAI
+        _LLM = ChatOpenAI(
+            model=model,
+            api_key=os.environ.get("OPENAI_COMPAT_API_KEY", "ollama"),
+            base_url=base_url,
+            temperature=float(os.environ.get("OPENAI_COMPAT_TEMPERATURE", "0.2")),
+            max_tokens=int(os.environ.get("OPENAI_COMPAT_MAX_TOKENS", "1024")),
+            timeout=float(os.environ.get("OPENAI_COMPAT_TIMEOUT_SECONDS", "300")),
+            max_retries=3,
+        )
+        _LLM_BACKEND = f"compat_{_safe_model_slug(model)}"
+        return True
+    except (ImportError, Exception):
+        return False
+
+
 def _try_ollama():
     """로컬 Ollama 서버 감지 후 langchain-ollama 또는 직접 HTTP 클라이언트로 연결."""
     global _LLM, _LLM_BACKEND
@@ -187,6 +210,8 @@ elif _FORCE_BACKEND == "anthropic":
     _try_anthropic()
 elif _FORCE_BACKEND in ("runyourai", "runyour"):
     _try_runyourai()
+elif _FORCE_BACKEND in ("openai_compatible", "compat", "ollama_openai"):
+    _try_openai_compatible()
 elif _FORCE_BACKEND == "ollama":
     _try_ollama()
 elif _FORCE_BACKEND == "mock":
@@ -229,6 +254,7 @@ class AgentState(TypedDict):
     validator_output: str
     total_input_tokens: int
     total_output_tokens: int
+    usage_missing: int  # usage_metadata 없이 추정한 노드 수 (0이면 measured)
 
 
 # ── 에이전트 노드 함수 ────────────────────────────────────────────
@@ -247,6 +273,7 @@ def _architect_node(state: AgentState) -> AgentState:
         **state,
         "architect_output": output,
         "messages": [system, human, result],
+        "usage_missing": state.get("usage_missing", 0) + (0 if usage.get("input_tokens") is not None else 1),
         "total_input_tokens": state.get("total_input_tokens", 0) + usage.get("input_tokens", len(state["task"].split()) * 2),
         "total_output_tokens": state.get("total_output_tokens", 0) + usage.get("output_tokens", len(output.split())),
     }
@@ -267,6 +294,7 @@ def _builder_node(state: AgentState) -> AgentState:
         **state,
         "builder_output": output,
         "messages": state["messages"] + [system, human, result],
+        "usage_missing": state.get("usage_missing", 0) + (0 if usage.get("input_tokens") is not None else 1),
         "total_input_tokens": state.get("total_input_tokens", 0) + usage.get("input_tokens", len(context.split()) * 2),
         "total_output_tokens": state.get("total_output_tokens", 0) + usage.get("output_tokens", len(output.split())),
     }
@@ -290,6 +318,7 @@ def _validator_node(state: AgentState) -> AgentState:
         **state,
         "validator_output": output,
         "messages": state["messages"] + [system, human, result],
+        "usage_missing": state.get("usage_missing", 0) + (0 if usage.get("input_tokens") is not None else 1),
         "total_input_tokens": state.get("total_input_tokens", 0) + usage.get("input_tokens", len(context.split()) * 2),
         "total_output_tokens": state.get("total_output_tokens", 0) + usage.get("output_tokens", len(output.split())),
     }
@@ -350,6 +379,7 @@ class LangGraphAdapter:
             "validator_output": "",
             "total_input_tokens": 0,
             "total_output_tokens": 0,
+            "usage_missing": 0,
         }
 
         final_state = _COMPILED_GRAPH.invoke(initial_state)
@@ -365,6 +395,15 @@ class LangGraphAdapter:
             "output": output,
             "prompt_tokens": final_state["total_input_tokens"],
             "completion_tokens": final_state["total_output_tokens"],
+            # mock / *_wrapped 백엔드는 usage_metadata를 단어수로 채우므로 추정치로 표시
+            "token_source": (
+                "measured"
+                if final_state.get("usage_missing", 0) == 0
+                and _LLM_BACKEND != "mock"
+                and not _LLM_BACKEND.endswith("_wrapped")
+                else "estimated"
+            ),
+            "llm_calls": 3,
             "metadata": {
                 "backend": _LLM_BACKEND,
                 "architect_tokens": len(final_state["architect_output"].split()),

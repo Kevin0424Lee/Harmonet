@@ -1,7 +1,12 @@
 """
 AutoGen benchmark adapter.
 
-Uses Microsoft AutoGen AgentChat with the OpenAI-compatible RunYourAI endpoint.
+Uses Microsoft AutoGen AgentChat over an OpenAI-compatible endpoint.
+Backend follows HARMONET_LLM_BACKEND so all systems share one model:
+  - openai_compatible : OPENAI_COMPAT_BASE_URL / OPENAI_COMPAT_MODEL (e.g. Ollama /v1)
+  - runyourai (default): RUNYOURAI_* variables
+Token usage comes from OpenAIChatCompletionClient.total_usage(), which AutoGen
+accumulates from the API's `usage` field (measured, not estimated).
 The adapter executes a compact three-agent pipeline:
 architect -> builder -> validator/finalizer.
 """
@@ -37,13 +42,41 @@ def _quiet_autogen_logs() -> None:
         logger.propagate = False
 
 
+def _backend() -> str:
+    return os.getenv("HARMONET_LLM_BACKEND", "runyourai").lower().strip()
+
+
+def _is_compat() -> bool:
+    return _backend() in ("openai_compatible", "compat", "ollama_openai")
+
+
+def _model_name() -> str:
+    if _is_compat():
+        return os.getenv("OPENAI_COMPAT_MODEL", "qwen2.5:7b")
+    return os.getenv("RUNYOURAI_MODEL", "anthropic/claude-haiku-4-5")
+
+
 def _model_config() -> Dict[str, Any]:
+    if _is_compat():
+        # HarmoNet / CrewAI / LangGraph와 같은 OPENAI_COMPAT_* 설정
+        conn = {
+            "model": _model_name(),
+            "api_key": os.getenv("OPENAI_COMPAT_API_KEY", "ollama"),
+            "base_url": os.getenv("OPENAI_COMPAT_BASE_URL", "http://localhost:11434/v1"),
+            "temperature": float(os.getenv("OPENAI_COMPAT_TEMPERATURE", "0.2")),
+            "max_tokens": int(os.getenv("OPENAI_COMPAT_MAX_TOKENS", "1024")),
+            "timeout": float(os.getenv("OPENAI_COMPAT_TIMEOUT_SECONDS", "300")),
+        }
+    else:
+        conn = {
+            "model": _model_name(),
+            "api_key": os.getenv("RUNYOURAI_API_KEY"),
+            "base_url": os.getenv("RUNYOURAI_BASE_URL", "https://api.runyour.ai/v1"),
+            "temperature": float(os.getenv("RUNYOURAI_TEMPERATURE", "0.2")),
+            "max_tokens": int(os.getenv("RUNYOURAI_MAX_TOKENS", "1024")),
+        }
     return {
-        "model": os.getenv("RUNYOURAI_MODEL", "anthropic/claude-haiku-4-5"),
-        "api_key": os.getenv("RUNYOURAI_API_KEY"),
-        "base_url": os.getenv("RUNYOURAI_BASE_URL", "https://api.runyour.ai/v1"),
-        "temperature": float(os.getenv("RUNYOURAI_TEMPERATURE", "0.2")),
-        "max_tokens": int(os.getenv("RUNYOURAI_MAX_TOKENS", "1024")),
+        **conn,
         "model_info": {
             "vision": False,
             "function_calling": False,
@@ -66,7 +99,7 @@ def _last_text(result: Any) -> str:
 class AutoGenAdapter:
     @property
     def name(self) -> str:
-        model = os.getenv("RUNYOURAI_MODEL", "unknown").replace("/", "_").replace("-", "_")
+        model = _model_name().replace("/", "_").replace("-", "_").replace(":", "_")
         return f"autogen_{model}"
 
     def run(self, task: BenchmarkTask) -> Dict[str, Any]:
@@ -82,7 +115,8 @@ class AutoGenAdapter:
 
         cfg = _model_config()
         if not cfg["api_key"]:
-            raise RuntimeError("RUNYOURAI_API_KEY is required for AutoGenAdapter")
+            raise RuntimeError("API key is required for AutoGenAdapter "
+                               "(RUNYOURAI_API_KEY, or OPENAI_COMPAT_API_KEY when openai_compatible)")
 
         clients = [OpenAIChatCompletionClient(**cfg) for _ in range(3)]
         architect = AssistantAgent(
@@ -122,20 +156,35 @@ class AutoGenAdapter:
         final_result = await validator.run(task=final_prompt)
         final = _last_text(final_result)
 
+        # 실측: AutoGen 클라이언트가 API 응답 usage를 누적한 값. (이전 구현은 단어수×1.3 추정)
+        prompt_tokens = 0
+        completion_tokens = 0
+        for client in clients:
+            u = client.total_usage()
+            prompt_tokens += int(getattr(u, "prompt_tokens", 0) or 0)
+            completion_tokens += int(getattr(u, "completion_tokens", 0) or 0)
+        token_source = "measured"
+        if prompt_tokens <= 0 and completion_tokens <= 0:
+            # 엔드포인트가 usage를 생략한 경우에만 추정치로 폴백
+            prompt_tokens = _count_tokens(task.prompt + plan + build_prompt + final_prompt)
+            completion_tokens = _count_tokens(plan + code + final)
+            token_source = "estimated"
+
         for client in clients:
             close = getattr(client, "close", None)
             if close:
                 await close()
 
-        prompt_tokens = _count_tokens(task.prompt + plan + build_prompt + final_prompt)
-        completion_tokens = _count_tokens(plan + code + final)
         return {
             "output": f"[Architect]\n{plan}\n\n[Builder]\n{code}\n\n[Validator]\n{final}",
             "prompt_tokens": prompt_tokens,
             "completion_tokens": completion_tokens,
+            "token_source": token_source,
+            "llm_calls": 3,
             "metadata": {
                 "framework": "autogen",
                 "model": cfg["model"],
+                "backend": _backend(),
                 "calls": 3,
             },
         }
