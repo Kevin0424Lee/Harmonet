@@ -431,7 +431,16 @@ class OllamaClient(LLMClient):
         }
         response = self.requests.post(url, json=payload, timeout=self.timeout)
         response.raise_for_status()
-        return response.json()["response"]
+        data = response.json()
+        # Ollama는 모델 토크나이저 기준 실제 토큰 수를 반환한다 (추정치가 아님)
+        pt = data.get("prompt_eval_count")
+        ct = data.get("eval_count")
+        if pt is not None or ct is not None:
+            METER.record(pt, ct, estimated=False)
+        else:
+            METER.record(_est_tokens((system_prompt or "") + prompt),
+                         _est_tokens(data.get("response", "")), estimated=True)
+        return data["response"]
 
     async def generate_async(self, prompt: str, system_prompt: Optional[str] = None) -> str:
         # httpx가 있으면 진짜 비동기, 없으면 thread 폴백
@@ -455,7 +464,15 @@ class OllamaClient(LLMClient):
             async with self._httpx.AsyncClient(timeout=self.timeout) as client:
                 resp = await client.post(url, json=payload)
                 resp.raise_for_status()
-                return resp.json()["response"]
+                data = resp.json()
+                pt = data.get("prompt_eval_count")
+                ct = data.get("eval_count")
+                if pt is not None or ct is not None:
+                    METER.record(pt, ct, estimated=False)
+                else:
+                    METER.record(_est_tokens((system_prompt or "") + prompt),
+                                 _est_tokens(data.get("response", "")), estimated=True)
+                return data["response"]
 
         return await _call_with_async_retry(_call, max_retries=3, base_delay=2.0)
 
@@ -486,7 +503,7 @@ def _wrap_estimating(cls):
 
 
 _wrap_estimating(MockLLMClient)
-_wrap_estimating(OllamaClient)
+# OllamaClient는 prompt_eval_count/eval_count를 직접 기록하므로 래핑하지 않음
 
 
 def get_llm_client() -> LLMClient:
@@ -528,6 +545,22 @@ def get_llm_client() -> LLMClient:
         _llm_client_singleton = OllamaClient(host=host, model=model)
         print(f"[LLM] Ollama 로컬 클라이언트 활성화 ({model} @ {host}) [HARMONET_LLM_BACKEND=ollama]")
         return _llm_client_singleton
+    if backend in ("openai_compatible", "compat", "ollama_openai"):
+        base_url = os.getenv("OPENAI_COMPAT_BASE_URL", "http://localhost:11434/v1")
+        model = os.getenv("OPENAI_COMPAT_MODEL", "qwen2.5:7b")
+        _llm_client_singleton = OpenAICompatibleClient(
+            api_key=os.getenv("OPENAI_COMPAT_API_KEY", "ollama"),
+            base_url=base_url,
+            model=model,
+            temperature=float(os.getenv("OPENAI_COMPAT_TEMPERATURE", "0.2")),
+            timeout=float(os.getenv("OPENAI_COMPAT_TIMEOUT_SECONDS", "300")),
+            max_tokens=int(os.getenv("OPENAI_COMPAT_MAX_TOKENS", "1024")),
+            label="OpenAI-Compatible",
+        )
+        print(f"[LLM] OpenAI 호환 클라이언트 활성화 ({model} @ {base_url}) "
+              f"[HARMONET_LLM_BACKEND={backend}]")
+        return _llm_client_singleton
+
     if backend in ("runyourai", "runyour"):
         _llm_client_singleton = RunYourAIClient()
         print(
