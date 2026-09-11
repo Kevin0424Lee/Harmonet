@@ -7,10 +7,15 @@
 |---|---|---|---|
 | (a) single_novalidate | single | `--no-validate-patches` | LLM 1회, 검증·수리 없음 |
 | (b) single_validate | single | `--drop-invalid` (기본 수리 루프) | 검증·수리 루프만 추가 — HarmoNet 프롬프트 없이 |
-| (c) harmonet_validate | harmonet | `--drop-invalid` | 기존 "컨텍스트 43/100" 조건 |
+| (c) harmonet_validate | harmonet | `--drop-invalid` | (b)에 HarmoNet 어댑터(프롬프트·구조)를 얹은 것 |
 
-(b)가 있어야 (a)→(c)의 차이가 수리 루프 덕인지 HarmoNet 프롬프트 덕인지 분리된다.
+해석은 **이번 실행 안에서만** 한다:
+- (a)→(b) = 검증·수리 루프의 기여
+- (b)→(c) = HarmoNet 프롬프트/구조의 기여
+
 검증·수리 루프는 `benchmark/swebench_g1.py`에 있으며 어댑터와 무관하게 적용된다.
+기존 18/43/50 체인(2026-06, claude-haiku-4-5 via RunYourAI)은 **별도 참고값**으로만 기술하고 같은 표에 넣지 않는다 —
+당시 파이프라인(옵션·프롬프트·컨텍스트 한도)이 지금과 동일하다는 것을 증명할 수 없기 때문이다.
 
 ## pilot_7b/ — qwen2.5-coder:7b-32k, 인스턴스 0–9 (2026-09-11)
 | 조건 | 적용되는 패치 | resolved | 평균 토큰 |
