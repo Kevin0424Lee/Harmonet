@@ -421,6 +421,10 @@ def _adapter(name: str):
         from benchmark.agents_harmonet import HarmoNetAdapter
 
         return HarmoNetAdapter(ticks=int(os.getenv("SWE_G1_HARMONET_TICKS", "2")))
+    if name == "single":
+        from benchmark.agents_single import SingleCallAdapter
+
+        return SingleCallAdapter()
     if name == "harmonet_v2":
         from benchmark.agents_harmonet_v2 import HarmoNetV2Adapter
 
@@ -636,7 +640,7 @@ def main() -> int:
     parser.add_argument("--split", default="test")
     parser.add_argument("--limit", type=int, default=1)
     parser.add_argument("--offset", type=int, default=0)
-    parser.add_argument("--adapter", default="harmonet", choices=["harmonet", "harmonet_v2", "langraph", "autogen", "crewai"])
+    parser.add_argument("--adapter", default="harmonet", choices=["single", "harmonet", "harmonet_v2", "langraph", "autogen", "crewai"])
     parser.add_argument("--name", default="")
     parser.add_argument("--output", default="swebench_g1_predictions.jsonl")
     parser.add_argument("--repo-cache", default="swebench_repo_cache")
