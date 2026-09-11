@@ -1,0 +1,18 @@
+구 측정: evidence/g1/g1_v2_final_4way_20x3.csv
+신 측정: g1_fair_20x3.csv
+
+system             구_토큰     신_토큰       변화     구_정확     신_정확  출처
+----------------------------------------------------------------------------
+autogen           814.5    851.7      +5%   100.0%    94.2%  measured
+crewai            295.0    995.3    +237%    99.2%    95.0%  measured
+harmonet            0.0    280.9        -     0.0%    92.5%  measured
+harmonet_v2       224.4    313.2     +40%   100.0%    92.5%  measured
+langraph         1790.6   1278.2     -29%    95.8%    93.3%  measured
+
+신 측정 기준 LangGraph 대비 절감률
+  autogen          33.4%
+  crewai           22.1%
+  harmonet         78.0%
+  harmonet_v2      75.5%
+
+✅ 전 시스템 실측 — 비교 가능

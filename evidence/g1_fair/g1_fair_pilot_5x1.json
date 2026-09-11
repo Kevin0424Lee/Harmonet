@@ -1,0 +1,1458 @@
+{
+  "metadata": {
+    "benchmarks": [
+      "humaneval",
+      "mbpp"
+    ],
+    "task_count": 10,
+    "sources": {
+      "humaneval": "https://raw.githubusercontent.com/openai/human-eval/master/data/HumanEval.jsonl.gz",
+      "mbpp": "https://raw.githubusercontent.com/google-research/google-research/master/mbpp/sanitized-mbpp.json"
+    },
+    "backend": "openai_compatible",
+    "runyourai_model": ""
+  },
+  "systems": [
+    {
+      "summary": {
+        "system": "harmonet",
+        "runs": 10,
+        "pass_rate": 1.0,
+        "pass_rate_ci95": 0.0,
+        "avg_total_tokens": 297.0,
+        "avg_total_tokens_ci95": 44.2,
+        "avg_latency_s": 2.216,
+        "avg_latency_ci95_s": 0.806,
+        "p99_latency_s": 5.468
+      },
+      "measurements": [
+        {
+          "system": "harmonet",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/0",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 222,
+          "completion_tokens": 165,
+          "total_tokens": 387,
+          "latency_seconds": 5.4684,
+          "eval_error": "",
+          "output_chars": 542,
+          "extracted_chars": 701,
+          "metadata": {
+            "seeds_created": 1,
+            "seeds_received": 0,
+            "tasks_completed": 0,
+            "ticks": 2,
+            "kuramoto_r": 0.9035027947844045,
+            "repair_used": true,
+            "repair_keyword_threshold": 0.5,
+            "initial_missing_keywords": [
+              "has_close_elements"
+            ],
+            "final_missing_keywords": []
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "harmonet",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/1",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 214,
+          "completion_tokens": 195,
+          "total_tokens": 409,
+          "latency_seconds": 3.226,
+          "eval_error": "",
+          "output_chars": 884,
+          "extracted_chars": 1043,
+          "metadata": {
+            "seeds_created": 1,
+            "seeds_received": 0,
+            "tasks_completed": 0,
+            "ticks": 2,
+            "kuramoto_r": 0.8945435312038748,
+            "repair_used": true,
+            "repair_keyword_threshold": 0.5,
+            "initial_missing_keywords": [
+              "separate_paren_groups"
+            ],
+            "final_missing_keywords": []
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "harmonet",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/2",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 182,
+          "completion_tokens": 91,
+          "total_tokens": 273,
+          "latency_seconds": 1.9998,
+          "eval_error": "",
+          "output_chars": 374,
+          "extracted_chars": 533,
+          "metadata": {
+            "seeds_created": 1,
+            "seeds_received": 0,
+            "tasks_completed": 0,
+            "ticks": 2,
+            "kuramoto_r": 0.9809944717502177,
+            "repair_used": true,
+            "repair_keyword_threshold": 0.5,
+            "initial_missing_keywords": [
+              "truncate_number"
+            ],
+            "final_missing_keywords": []
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "harmonet",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/3",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 216,
+          "completion_tokens": 54,
+          "total_tokens": 270,
+          "latency_seconds": 1.6551,
+          "eval_error": "",
+          "output_chars": 229,
+          "extracted_chars": 388,
+          "metadata": {
+            "seeds_created": 1,
+            "seeds_received": 0,
+            "tasks_completed": 0,
+            "ticks": 2,
+            "kuramoto_r": 0.42701838812818893,
+            "repair_used": true,
+            "repair_keyword_threshold": 0.5,
+            "initial_missing_keywords": [
+              "below_zero"
+            ],
+            "final_missing_keywords": []
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "harmonet",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/4",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 216,
+          "completion_tokens": 148,
+          "total_tokens": 364,
+          "latency_seconds": 2.637,
+          "eval_error": "",
+          "output_chars": 558,
+          "extracted_chars": 717,
+          "metadata": {
+            "seeds_created": 1,
+            "seeds_received": 0,
+            "tasks_completed": 0,
+            "ticks": 2,
+            "kuramoto_r": 0.42120750458095385,
+            "repair_used": true,
+            "repair_keyword_threshold": 0.5,
+            "initial_missing_keywords": [
+              "mean_absolute_deviation"
+            ],
+            "final_missing_keywords": []
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "harmonet",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_2",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 241,
+          "completion_tokens": 25,
+          "total_tokens": 266,
+          "latency_seconds": 1.3265,
+          "eval_error": "",
+          "output_chars": 84,
+          "extracted_chars": 243,
+          "metadata": {
+            "seeds_created": 1,
+            "seeds_received": 0,
+            "tasks_completed": 0,
+            "ticks": 2,
+            "kuramoto_r": 0.6190848477591672,
+            "repair_used": true,
+            "repair_keyword_threshold": 0.5,
+            "initial_missing_keywords": [
+              "set"
+            ],
+            "final_missing_keywords": []
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "harmonet",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_3",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 155,
+          "completion_tokens": 58,
+          "total_tokens": 213,
+          "latency_seconds": 1.6245,
+          "eval_error": "",
+          "output_chars": 173,
+          "extracted_chars": 332,
+          "metadata": {
+            "seeds_created": 1,
+            "seeds_received": 0,
+            "tasks_completed": 0,
+            "ticks": 2,
+            "kuramoto_r": 0.6248566424947368,
+            "repair_used": true,
+            "repair_keyword_threshold": 0.5,
+            "initial_missing_keywords": [
+              "is_not_prime"
+            ],
+            "final_missing_keywords": []
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "harmonet",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_4",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 307,
+          "completion_tokens": 27,
+          "total_tokens": 334,
+          "latency_seconds": 1.3783,
+          "eval_error": "",
+          "output_chars": 95,
+          "extracted_chars": 254,
+          "metadata": {
+            "seeds_created": 1,
+            "seeds_received": 0,
+            "tasks_completed": 0,
+            "ticks": 2,
+            "kuramoto_r": 0.34709030482749564,
+            "repair_used": true,
+            "repair_keyword_threshold": 0.5,
+            "initial_missing_keywords": [
+              "heap_queue_largest"
+            ],
+            "final_missing_keywords": []
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "harmonet",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_6",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 185,
+          "completion_tokens": 31,
+          "total_tokens": 216,
+          "latency_seconds": 1.4289,
+          "eval_error": "",
+          "output_chars": 84,
+          "extracted_chars": 243,
+          "metadata": {
+            "seeds_created": 1,
+            "seeds_received": 0,
+            "tasks_completed": 0,
+            "ticks": 2,
+            "kuramoto_r": 0.2111253256462729,
+            "repair_used": true,
+            "repair_keyword_threshold": 0.5,
+            "initial_missing_keywords": [
+              "differ_At_One_Bit_Pos"
+            ],
+            "final_missing_keywords": []
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "harmonet",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_7",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 209,
+          "completion_tokens": 29,
+          "total_tokens": 238,
+          "latency_seconds": 1.4173,
+          "eval_error": "",
+          "output_chars": 94,
+          "extracted_chars": 253,
+          "metadata": {
+            "seeds_created": 1,
+            "seeds_received": 0,
+            "tasks_completed": 0,
+            "ticks": 2,
+            "kuramoto_r": 0.748481480833588,
+            "repair_used": true,
+            "repair_keyword_threshold": 0.5,
+            "initial_missing_keywords": [
+              "set"
+            ],
+            "final_missing_keywords": [
+              "set"
+            ]
+          },
+          "token_source": "measured"
+        }
+      ]
+    },
+    {
+      "summary": {
+        "system": "harmonet_v2",
+        "runs": 10,
+        "pass_rate": 1.0,
+        "pass_rate_ci95": 0.0,
+        "avg_total_tokens": 339.5,
+        "avg_total_tokens_ci95": 75.1,
+        "avg_latency_s": 1.604,
+        "avg_latency_ci95_s": 0.645,
+        "p99_latency_s": 4.186
+      },
+      "measurements": [
+        {
+          "system": "harmonet_v2",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/0",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 183,
+          "completion_tokens": 165,
+          "total_tokens": 348,
+          "latency_seconds": 4.1856,
+          "eval_error": "",
+          "output_chars": 542,
+          "extracted_chars": 701,
+          "metadata": {
+            "framework": "harmonet_v2",
+            "calls": 1,
+            "stages": [
+              "builder"
+            ],
+            "accepted_stage": "builder",
+            "cache_hit": false,
+            "profile": {
+              "is_patch_task": false,
+              "is_executable_code_task": true,
+              "is_open_ended": false,
+              "risk": 0.61,
+              "validator_required": false,
+              "repair_allowed": true
+            },
+            "validation": {
+              "ok": true,
+              "stage": "builder",
+              "reasons": [
+                "code static checks passed"
+              ],
+              "keyword_hits": 1,
+              "keyword_total": 1,
+              "extracted_chars": 528
+            },
+            "elapsed_adapter_s": 4.088
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "harmonet_v2",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/1",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 176,
+          "completion_tokens": 195,
+          "total_tokens": 371,
+          "latency_seconds": 2.2836,
+          "eval_error": "",
+          "output_chars": 875,
+          "extracted_chars": 1034,
+          "metadata": {
+            "framework": "harmonet_v2",
+            "calls": 1,
+            "stages": [
+              "builder"
+            ],
+            "accepted_stage": "builder",
+            "cache_hit": false,
+            "profile": {
+              "is_patch_task": false,
+              "is_executable_code_task": true,
+              "is_open_ended": false,
+              "risk": 0.61,
+              "validator_required": false,
+              "repair_allowed": true
+            },
+            "validation": {
+              "ok": true,
+              "stage": "builder",
+              "reasons": [
+                "code static checks passed"
+              ],
+              "keyword_hits": 1,
+              "keyword_total": 1,
+              "extracted_chars": 861
+            },
+            "elapsed_adapter_s": 2.171
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "harmonet_v2",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/2",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 143,
+          "completion_tokens": 91,
+          "total_tokens": 234,
+          "latency_seconds": 1.1218,
+          "eval_error": "",
+          "output_chars": 374,
+          "extracted_chars": 533,
+          "metadata": {
+            "framework": "harmonet_v2",
+            "calls": 1,
+            "stages": [
+              "builder"
+            ],
+            "accepted_stage": "builder",
+            "cache_hit": false,
+            "profile": {
+              "is_patch_task": false,
+              "is_executable_code_task": true,
+              "is_open_ended": false,
+              "risk": 0.61,
+              "validator_required": false,
+              "repair_allowed": true
+            },
+            "validation": {
+              "ok": true,
+              "stage": "builder",
+              "reasons": [
+                "code static checks passed"
+              ],
+              "keyword_hits": 1,
+              "keyword_total": 1,
+              "extracted_chars": 360
+            },
+            "elapsed_adapter_s": 1.025
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "harmonet_v2",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/3",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 177,
+          "completion_tokens": 149,
+          "total_tokens": 326,
+          "latency_seconds": 1.7725,
+          "eval_error": "",
+          "output_chars": 603,
+          "extracted_chars": 762,
+          "metadata": {
+            "framework": "harmonet_v2",
+            "calls": 1,
+            "stages": [
+              "builder"
+            ],
+            "accepted_stage": "builder",
+            "cache_hit": false,
+            "profile": {
+              "is_patch_task": false,
+              "is_executable_code_task": true,
+              "is_open_ended": false,
+              "risk": 0.61,
+              "validator_required": false,
+              "repair_allowed": true
+            },
+            "validation": {
+              "ok": true,
+              "stage": "builder",
+              "reasons": [
+                "code static checks passed"
+              ],
+              "keyword_hits": 1,
+              "keyword_total": 1,
+              "extracted_chars": 589
+            },
+            "elapsed_adapter_s": 1.6714
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "harmonet_v2",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/4",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 177,
+          "completion_tokens": 148,
+          "total_tokens": 325,
+          "latency_seconds": 1.7556,
+          "eval_error": "",
+          "output_chars": 558,
+          "extracted_chars": 717,
+          "metadata": {
+            "framework": "harmonet_v2",
+            "calls": 1,
+            "stages": [
+              "builder"
+            ],
+            "accepted_stage": "builder",
+            "cache_hit": false,
+            "profile": {
+              "is_patch_task": false,
+              "is_executable_code_task": true,
+              "is_open_ended": false,
+              "risk": 0.61,
+              "validator_required": false,
+              "repair_allowed": true
+            },
+            "validation": {
+              "ok": true,
+              "stage": "builder",
+              "reasons": [
+                "code static checks passed"
+              ],
+              "keyword_hits": 1,
+              "keyword_total": 1,
+              "extracted_chars": 544
+            },
+            "elapsed_adapter_s": 1.6591
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "harmonet_v2",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_2",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 459,
+          "completion_tokens": 70,
+          "total_tokens": 529,
+          "latency_seconds": 0.9591,
+          "eval_error": "",
+          "output_chars": 134,
+          "extracted_chars": 293,
+          "metadata": {
+            "framework": "harmonet_v2",
+            "calls": 2,
+            "stages": [
+              "builder",
+              "repair"
+            ],
+            "accepted_stage": "repair",
+            "cache_hit": false,
+            "profile": {
+              "is_patch_task": false,
+              "is_executable_code_task": true,
+              "is_open_ended": false,
+              "risk": 0.61,
+              "validator_required": false,
+              "repair_allowed": true
+            },
+            "validation": {
+              "ok": false,
+              "stage": "repair",
+              "reasons": [
+                "missing function set",
+                "function set not defined"
+              ],
+              "keyword_hits": 1,
+              "keyword_total": 1,
+              "extracted_chars": 120
+            },
+            "elapsed_adapter_s": 0.8581
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "harmonet_v2",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_3",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 116,
+          "completion_tokens": 58,
+          "total_tokens": 174,
+          "latency_seconds": 0.7583,
+          "eval_error": "",
+          "output_chars": 173,
+          "extracted_chars": 332,
+          "metadata": {
+            "framework": "harmonet_v2",
+            "calls": 1,
+            "stages": [
+              "builder"
+            ],
+            "accepted_stage": "builder",
+            "cache_hit": false,
+            "profile": {
+              "is_patch_task": false,
+              "is_executable_code_task": true,
+              "is_open_ended": false,
+              "risk": 0.61,
+              "validator_required": false,
+              "repair_allowed": true
+            },
+            "validation": {
+              "ok": true,
+              "stage": "builder",
+              "reasons": [
+                "code static checks passed"
+              ],
+              "keyword_hits": 1,
+              "keyword_total": 1,
+              "extracted_chars": 159
+            },
+            "elapsed_adapter_s": 0.6615
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "harmonet_v2",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_4",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 269,
+          "completion_tokens": 54,
+          "total_tokens": 323,
+          "latency_seconds": 0.7393,
+          "eval_error": "",
+          "output_chars": 218,
+          "extracted_chars": 377,
+          "metadata": {
+            "framework": "harmonet_v2",
+            "calls": 1,
+            "stages": [
+              "builder"
+            ],
+            "accepted_stage": "builder",
+            "cache_hit": false,
+            "profile": {
+              "is_patch_task": false,
+              "is_executable_code_task": true,
+              "is_open_ended": false,
+              "risk": 0.61,
+              "validator_required": false,
+              "repair_allowed": true
+            },
+            "validation": {
+              "ok": true,
+              "stage": "builder",
+              "reasons": [
+                "code static checks passed"
+              ],
+              "keyword_hits": 1,
+              "keyword_total": 1,
+              "extracted_chars": 204
+            },
+            "elapsed_adapter_s": 0.6387
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "harmonet_v2",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_6",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 147,
+          "completion_tokens": 74,
+          "total_tokens": 221,
+          "latency_seconds": 0.9407,
+          "eval_error": "",
+          "output_chars": 241,
+          "extracted_chars": 400,
+          "metadata": {
+            "framework": "harmonet_v2",
+            "calls": 1,
+            "stages": [
+              "builder"
+            ],
+            "accepted_stage": "builder",
+            "cache_hit": false,
+            "profile": {
+              "is_patch_task": false,
+              "is_executable_code_task": true,
+              "is_open_ended": false,
+              "risk": 0.61,
+              "validator_required": false,
+              "repair_allowed": true
+            },
+            "validation": {
+              "ok": true,
+              "stage": "builder",
+              "reasons": [
+                "code static checks passed"
+              ],
+              "keyword_hits": 1,
+              "keyword_total": 1,
+              "extracted_chars": 227
+            },
+            "elapsed_adapter_s": 0.8407
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "harmonet_v2",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_7",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 422,
+          "completion_tokens": 122,
+          "total_tokens": 544,
+          "latency_seconds": 1.5186,
+          "eval_error": "",
+          "output_chars": 229,
+          "extracted_chars": 388,
+          "metadata": {
+            "framework": "harmonet_v2",
+            "calls": 2,
+            "stages": [
+              "builder",
+              "repair"
+            ],
+            "accepted_stage": "repair",
+            "cache_hit": false,
+            "profile": {
+              "is_patch_task": false,
+              "is_executable_code_task": true,
+              "is_open_ended": false,
+              "risk": 0.61,
+              "validator_required": false,
+              "repair_allowed": true
+            },
+            "validation": {
+              "ok": false,
+              "stage": "repair",
+              "reasons": [
+                "missing function set",
+                "function set not defined"
+              ],
+              "keyword_hits": 0,
+              "keyword_total": 1,
+              "extracted_chars": 215
+            },
+            "elapsed_adapter_s": 1.4182
+          },
+          "token_source": "measured"
+        }
+      ]
+    },
+    {
+      "summary": {
+        "system": "langraph_compat_qwen2.5_coder_7b",
+        "runs": 10,
+        "pass_rate": 1.0,
+        "pass_rate_ci95": 0.0,
+        "avg_total_tokens": 1409.0,
+        "avg_total_tokens_ci95": 201.0,
+        "avg_latency_s": 7.697,
+        "avg_latency_ci95_s": 2.015,
+        "p99_latency_s": 13.195
+      },
+      "measurements": [
+        {
+          "system": "langraph_compat_qwen2.5_coder_7b",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/0",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 874,
+          "completion_tokens": 975,
+          "total_tokens": 1849,
+          "latency_seconds": 13.1949,
+          "eval_error": "",
+          "output_chars": 3672,
+          "extracted_chars": 860,
+          "metadata": {
+            "backend": "compat_qwen2.5_coder_7b",
+            "architect_tokens": 67,
+            "builder_tokens": 67,
+            "validator_tokens": 399
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "langraph_compat_qwen2.5_coder_7b",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/1",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 911,
+          "completion_tokens": 866,
+          "total_tokens": 1777,
+          "latency_seconds": 9.8054,
+          "eval_error": "",
+          "output_chars": 4271,
+          "extracted_chars": 1034,
+          "metadata": {
+            "backend": "compat_qwen2.5_coder_7b",
+            "architect_tokens": 116,
+            "builder_tokens": 116,
+            "validator_tokens": 365
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "langraph_compat_qwen2.5_coder_7b",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/2",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 613,
+          "completion_tokens": 719,
+          "total_tokens": 1332,
+          "latency_seconds": 8.1478,
+          "eval_error": "",
+          "output_chars": 3340,
+          "extracted_chars": 642,
+          "metadata": {
+            "backend": "compat_qwen2.5_coder_7b",
+            "architect_tokens": 51,
+            "builder_tokens": 51,
+            "validator_tokens": 368
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "langraph_compat_qwen2.5_coder_7b",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/3",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 736,
+          "completion_tokens": 426,
+          "total_tokens": 1162,
+          "latency_seconds": 4.9409,
+          "eval_error": "",
+          "output_chars": 1907,
+          "extracted_chars": 762,
+          "metadata": {
+            "backend": "compat_qwen2.5_coder_7b",
+            "architect_tokens": 29,
+            "builder_tokens": 89,
+            "validator_tokens": 157
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "langraph_compat_qwen2.5_coder_7b",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/4",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 847,
+          "completion_tokens": 1042,
+          "total_tokens": 1889,
+          "latency_seconds": 11.7658,
+          "eval_error": "",
+          "output_chars": 4388,
+          "extracted_chars": 874,
+          "metadata": {
+            "backend": "compat_qwen2.5_coder_7b",
+            "architect_tokens": 85,
+            "builder_tokens": 85,
+            "validator_tokens": 466
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "langraph_compat_qwen2.5_coder_7b",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_2",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 745,
+          "completion_tokens": 782,
+          "total_tokens": 1527,
+          "latency_seconds": 8.8907,
+          "eval_error": "",
+          "output_chars": 3348,
+          "extracted_chars": 806,
+          "metadata": {
+            "backend": "compat_qwen2.5_coder_7b",
+            "architect_tokens": 17,
+            "builder_tokens": 58,
+            "validator_tokens": 412
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "langraph_compat_qwen2.5_coder_7b",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_3",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 508,
+          "completion_tokens": 586,
+          "total_tokens": 1094,
+          "latency_seconds": 6.6554,
+          "eval_error": "",
+          "output_chars": 2291,
+          "extracted_chars": 520,
+          "metadata": {
+            "backend": "compat_qwen2.5_coder_7b",
+            "architect_tokens": 27,
+            "builder_tokens": 57,
+            "validator_tokens": 264
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "langraph_compat_qwen2.5_coder_7b",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_4",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 983,
+          "completion_tokens": 248,
+          "total_tokens": 1231,
+          "latency_seconds": 3.0281,
+          "eval_error": "",
+          "output_chars": 1139,
+          "extracted_chars": 715,
+          "metadata": {
+            "backend": "compat_qwen2.5_coder_7b",
+            "architect_tokens": 29,
+            "builder_tokens": 83,
+            "validator_tokens": 53
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "langraph_compat_qwen2.5_coder_7b",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_6",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 628,
+          "completion_tokens": 457,
+          "total_tokens": 1085,
+          "latency_seconds": 5.267,
+          "eval_error": "",
+          "output_chars": 1895,
+          "extracted_chars": 670,
+          "metadata": {
+            "backend": "compat_qwen2.5_coder_7b",
+            "architect_tokens": 41,
+            "builder_tokens": 85,
+            "validator_tokens": 194
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "langraph_compat_qwen2.5_coder_7b",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_7",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 687,
+          "completion_tokens": 457,
+          "total_tokens": 1144,
+          "latency_seconds": 5.2691,
+          "eval_error": "",
+          "output_chars": 2010,
+          "extracted_chars": 592,
+          "metadata": {
+            "backend": "compat_qwen2.5_coder_7b",
+            "architect_tokens": 36,
+            "builder_tokens": 70,
+            "validator_tokens": 217
+          },
+          "token_source": "measured"
+        }
+      ]
+    },
+    {
+      "summary": {
+        "system": "autogen_qwen2.5_coder_7b",
+        "runs": 10,
+        "pass_rate": 1.0,
+        "pass_rate_ci95": 0.0,
+        "avg_total_tokens": 974.3,
+        "avg_total_tokens_ci95": 202.7,
+        "avg_latency_s": 4.04,
+        "avg_latency_ci95_s": 1.297,
+        "p99_latency_s": 7.74
+      },
+      "measurements": [
+        {
+          "system": "autogen_qwen2.5_coder_7b",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/0",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 873,
+          "completion_tokens": 495,
+          "total_tokens": 1368,
+          "latency_seconds": 6.6872,
+          "eval_error": "",
+          "output_chars": 1664,
+          "extracted_chars": 701,
+          "metadata": {
+            "framework": "autogen",
+            "model": "qwen2.5-coder:7b",
+            "backend": "openai_compatible",
+            "calls": 3,
+            "elapsed_adapter_s": 6.5884
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "autogen_qwen2.5_coder_7b",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/1",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 920,
+          "completion_tokens": 605,
+          "total_tokens": 1525,
+          "latency_seconds": 7.7402,
+          "eval_error": "",
+          "output_chars": 2787,
+          "extracted_chars": 1088,
+          "metadata": {
+            "framework": "autogen",
+            "model": "qwen2.5-coder:7b",
+            "backend": "openai_compatible",
+            "calls": 3,
+            "elapsed_adapter_s": 7.6341
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "autogen_qwen2.5_coder_7b",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/2",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 608,
+          "completion_tokens": 273,
+          "total_tokens": 881,
+          "latency_seconds": 4.0327,
+          "eval_error": "",
+          "output_chars": 1160,
+          "extracted_chars": 533,
+          "metadata": {
+            "framework": "autogen",
+            "model": "qwen2.5-coder:7b",
+            "backend": "openai_compatible",
+            "calls": 3,
+            "elapsed_adapter_s": 3.9328
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "autogen_qwen2.5_coder_7b",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/3",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 636,
+          "completion_tokens": 162,
+          "total_tokens": 798,
+          "latency_seconds": 2.7982,
+          "eval_error": "",
+          "output_chars": 725,
+          "extracted_chars": 388,
+          "metadata": {
+            "framework": "autogen",
+            "model": "qwen2.5-coder:7b",
+            "backend": "openai_compatible",
+            "calls": 3,
+            "elapsed_adapter_s": 2.6973
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "autogen_qwen2.5_coder_7b",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/4",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 842,
+          "completion_tokens": 480,
+          "total_tokens": 1322,
+          "latency_seconds": 6.3134,
+          "eval_error": "",
+          "output_chars": 1844,
+          "extracted_chars": 761,
+          "metadata": {
+            "framework": "autogen",
+            "model": "qwen2.5-coder:7b",
+            "backend": "openai_compatible",
+            "calls": 3,
+            "elapsed_adapter_s": 6.2083
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "autogen_qwen2.5_coder_7b",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_2",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 665,
+          "completion_tokens": 87,
+          "total_tokens": 752,
+          "latency_seconds": 1.9841,
+          "eval_error": "",
+          "output_chars": 299,
+          "extracted_chars": 246,
+          "metadata": {
+            "framework": "autogen",
+            "model": "qwen2.5-coder:7b",
+            "backend": "openai_compatible",
+            "calls": 3,
+            "elapsed_adapter_s": 1.8798
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "autogen_qwen2.5_coder_7b",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_3",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 458,
+          "completion_tokens": 174,
+          "total_tokens": 632,
+          "latency_seconds": 2.9096,
+          "eval_error": "",
+          "output_chars": 557,
+          "extracted_chars": 332,
+          "metadata": {
+            "framework": "autogen",
+            "model": "qwen2.5-coder:7b",
+            "backend": "openai_compatible",
+            "calls": 3,
+            "elapsed_adapter_s": 2.8079
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "autogen_qwen2.5_coder_7b",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_4",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 912,
+          "completion_tokens": 174,
+          "total_tokens": 1086,
+          "latency_seconds": 2.979,
+          "eval_error": "",
+          "output_chars": 701,
+          "extracted_chars": 380,
+          "metadata": {
+            "framework": "autogen",
+            "model": "qwen2.5-coder:7b",
+            "backend": "openai_compatible",
+            "calls": 3,
+            "elapsed_adapter_s": 2.8732
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "autogen_qwen2.5_coder_7b",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_6",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 543,
+          "completion_tokens": 180,
+          "total_tokens": 723,
+          "latency_seconds": 2.9797,
+          "eval_error": "",
+          "output_chars": 659,
+          "extracted_chars": 366,
+          "metadata": {
+            "framework": "autogen",
+            "model": "qwen2.5-coder:7b",
+            "backend": "openai_compatible",
+            "calls": 3,
+            "elapsed_adapter_s": 2.8775
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "autogen_qwen2.5_coder_7b",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_7",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 569,
+          "completion_tokens": 87,
+          "total_tokens": 656,
+          "latency_seconds": 1.9735,
+          "eval_error": "",
+          "output_chars": 338,
+          "extracted_chars": 259,
+          "metadata": {
+            "framework": "autogen",
+            "model": "qwen2.5-coder:7b",
+            "backend": "openai_compatible",
+            "calls": 3,
+            "elapsed_adapter_s": 1.8679
+          },
+          "token_source": "measured"
+        }
+      ]
+    },
+    {
+      "summary": {
+        "system": "crewai_qwen2.5_coder_7b",
+        "runs": 10,
+        "pass_rate": 1.0,
+        "pass_rate_ci95": 0.0,
+        "avg_total_tokens": 1041.7,
+        "avg_total_tokens_ci95": 117.1,
+        "avg_latency_s": 5.199,
+        "avg_latency_ci95_s": 1.259,
+        "p99_latency_s": 9.811
+      },
+      "measurements": [
+        {
+          "system": "crewai_qwen2.5_coder_7b",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/0",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 937,
+          "completion_tokens": 387,
+          "total_tokens": 1324,
+          "latency_seconds": 9.8112,
+          "eval_error": "",
+          "output_chars": 516,
+          "extracted_chars": 675,
+          "metadata": {
+            "framework": "crewai",
+            "model": "qwen2.5-coder:7b",
+            "backend": "openai_compatible",
+            "calls": 3,
+            "elapsed_adapter_s": 6.8509
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "crewai_qwen2.5_coder_7b",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/1",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 903,
+          "completion_tokens": 328,
+          "total_tokens": 1231,
+          "latency_seconds": 6.1302,
+          "eval_error": "",
+          "output_chars": 497,
+          "extracted_chars": 656,
+          "metadata": {
+            "framework": "crewai",
+            "model": "qwen2.5-coder:7b",
+            "backend": "openai_compatible",
+            "calls": 3,
+            "elapsed_adapter_s": 6.0263
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "crewai_qwen2.5_coder_7b",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/2",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 778,
+          "completion_tokens": 273,
+          "total_tokens": 1051,
+          "latency_seconds": 5.5195,
+          "eval_error": "",
+          "output_chars": 374,
+          "extracted_chars": 533,
+          "metadata": {
+            "framework": "crewai",
+            "model": "qwen2.5-coder:7b",
+            "backend": "openai_compatible",
+            "calls": 3,
+            "elapsed_adapter_s": 5.4206
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "crewai_qwen2.5_coder_7b",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/3",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 896,
+          "completion_tokens": 347,
+          "total_tokens": 1243,
+          "latency_seconds": 6.3843,
+          "eval_error": "",
+          "output_chars": 603,
+          "extracted_chars": 762,
+          "metadata": {
+            "framework": "crewai",
+            "model": "qwen2.5-coder:7b",
+            "backend": "openai_compatible",
+            "calls": 3,
+            "elapsed_adapter_s": 6.2842
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "crewai_qwen2.5_coder_7b",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/4",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 802,
+          "completion_tokens": 165,
+          "total_tokens": 967,
+          "latency_seconds": 4.3157,
+          "eval_error": "",
+          "output_chars": 213,
+          "extracted_chars": 372,
+          "metadata": {
+            "framework": "crewai",
+            "model": "qwen2.5-coder:7b",
+            "backend": "openai_compatible",
+            "calls": 3,
+            "elapsed_adapter_s": 4.2113
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "crewai_qwen2.5_coder_7b",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_2",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 826,
+          "completion_tokens": 75,
+          "total_tokens": 901,
+          "latency_seconds": 3.3572,
+          "eval_error": "",
+          "output_chars": 84,
+          "extracted_chars": 243,
+          "metadata": {
+            "framework": "crewai",
+            "model": "qwen2.5-coder:7b",
+            "backend": "openai_compatible",
+            "calls": 3,
+            "elapsed_adapter_s": 3.2581
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "crewai_qwen2.5_coder_7b",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_3",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 720,
+          "completion_tokens": 312,
+          "total_tokens": 1032,
+          "latency_seconds": 5.9766,
+          "eval_error": "",
+          "output_chars": 289,
+          "extracted_chars": 448,
+          "metadata": {
+            "framework": "crewai",
+            "model": "qwen2.5-coder:7b",
+            "backend": "openai_compatible",
+            "calls": 3,
+            "elapsed_adapter_s": 5.871
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "crewai_qwen2.5_coder_7b",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_4",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 1019,
+          "completion_tokens": 81,
+          "total_tokens": 1100,
+          "latency_seconds": 3.5041,
+          "eval_error": "",
+          "output_chars": 95,
+          "extracted_chars": 254,
+          "metadata": {
+            "framework": "crewai",
+            "model": "qwen2.5-coder:7b",
+            "backend": "openai_compatible",
+            "calls": 3,
+            "elapsed_adapter_s": 3.4046
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "crewai_qwen2.5_coder_7b",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_6",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 653,
+          "completion_tokens": 90,
+          "total_tokens": 743,
+          "latency_seconds": 3.4893,
+          "eval_error": "",
+          "output_chars": 82,
+          "extracted_chars": 241,
+          "metadata": {
+            "framework": "crewai",
+            "model": "qwen2.5-coder:7b",
+            "backend": "openai_compatible",
+            "calls": 3,
+            "elapsed_adapter_s": 3.3856
+          },
+          "token_source": "measured"
+        },
+        {
+          "system": "crewai_qwen2.5_coder_7b",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_7",
+          "repeat": 1,
+          "passed": true,
+          "prompt_tokens": 738,
+          "completion_tokens": 87,
+          "total_tokens": 825,
+          "latency_seconds": 3.4972,
+          "eval_error": "",
+          "output_chars": 94,
+          "extracted_chars": 253,
+          "metadata": {
+            "framework": "crewai",
+            "model": "qwen2.5-coder:7b",
+            "backend": "openai_compatible",
+            "calls": 3,
+            "elapsed_adapter_s": 3.3959
+          },
+          "token_source": "measured"
+        }
+      ]
+    }
+  ]
+}

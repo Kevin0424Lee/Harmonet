@@ -1,0 +1,613 @@
+system,benchmark,task_id,repeat,passed,prompt_tokens,completion_tokens,token_source,total_tokens,latency_seconds,eval_error
+harmonet_v2,humaneval,HumanEval/0,1,True,183,165,measured,348,4.1526,
+harmonet_v2,humaneval,HumanEval/0,2,True,183,165,measured,348,1.8509,
+harmonet_v2,humaneval,HumanEval/0,3,True,183,165,measured,348,1.8492,
+harmonet_v2,humaneval,HumanEval/1,1,True,176,201,measured,377,2.2575,
+harmonet_v2,humaneval,HumanEval/1,2,True,176,195,measured,371,2.2093,
+harmonet_v2,humaneval,HumanEval/1,3,True,176,201,measured,377,2.3314,
+harmonet_v2,humaneval,HumanEval/2,1,True,143,91,measured,234,1.1073,
+harmonet_v2,humaneval,HumanEval/2,2,True,143,91,measured,234,1.0956,
+harmonet_v2,humaneval,HumanEval/2,3,True,143,91,measured,234,1.0912,
+harmonet_v2,humaneval,HumanEval/3,1,True,177,149,measured,326,1.7451,
+harmonet_v2,humaneval,HumanEval/3,2,True,177,54,measured,231,0.6964,
+harmonet_v2,humaneval,HumanEval/3,3,True,177,149,measured,326,1.7338,
+harmonet_v2,humaneval,HumanEval/4,1,True,177,160,measured,337,1.8628,
+harmonet_v2,humaneval,HumanEval/4,2,True,177,160,measured,337,1.8496,
+harmonet_v2,humaneval,HumanEval/4,3,True,177,160,measured,337,1.8599,
+harmonet_v2,humaneval,HumanEval/5,1,True,150,135,measured,285,1.6041,
+harmonet_v2,humaneval,HumanEval/5,2,True,150,138,measured,288,1.6208,
+harmonet_v2,humaneval,HumanEval/5,3,True,150,138,measured,288,1.6315,
+harmonet_v2,humaneval,HumanEval/6,1,True,173,194,measured,367,2.2596,
+harmonet_v2,humaneval,HumanEval/6,2,True,173,190,measured,363,2.1941,
+harmonet_v2,humaneval,HumanEval/6,3,True,173,190,measured,363,2.1836,
+harmonet_v2,humaneval,HumanEval/7,1,True,153,105,measured,258,1.2626,
+harmonet_v2,humaneval,HumanEval/7,2,True,153,105,measured,258,1.2645,
+harmonet_v2,humaneval,HumanEval/7,3,True,153,105,measured,258,1.2538,
+harmonet_v2,humaneval,HumanEval/8,1,True,170,160,measured,330,1.8724,
+harmonet_v2,humaneval,HumanEval/8,2,True,170,160,measured,330,1.8565,
+harmonet_v2,humaneval,HumanEval/8,3,True,170,160,measured,330,1.8659,
+harmonet_v2,humaneval,HumanEval/9,1,True,158,145,measured,303,1.7009,
+harmonet_v2,humaneval,HumanEval/9,2,True,158,148,measured,306,1.7181,
+harmonet_v2,humaneval,HumanEval/9,3,True,158,150,measured,308,1.7448,
+harmonet_v2,humaneval,HumanEval/10,1,False,201,161,measured,362,1.8868,"    check(make_palindrome)
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1_r_l0r3z5\candidate_test.py"", line 45, in check
+    assert candidate('') == ''
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1_r_l0r3z5\candidate_test.py"", line 25, in make_palindrome
+    if is_palindrome(string):
+NameError: name 'is_palindrome' is not defined. Did you mean: 'make_palindrome'?"
+harmonet_v2,humaneval,HumanEval/10,2,False,201,155,measured,356,1.8151,"    check(make_palindrome)
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1_sy50u5tx\candidate_test.py"", line 43, in check
+    assert candidate('') == ''
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1_sy50u5tx\candidate_test.py"", line 27, in make_palindrome
+    if is_palindrome(string[:i]):
+NameError: name 'is_palindrome' is not defined. Did you mean: 'make_palindrome'?"
+harmonet_v2,humaneval,HumanEval/10,3,False,201,161,measured,362,1.8834,"    check(make_palindrome)
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1_hz6pup56\candidate_test.py"", line 45, in check
+    assert candidate('') == ''
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1_hz6pup56\candidate_test.py"", line 25, in make_palindrome
+    if is_palindrome(string):
+NameError: name 'is_palindrome' is not defined. Did you mean: 'make_palindrome'?"
+harmonet_v2,humaneval,HumanEval/11,1,True,140,106,measured,246,1.2761,
+harmonet_v2,humaneval,HumanEval/11,2,True,140,106,measured,246,1.2668,
+harmonet_v2,humaneval,HumanEval/11,3,True,140,106,measured,246,1.2599,
+harmonet_v2,humaneval,HumanEval/12,1,True,160,118,measured,278,1.4059,
+harmonet_v2,humaneval,HumanEval/12,2,True,160,118,measured,278,1.4032,
+harmonet_v2,humaneval,HumanEval/12,3,True,160,118,measured,278,1.4003,
+harmonet_v2,humaneval,HumanEval/13,1,True,133,90,measured,223,1.102,
+harmonet_v2,humaneval,HumanEval/13,2,True,133,90,measured,223,1.0828,
+harmonet_v2,humaneval,HumanEval/13,3,True,133,90,measured,223,1.0936,
+harmonet_v2,humaneval,HumanEval/14,1,True,118,79,measured,197,0.976,
+harmonet_v2,humaneval,HumanEval/14,2,True,118,79,measured,197,0.9615,
+harmonet_v2,humaneval,HumanEval/14,3,True,118,79,measured,197,0.9698,
+harmonet_v2,humaneval,HumanEval/15,1,True,126,84,measured,210,1.018,
+harmonet_v2,humaneval,HumanEval/15,2,True,126,84,measured,210,1.0165,
+harmonet_v2,humaneval,HumanEval/15,3,True,126,84,measured,210,1.0172,
+harmonet_v2,humaneval,HumanEval/16,1,True,130,76,measured,206,0.9433,
+harmonet_v2,humaneval,HumanEval/16,2,True,130,76,measured,206,0.936,
+harmonet_v2,humaneval,HumanEval/16,3,True,130,76,measured,206,0.921,
+harmonet_v2,humaneval,HumanEval/17,1,True,230,209,measured,439,2.3961,
+harmonet_v2,humaneval,HumanEval/17,2,True,230,209,measured,439,2.3471,
+harmonet_v2,humaneval,HumanEval/17,3,True,230,209,measured,439,2.3267,
+harmonet_v2,humaneval,HumanEval/18,1,True,147,139,measured,286,1.5933,
+harmonet_v2,humaneval,HumanEval/18,2,True,147,147,measured,294,1.6586,
+harmonet_v2,humaneval,HumanEval/18,3,True,147,139,measured,286,1.57,
+harmonet_v2,humaneval,HumanEval/19,1,True,163,197,measured,360,2.2077,
+harmonet_v2,humaneval,HumanEval/19,2,True,163,308,measured,471,3.3885,
+harmonet_v2,humaneval,HumanEval/19,3,True,163,290,measured,453,3.194,
+harmonet_v2,mbpp,mbpp_2,1,True,459,70,measured,529,0.8954,
+harmonet_v2,mbpp,mbpp_2,2,False,459,87,measured,546,1.0544,"    assert set(similar_elements((3, 4, 5, 6),(5, 7, 4, 10))) == set((4, 5))
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1_32had45y\candidate_test.py"", line 18, in similar_elements
+    return set(list1, list2)
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1_32had45y\candidate_test.py"", line 15, in set
+    return set(list1) & set(list2)
+TypeError: set() missing 1 required positional argument: 'list2'"
+harmonet_v2,mbpp,mbpp_2,3,False,459,87,measured,546,1.052,"    assert set(similar_elements((3, 4, 5, 6),(5, 7, 4, 10))) == set((4, 5))
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1_141krabn\candidate_test.py"", line 18, in similar_elements
+    return set(list1, list2)
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1_141krabn\candidate_test.py"", line 15, in set
+    return set(list1) & set(list2)
+TypeError: set() missing 1 required positional argument: 'list2'"
+harmonet_v2,mbpp,mbpp_3,1,True,116,58,measured,174,0.721,
+harmonet_v2,mbpp,mbpp_3,2,True,116,58,measured,174,0.7112,
+harmonet_v2,mbpp,mbpp_3,3,True,116,58,measured,174,0.7099,
+harmonet_v2,mbpp,mbpp_4,1,True,269,54,measured,323,0.6859,
+harmonet_v2,mbpp,mbpp_4,2,True,269,57,measured,326,0.7039,
+harmonet_v2,mbpp,mbpp_4,3,True,269,54,measured,323,0.6722,
+harmonet_v2,mbpp,mbpp_6,1,True,147,68,measured,215,0.8296,
+harmonet_v2,mbpp,mbpp_6,2,True,147,68,measured,215,0.8158,
+harmonet_v2,mbpp,mbpp_6,3,True,147,70,measured,217,0.8394,
+harmonet_v2,mbpp,mbpp_7,1,True,422,130,measured,552,1.5419,
+harmonet_v2,mbpp,mbpp_7,2,False,422,128,measured,550,1.4901,"Traceback (most recent call last):
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1_42mcee7w\candidate_test.py"", line 26, in <module>
+    assert set(find_char_long('Please move back to stream')) == set(['Please', 'move', 'back', 'stream'])
+TypeError: set() takes 0 positional arguments but 1 was given"
+harmonet_v2,mbpp,mbpp_7,3,True,422,122,measured,544,1.423,
+harmonet_v2,mbpp,mbpp_8,1,True,202,35,measured,237,0.4841,
+harmonet_v2,mbpp,mbpp_8,2,True,202,22,measured,224,0.3365,
+harmonet_v2,mbpp,mbpp_8,3,True,202,22,measured,224,0.3294,
+harmonet_v2,mbpp,mbpp_9,1,True,135,49,measured,184,0.6229,
+harmonet_v2,mbpp,mbpp_9,2,True,135,49,measured,184,0.6155,
+harmonet_v2,mbpp,mbpp_9,3,True,135,49,measured,184,0.6104,
+harmonet_v2,mbpp,mbpp_11,1,True,133,124,measured,257,1.4188,
+harmonet_v2,mbpp,mbpp_11,2,True,133,124,measured,257,1.4357,
+harmonet_v2,mbpp,mbpp_11,3,True,133,126,measured,259,1.4438,
+harmonet_v2,mbpp,mbpp_12,1,True,258,33,measured,291,0.4712,
+harmonet_v2,mbpp,mbpp_12,2,True,258,33,measured,291,0.4521,
+harmonet_v2,mbpp,mbpp_12,3,True,258,33,measured,291,0.4546,
+harmonet_v2,mbpp,mbpp_14,1,True,134,60,measured,194,0.7518,
+harmonet_v2,mbpp,mbpp_14,2,True,134,60,measured,194,0.7406,
+harmonet_v2,mbpp,mbpp_14,3,True,134,60,measured,194,0.7445,
+harmonet_v2,mbpp,mbpp_16,1,True,142,56,measured,198,0.7159,
+harmonet_v2,mbpp,mbpp_16,2,True,142,68,measured,210,0.8237,
+harmonet_v2,mbpp,mbpp_16,3,True,142,56,measured,198,0.7022,
+harmonet_v2,mbpp,mbpp_17,1,True,121,29,measured,150,0.4153,
+harmonet_v2,mbpp,mbpp_17,2,True,121,29,measured,150,0.4095,
+harmonet_v2,mbpp,mbpp_17,3,True,121,29,measured,150,0.4086,
+harmonet_v2,mbpp,mbpp_18,1,True,148,72,measured,220,0.8777,
+harmonet_v2,mbpp,mbpp_18,2,True,148,72,measured,220,0.8631,
+harmonet_v2,mbpp,mbpp_18,3,True,148,73,measured,221,0.8835,
+harmonet_v2,mbpp,mbpp_19,1,True,146,96,measured,242,1.128,
+harmonet_v2,mbpp,mbpp_19,2,True,146,110,measured,256,1.277,
+harmonet_v2,mbpp,mbpp_19,3,True,146,107,measured,253,1.24,
+harmonet_v2,mbpp,mbpp_20,1,False,129,146,measured,275,1.6571,"Traceback (most recent call last):
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1_izfjsr5b\candidate_test.py"", line 31, in <module>
+    assert is_woodall(383) == True
+AssertionError"
+harmonet_v2,mbpp,mbpp_20,2,False,129,106,measured,235,1.2298,"Traceback (most recent call last):
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1_b3v6edxq\candidate_test.py"", line 30, in <module>
+    assert is_woodall(383) == True
+AssertionError"
+harmonet_v2,mbpp,mbpp_20,3,False,129,96,measured,225,1.1278,"Traceback (most recent call last):
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1_io1j7s01\candidate_test.py"", line 26, in <module>
+    assert is_woodall(383) == True
+AssertionError"
+harmonet_v2,mbpp,mbpp_56,1,True,114,53,measured,167,0.6702,
+harmonet_v2,mbpp,mbpp_56,2,True,114,53,measured,167,0.6616,
+harmonet_v2,mbpp,mbpp_56,3,True,114,53,measured,167,0.6573,
+harmonet_v2,mbpp,mbpp_57,1,True,150,58,measured,208,0.7202,
+harmonet_v2,mbpp,mbpp_57,2,True,150,57,measured,207,0.7024,
+harmonet_v2,mbpp,mbpp_57,3,True,150,57,measured,207,0.7046,
+harmonet_v2,mbpp,mbpp_58,1,True,135,38,measured,173,0.516,
+harmonet_v2,mbpp,mbpp_58,2,True,135,38,measured,173,0.5045,
+harmonet_v2,mbpp,mbpp_58,3,True,135,38,measured,173,0.5066,
+harmonet_v2,mbpp,mbpp_59,1,True,124,34,measured,158,0.4694,
+harmonet_v2,mbpp,mbpp_59,2,True,124,34,measured,158,0.4646,
+harmonet_v2,mbpp,mbpp_59,3,True,124,34,measured,158,0.4683,
+harmonet_v2,mbpp,mbpp_61,1,True,141,101,measured,242,1.1985,
+harmonet_v2,mbpp,mbpp_61,2,True,141,71,measured,212,0.8667,
+harmonet_v2,mbpp,mbpp_61,3,True,141,100,measured,241,1.1815,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/0,1,True,874,1002,measured,1876,13.1664,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/0,2,True,874,973,measured,1847,10.5704,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/0,3,True,874,929,measured,1803,10.0917,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/1,1,True,923,1181,measured,2104,12.9512,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/1,2,False,911,1035,measured,1946,11.2838,"Traceback (most recent call last):
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1_5sbqdlcr\candidate_test.py"", line 67, in <module>
+    check(separate_paren_groups)
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1_5sbqdlcr\candidate_test.py"", line 55, in check
+    assert candidate('(()()) ((())) () ((())()())') == [
+AssertionError"
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/1,3,True,911,651,measured,1562,7.1437,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/2,1,True,613,350,measured,963,3.8857,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/2,2,True,613,642,measured,1255,6.9838,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/2,3,True,613,512,measured,1125,5.6054,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/3,1,True,736,255,measured,991,2.8932,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/3,2,True,736,623,measured,1359,6.789,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/3,3,True,736,642,measured,1378,6.9983,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/4,1,True,847,866,measured,1713,9.426,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/4,2,True,847,743,measured,1590,8.0825,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/4,3,True,847,934,measured,1781,10.1369,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/5,1,True,728,838,measured,1566,9.2668,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/5,2,True,679,446,measured,1125,5.0389,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/5,3,True,728,512,measured,1240,5.7913,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/6,1,True,806,836,measured,1642,9.1326,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/6,2,True,806,1044,measured,1850,11.3572,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/6,3,True,806,959,measured,1765,10.4752,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/7,1,True,665,818,measured,1483,8.9241,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/7,2,True,665,345,measured,1010,3.8348,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/7,3,True,665,292,measured,957,3.256,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/8,1,True,832,370,measured,1202,4.0881,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/8,2,True,832,354,measured,1186,3.9204,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/8,3,True,832,354,measured,1186,3.9143,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/9,1,True,770,359,measured,1129,3.9677,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/9,2,True,770,331,measured,1101,3.6671,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/9,3,True,766,527,measured,1293,5.7992,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/10,1,False,922,480,measured,1402,5.3136,"Traceback (most recent call last):
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1_4l1qi3gm\candidate_test.py"", line 50, in <module>
+    check(make_palindrome)
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1_4l1qi3gm\candidate_test.py"", line 45, in check
+    assert candidate('xyz') == 'xyzyx'
+AssertionError"
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/10,2,False,965,901,measured,1866,9.8484,"Traceback (most recent call last):
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1_jgmnoo4d\candidate_test.py"", line 66, in <module>
+    check(make_palindrome)
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1_jgmnoo4d\candidate_test.py"", line 61, in check
+    assert candidate('xyz') == 'xyzyx'
+AssertionError"
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/10,3,False,874,691,measured,1565,7.5689,"Traceback (most recent call last):
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1_b1gvks_x\candidate_test.py"", line 63, in <module>
+    check(make_palindrome)
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1_b1gvks_x\candidate_test.py"", line 58, in check
+    assert candidate('xyz') == 'xyzyx'
+AssertionError"
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/11,1,True,634,762,measured,1396,8.3148,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/11,2,False,740,983,measured,1723,10.698,"    check(string_xor)
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1_6vc4s4nv\candidate_test.py"", line 48, in check
+    assert candidate('111000', '101010') == '010010'
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1_6vc4s4nv\candidate_test.py"", line 23, in string_xor
+    if not (a.isbinary() and b.isbinary()):
+AttributeError: 'str' object has no attribute 'isbinary'"
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/11,3,True,740,577,measured,1317,6.3052,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/12,1,True,718,442,measured,1160,4.848,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/12,2,True,644,278,measured,922,3.1398,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/12,3,True,718,442,measured,1160,4.8845,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/13,1,True,572,648,measured,1220,7.0688,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/13,2,True,572,366,measured,938,4.0538,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/13,3,True,572,679,measured,1251,7.3949,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/14,1,True,511,327,measured,838,3.6315,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/14,2,True,511,334,measured,845,3.6918,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/14,3,True,511,309,measured,820,3.4253,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/15,1,True,548,497,measured,1045,5.4393,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/15,2,True,548,313,measured,861,3.472,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/15,3,True,548,498,measured,1046,5.4469,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/16,1,True,538,339,measured,877,3.7617,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/16,2,True,538,313,measured,851,3.4748,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/16,3,True,538,309,measured,847,3.4377,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/17,1,True,1110,939,measured,2049,10.2193,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/17,2,True,862,608,measured,1470,6.7234,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/17,3,False,1110,951,measured,2061,10.3768,"Traceback (most recent call last):
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1_r5vog952\candidate_test.py"", line 53, in <module>
+    check(parse_music)
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1_r5vog952\candidate_test.py"", line 49, in check
+    assert candidate('o| o| .| .| o o o o') == [2, 2, 1, 1, 4, 4, 4, 4]
+AssertionError"
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/18,1,True,667,626,measured,1293,6.8835,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/18,2,True,667,497,measured,1164,5.4382,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/18,3,True,718,864,measured,1582,9.4844,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/19,1,True,1063,1100,measured,2163,12.2182,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/19,2,True,1059,1475,measured,2534,16.3125,
+langraph_compat_qwen2.5_coder_7b,humaneval,HumanEval/19,3,True,1071,1087,measured,2158,11.8625,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_2,1,True,738,665,measured,1403,7.3158,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_2,2,False,739,625,measured,1364,6.8726,"Traceback (most recent call last):
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1_9ogatxti\candidate_test.py"", line 33, in <module>
+    assert set(similar_elements((3, 4, 5, 6),(5, 7, 4, 10))) == set((4, 5))
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1_9ogatxti\candidate_test.py"", line 25, in similar_elements
+    raise ValueError(""Both inputs must be lists"")
+ValueError: Both inputs must be lists"
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_2,3,True,739,716,measured,1455,7.8036,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_3,1,True,505,351,measured,856,3.9118,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_3,2,True,508,378,measured,886,4.1589,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_3,3,True,510,627,measured,1137,6.8309,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_4,1,True,983,858,measured,1841,9.3595,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_4,2,True,983,984,measured,1967,10.7125,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_4,3,True,977,306,measured,1283,3.44,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_6,1,True,630,455,measured,1085,5.0546,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_6,2,True,630,822,measured,1452,8.9154,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_6,3,True,609,417,measured,1026,4.6282,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_7,1,True,692,412,measured,1104,4.5922,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_7,2,True,687,418,measured,1105,4.6227,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_7,3,True,687,687,measured,1374,7.5727,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_8,1,True,717,619,measured,1336,6.9467,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_8,2,True,717,310,measured,1027,3.5237,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_8,3,True,719,432,measured,1151,4.7933,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_9,1,True,549,624,measured,1173,6.8443,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_9,2,True,623,500,measured,1123,5.5104,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_9,3,True,543,747,measured,1290,8.1636,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_11,1,True,676,838,measured,1514,9.137,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_11,2,True,672,581,measured,1253,6.3957,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_11,3,True,676,604,measured,1280,6.6292,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_12,1,True,893,493,measured,1386,5.4292,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_12,2,True,891,307,measured,1198,3.4412,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_12,3,True,896,309,measured,1205,3.4962,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_14,1,True,592,819,measured,1411,8.9383,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_14,2,True,592,465,measured,1057,5.1052,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_14,3,True,592,295,measured,887,3.3115,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_16,1,True,593,450,measured,1043,4.9611,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_16,2,True,593,478,measured,1071,5.2297,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_16,3,True,593,416,measured,1009,4.5809,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_17,1,True,508,276,measured,784,3.1271,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_17,2,True,450,294,measured,744,3.2771,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_17,3,True,450,253,measured,703,2.8253,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_18,1,True,662,289,measured,951,3.251,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_18,2,True,667,471,measured,1138,5.1772,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_18,3,True,661,448,measured,1109,4.9347,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_19,1,True,578,338,measured,916,3.7999,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_19,2,True,625,390,measured,1015,4.3419,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_19,3,True,568,346,measured,914,3.8369,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_20,1,False,671,621,measured,1292,6.8234,"Traceback (most recent call last):
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1_eawnnub6\candidate_test.py"", line 42, in <module>
+    assert is_woodall(383) == True
+AssertionError"
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_20,2,False,652,748,measured,1400,8.1789,"Traceback (most recent call last):
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1_pm8efwcs\candidate_test.py"", line 40, in <module>
+    assert is_woodall(383) == True
+AssertionError"
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_20,3,False,690,751,measured,1441,8.2537,"Traceback (most recent call last):
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1_b9ukvgw3\candidate_test.py"", line 44, in <module>
+    assert is_woodall(383) == True
+AssertionError"
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_56,1,True,517,716,measured,1233,7.8399,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_56,2,True,503,395,measured,898,4.3897,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_56,3,True,517,473,measured,990,5.1989,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_57,1,True,610,578,measured,1188,6.3576,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_57,2,True,610,358,measured,968,3.9693,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_57,3,True,608,358,measured,966,4.0047,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_58,1,True,513,609,measured,1122,6.6488,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_58,2,True,521,347,measured,868,3.8763,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_58,3,True,508,589,measured,1097,6.4374,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_59,1,True,495,295,measured,790,3.3463,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_59,2,True,627,966,measured,1593,10.5373,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_59,3,True,491,600,measured,1091,6.5939,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_61,1,True,677,617,measured,1294,6.8037,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_61,2,True,671,619,measured,1290,6.7647,
+langraph_compat_qwen2.5_coder_7b,mbpp,mbpp_61,3,True,667,571,measured,1238,6.3165,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/0,1,True,873,495,measured,1368,6.5994,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/0,2,True,873,495,measured,1368,6.2226,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/0,3,True,869,489,measured,1358,6.1701,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/1,1,True,740,335,measured,1075,4.4987,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/1,2,True,726,315,measured,1041,4.3081,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/1,3,True,740,335,measured,1075,4.5516,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/2,1,True,608,273,measured,881,3.9315,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/2,2,True,470,66,measured,536,1.6534,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/2,3,True,470,66,measured,536,1.6218,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/3,1,True,636,162,measured,798,2.6865,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/3,2,True,636,162,measured,798,2.6567,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/3,3,True,636,162,measured,798,2.6656,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/4,1,True,854,498,measured,1352,6.2472,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/4,2,True,842,480,measured,1322,6.0683,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/4,3,True,842,480,measured,1322,6.0828,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/5,1,True,697,375,measured,1072,4.9356,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/5,2,True,703,394,measured,1097,5.1809,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/5,3,True,697,386,measured,1083,5.0719,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/6,1,True,715,312,measured,1027,4.3023,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/6,2,True,715,312,measured,1027,4.2515,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/6,3,True,887,570,measured,1457,7.0754,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/7,1,True,660,315,measured,975,4.2758,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/7,2,True,660,315,measured,975,4.2929,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/7,3,True,660,315,measured,975,4.2601,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/8,1,True,827,480,measured,1307,6.0468,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/8,2,True,827,480,measured,1307,6.0564,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/8,3,True,827,480,measured,1307,6.0616,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/9,1,True,765,441,measured,1206,5.6299,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/9,2,True,765,441,measured,1206,5.6379,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/9,3,True,765,441,measured,1206,5.6305,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/10,1,False,784,295,measured,1079,4.0721,"Traceback (most recent call last):
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1_x5z3movu\candidate_test.py"", line 46, in <module>
+    check(make_palindrome)
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1_x5z3movu\candidate_test.py"", line 41, in check
+    assert candidate('xyz') == 'xyzyx'
+AssertionError"
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/10,2,False,753,236,measured,989,3.4714,"Traceback (most recent call last):
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1__18tpycv\candidate_test.py"", line 40, in <module>
+    check(make_palindrome)
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1__18tpycv\candidate_test.py"", line 35, in check
+    assert candidate('xyz') == 'xyzyx'
+AssertionError"
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/10,3,False,790,304,measured,1094,4.2507,"Traceback (most recent call last):
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1_4jnv68iw\candidate_test.py"", line 48, in <module>
+    check(make_palindrome)
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1_4jnv68iw\candidate_test.py"", line 43, in check
+    assert candidate('xyz') == 'xyzyx'
+AssertionError"
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/11,1,True,629,318,measured,947,4.3935,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/11,2,True,629,318,measured,947,4.3376,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/11,3,True,637,330,measured,967,4.4577,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/12,1,True,639,243,measured,882,3.5503,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/12,2,True,639,243,measured,882,3.5076,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/12,3,True,713,354,measured,1067,4.7363,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/13,1,True,567,270,measured,837,3.8043,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/13,2,True,567,270,measured,837,3.7984,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/13,3,True,567,270,measured,837,3.7967,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/14,1,True,506,237,measured,743,3.459,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/14,2,True,506,237,measured,743,3.4533,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/14,3,True,506,237,measured,743,3.4447,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/15,1,True,543,252,measured,795,3.6343,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/15,2,True,439,96,measured,535,1.9701,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/15,3,True,439,96,measured,535,1.9196,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/16,1,True,533,228,measured,761,3.4043,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/16,2,True,533,228,measured,761,3.3565,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/16,3,True,533,228,measured,761,3.3698,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/17,1,True,1105,627,measured,1732,7.6338,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/17,2,True,1105,627,measured,1732,7.6444,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/17,3,True,1103,624,measured,1727,7.6573,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/18,1,True,595,240,measured,835,3.4994,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/18,2,True,713,417,measured,1130,5.4068,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/18,3,True,595,240,measured,835,3.5216,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/19,1,True,880,591,measured,1471,7.2403,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/19,2,True,712,339,measured,1051,4.5967,
+autogen_qwen2.5_coder_7b,humaneval,HumanEval/19,3,True,880,591,measured,1471,7.2747,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_2,1,True,665,87,measured,752,1.9047,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_2,2,True,665,87,measured,752,1.8694,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_2,3,True,677,105,measured,782,2.0797,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_3,1,True,458,174,measured,632,2.7941,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_3,2,True,458,174,measured,632,2.7626,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_3,3,True,458,174,measured,632,2.7519,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_4,1,True,912,174,measured,1086,2.8084,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_4,2,True,914,177,measured,1091,2.8468,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_4,3,True,924,187,measured,1111,2.9562,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_6,1,True,483,90,measured,573,1.9165,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_6,2,True,483,90,measured,573,1.8713,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_6,3,True,483,90,measured,573,1.8743,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_7,1,True,569,87,measured,656,1.8797,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_7,2,True,569,87,measured,656,1.8463,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_7,3,True,569,87,measured,656,1.861,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_8,1,True,645,66,measured,711,1.6364,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_8,2,True,643,63,measured,706,1.6101,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_8,3,True,643,63,measured,706,1.614,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_9,1,True,494,147,measured,641,2.5026,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_9,2,True,494,147,measured,641,2.4799,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_9,3,True,494,147,measured,641,2.4759,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_11,1,False,551,246,measured,797,3.5288,"Traceback (most recent call last):
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1_xqu5lqvj\candidate_test.py"", line 25, in <module>
+    assert remove_Occ(""hello"",""l"") == ""heo""
+AssertionError"
+autogen_qwen2.5_coder_7b,mbpp,mbpp_11,2,True,551,240,measured,791,3.4829,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_11,3,True,551,240,measured,791,3.4872,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_12,1,True,805,54,measured,859,1.4968,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_12,2,True,805,54,measured,859,1.5018,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_12,3,True,805,54,measured,859,1.501,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_14,1,True,452,84,measured,536,1.8756,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_14,2,True,452,84,measured,536,1.8121,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_14,3,True,452,84,measured,536,1.8085,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_16,1,True,480,99,measured,579,2.0252,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_16,2,True,461,69,measured,530,1.6692,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_16,3,True,461,69,measured,530,1.6412,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_17,1,True,397,60,measured,457,1.6025,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_17,2,True,397,60,measured,457,1.5452,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_17,3,True,397,60,measured,457,1.5736,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_18,1,True,500,96,measured,596,1.9353,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_18,2,True,500,96,measured,596,1.9499,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_18,3,True,500,96,measured,596,1.9326,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_19,1,True,475,60,measured,535,1.6099,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_19,2,True,475,60,measured,535,1.5603,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_19,3,True,475,60,measured,535,1.5827,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_20,1,False,582,306,measured,888,4.2169,"Traceback (most recent call last):
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1_hzhu8csk\candidate_test.py"", line 30, in <module>
+    assert is_woodall(383) == True
+AssertionError"
+autogen_qwen2.5_coder_7b,mbpp,mbpp_20,2,False,536,237,measured,773,3.478,"Traceback (most recent call last):
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1_g8jfem_z\candidate_test.py"", line 28, in <module>
+    assert is_woodall(383) == True
+AssertionError"
+autogen_qwen2.5_coder_7b,mbpp,mbpp_20,3,False,540,243,measured,783,3.5303,"Traceback (most recent call last):
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1_eizi7dcc\candidate_test.py"", line 28, in <module>
+    assert is_woodall(383) == True
+AssertionError"
+autogen_qwen2.5_coder_7b,mbpp,mbpp_56,1,True,408,99,measured,507,2.0127,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_56,2,True,408,99,measured,507,1.9727,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_56,3,True,408,99,measured,507,1.957,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_57,1,True,500,84,measured,584,1.8746,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_57,2,True,558,171,measured,729,2.7729,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_57,3,True,500,84,measured,584,1.8332,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_58,1,True,443,75,measured,518,1.7761,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_58,2,True,443,75,measured,518,1.7339,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_58,3,True,443,75,measured,518,1.7241,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_59,1,True,412,69,measured,481,1.6941,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_59,2,True,412,69,measured,481,1.6535,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_59,3,True,412,69,measured,481,1.6501,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_61,1,True,601,276,measured,877,3.8766,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_61,2,True,601,276,measured,877,3.8872,
+autogen_qwen2.5_coder_7b,mbpp,mbpp_61,3,True,601,276,measured,877,3.8622,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/0,1,True,1039,489,measured,1528,10.7912,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/0,2,True,937,387,measured,1324,6.5783,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/0,3,True,845,198,measured,1043,4.639,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/1,1,True,903,328,measured,1231,5.925,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/1,2,True,903,328,measured,1231,5.8149,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/1,3,True,891,310,measured,1201,5.6631,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/2,1,True,778,273,measured,1051,5.3402,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/2,2,True,640,66,measured,706,3.1491,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/2,3,True,778,273,measured,1051,5.2888,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/3,1,True,896,347,measured,1243,6.179,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/3,2,True,896,347,measured,1243,6.1471,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/3,3,True,806,162,measured,968,4.0857,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/4,1,True,802,165,measured,967,4.2139,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/4,2,True,802,165,measured,967,4.199,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/4,3,True,802,165,measured,967,4.1703,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/5,1,True,805,316,measured,1121,5.8472,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/5,2,True,799,307,measured,1106,5.7149,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/5,3,True,799,307,measured,1106,5.6485,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/6,1,True,966,479,measured,1445,7.5403,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/6,2,True,966,479,measured,1445,7.4957,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/6,3,True,880,307,measured,1187,5.6902,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/7,1,True,761,246,measured,1007,5.1001,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/7,2,True,761,246,measured,1007,5.0185,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/7,3,True,761,246,measured,1007,5.0237,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/8,1,True,997,480,measured,1477,7.5011,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/8,2,True,995,477,measured,1472,7.5399,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/8,3,True,988,470,measured,1458,7.5041,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/9,1,True,935,441,measured,1376,7.1565,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/9,2,True,941,450,measured,1391,7.2448,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/9,3,True,941,450,measured,1391,7.1764,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/10,1,False,923,234,measured,1157,4.9238,"Traceback (most recent call last):
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1_wghem1sr\candidate_test.py"", line 40, in <module>
+    check(make_palindrome)
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1_wghem1sr\candidate_test.py"", line 35, in check
+    assert candidate('xyz') == 'xyzyx'
+AssertionError"
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/10,2,False,923,234,measured,1157,4.9138,"Traceback (most recent call last):
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1_v8hu3jzz\candidate_test.py"", line 40, in <module>
+    check(make_palindrome)
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1_v8hu3jzz\candidate_test.py"", line 35, in check
+    assert candidate('xyz') == 'xyzyx'
+AssertionError"
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/10,3,False,923,234,measured,1157,4.8679,"Traceback (most recent call last):
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1_zk3g3wub\candidate_test.py"", line 40, in <module>
+    check(make_palindrome)
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1_zk3g3wub\candidate_test.py"", line 35, in check
+    assert candidate('xyz') == 'xyzyx'
+AssertionError"
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/11,1,True,737,256,measured,993,5.2058,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/11,2,True,737,256,measured,993,5.0637,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/11,3,True,745,268,measured,1013,5.2839,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/12,1,True,798,269,measured,1067,5.3744,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/12,2,True,798,269,measured,1067,5.2227,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/12,3,True,798,269,measured,1067,5.2034,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/13,1,True,737,270,measured,1007,5.2284,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/13,2,True,737,270,measured,1007,5.2839,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/13,3,True,737,270,measured,1007,5.2824,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/14,1,True,635,196,measured,831,4.4981,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/14,2,True,635,196,measured,831,4.4937,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/14,3,True,635,196,measured,831,4.4346,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/15,1,True,609,96,measured,705,3.5277,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/15,2,True,609,96,measured,705,3.3693,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/15,3,True,609,96,measured,705,3.4179,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/16,1,True,703,228,measured,931,4.9315,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/16,2,True,599,72,measured,671,3.1891,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/16,3,True,703,228,measured,931,4.8365,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/17,1,True,1265,612,measured,1877,9.0368,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/17,2,True,1022,250,measured,1272,5.0931,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/17,3,True,1017,240,measured,1257,5.0352,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/18,1,True,749,216,measured,965,4.7268,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/18,2,True,749,216,measured,965,4.6402,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/18,3,True,749,216,measured,965,4.7423,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/19,1,True,1050,591,measured,1641,8.8445,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/19,2,True,1050,591,measured,1641,8.745,
+crewai_qwen2.5_coder_7b,humaneval,HumanEval/19,3,True,872,324,measured,1196,5.8443,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_2,1,True,826,75,measured,901,3.2989,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_2,2,True,826,75,measured,901,3.2003,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_2,3,True,826,75,measured,901,3.2011,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_3,1,True,628,174,measured,802,4.2991,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_3,2,True,720,312,measured,1032,5.7501,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_3,3,True,720,312,measured,1032,5.7301,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_4,1,True,1019,81,measured,1100,3.2638,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_4,2,True,1073,162,measured,1235,4.141,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_4,3,True,1073,162,measured,1235,4.126,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_6,1,True,667,111,measured,778,3.6804,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_6,2,True,663,105,measured,768,3.5317,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_6,3,True,667,111,measured,778,3.6469,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_7,1,True,738,87,measured,825,3.3903,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_7,2,True,738,87,measured,825,3.3321,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_7,3,True,738,87,measured,825,3.3731,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_8,1,True,814,66,measured,880,3.1175,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_8,2,True,814,66,measured,880,3.1378,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_8,3,True,814,66,measured,880,3.1463,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_9,1,True,664,147,measured,811,3.9622,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_9,2,True,664,147,measured,811,3.9169,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_9,3,True,664,147,measured,811,3.9651,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_11,1,True,720,240,measured,960,4.9685,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_11,2,True,720,240,measured,960,4.9638,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_11,3,True,720,240,measured,960,4.8753,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_12,1,True,974,54,measured,1028,2.9749,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_12,2,True,974,54,measured,1028,3.0196,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_12,3,True,974,54,measured,1028,2.9723,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_14,1,True,622,84,measured,706,3.3878,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_14,2,True,622,84,measured,706,3.2645,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_14,3,True,622,84,measured,706,3.278,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_16,1,True,630,69,measured,699,3.1667,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_16,2,True,654,105,measured,759,3.5216,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_16,3,True,630,69,measured,699,3.1712,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_17,1,True,567,60,measured,627,3.1569,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_17,2,True,567,60,measured,627,3.0773,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_17,3,True,567,60,measured,627,3.0639,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_18,1,True,671,99,measured,770,3.5066,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_18,2,True,669,96,measured,765,3.4615,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_18,3,True,671,99,measured,770,3.5004,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_19,1,True,685,120,measured,805,3.7547,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_19,2,True,645,60,measured,705,3.0041,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_19,3,True,685,120,measured,805,3.6639,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_20,1,False,706,237,measured,943,4.9675,"Traceback (most recent call last):
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1_ucqlw3q5\candidate_test.py"", line 28, in <module>
+    assert is_woodall(383) == True
+AssertionError"
+crewai_qwen2.5_coder_7b,mbpp,mbpp_20,2,False,752,306,measured,1058,5.6013,"Traceback (most recent call last):
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1_3pd9hdq3\candidate_test.py"", line 30, in <module>
+    assert is_woodall(383) == True
+AssertionError"
+crewai_qwen2.5_coder_7b,mbpp,mbpp_20,3,False,752,306,measured,1058,5.6018,"Traceback (most recent call last):
+  File ""C:\Users\User\AppData\Local\Temp\harmonet_ext_g1_arxfbp0x\candidate_test.py"", line 30, in <module>
+    assert is_woodall(383) == True
+AssertionError"
+crewai_qwen2.5_coder_7b,mbpp,mbpp_56,1,True,578,99,measured,677,3.5298,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_56,2,True,578,99,measured,677,3.447,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_56,3,True,578,99,measured,677,3.4732,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_57,1,True,670,84,measured,754,3.3609,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_57,2,True,670,84,measured,754,3.3431,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_57,3,True,670,84,measured,754,3.2461,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_58,1,True,613,75,measured,688,3.2841,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_58,2,True,613,75,measured,688,3.1794,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_58,3,True,613,75,measured,688,3.2167,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_59,1,True,582,69,measured,651,3.1916,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_59,2,True,604,102,measured,706,3.5067,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_59,3,True,582,69,measured,651,3.0888,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_61,1,True,729,213,measured,942,4.6991,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_61,2,True,789,303,measured,1092,5.5916,
+crewai_qwen2.5_coder_7b,mbpp,mbpp_61,3,True,799,318,measured,1117,5.8576,

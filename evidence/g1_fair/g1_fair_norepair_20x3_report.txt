@@ -1,0 +1,22 @@
+
+================================================================================
+External Standard G1: HumanEval / MBPP
+================================================================================
+system                                                         pass     tokens    lat(s)      p99
+--------------------------------------------------------------------------------
+harmonet_v2                                                  92.5%+/-4.7         274      1.24     3.39
+langraph_compat_qwen2.5_coder_7b                             91.7%+/-5.0        1277      6.40    13.17
+autogen_qwen2.5_coder_7b                                     94.2%+/-4.2         852      3.40     7.64
+crewai_qwen2.5_coder_7b                                      95.0%+/-3.9         980      4.67     9.04
+
+By benchmark
+  humaneval:
+    harmonet_v2                                            pass= 95.0% tokens=    300 lat=  1.67s
+    langraph_compat_qwen2.5_coder_7b                       pass= 90.0% tokens=   1391 lat=  7.05s
+    autogen_qwen2.5_coder_7b                               pass= 95.0% tokens=   1043 lat=  4.59s
+    crewai_qwen2.5_coder_7b                                pass= 95.0% tokens=   1122 lat=  5.58s
+  mbpp:
+    harmonet_v2                                            pass= 90.0% tokens=    248 lat=  0.82s
+    langraph_compat_qwen2.5_coder_7b                       pass= 93.3% tokens=   1163 lat=  5.75s
+    autogen_qwen2.5_coder_7b                               pass= 93.3% tokens=    661 lat=  2.22s
+    crewai_qwen2.5_coder_7b                                pass= 95.0% tokens=    839 lat=  3.75s

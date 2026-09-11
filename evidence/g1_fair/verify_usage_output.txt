@@ -1,0 +1,12 @@
+백엔드: openai_compatible
+------------------------------------------------------------
+[LLM] OpenAI 호환 클라이언트 활성화 (qwen2.5-coder:7b @ http://localhost:11434/v1) [HARMONET_LLM_BACKEND=openai_compatible]
+응답: 'Ok'
+계측: {'prompt_tokens': 32, 'completion_tokens': 2, 'total_tokens': 34, 'calls': 1, 'estimated_calls': 0, 'measured': True}
+------------------------------------------------------------
+✅ 통과 — 실측 usage 가 정상 기록됩니다.
+   prompt 32 / completion 2
+
+   참고: 시스템 프롬프트가 포함되었는지 확인하려면 위 prompt_tokens 가
+   사용자 프롬프트('Reply with exactly the word: ok', 약 8토큰)보다
+   충분히 큰지 보세요. 크다면 시스템 프롬프트가 집계된 것입니다.

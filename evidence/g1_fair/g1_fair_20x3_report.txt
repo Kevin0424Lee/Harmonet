@@ -1,0 +1,31 @@
+
+================================================================================
+External Standard G1: HumanEval / MBPP
+================================================================================
+system                                                         pass     tokens    lat(s)      p99
+--------------------------------------------------------------------------------
+harmonet                                                     92.5%+/-4.7         281      1.97     3.31
+harmonet_v2                                                  92.5%+/-4.7         313      1.35     3.96
+langraph_compat_qwen2.5_coder_7b                             93.3%+/-4.5        1278      6.55    12.39
+autogen_qwen2.5_coder_7b                                     94.2%+/-4.2         852      3.48     7.83
+crewai_qwen2.5_coder_7b                                      95.0%+/-3.9         995      4.79     9.97
+
+G1 gate
+G1-1 token ratio: 21.98% PASS
+G1-2 pass gap: -0.8pp PASS
+G1-3 HarmoNet p99: 3.31s PASS
+G1: 3/3 GO
+
+By benchmark
+  humaneval:
+    harmonet                                               pass= 90.0% tokens=    331 lat=  2.52s
+    harmonet_v2                                            pass= 95.0% tokens=    328 lat=  1.71s
+    langraph_compat_qwen2.5_coder_7b                       pass= 93.3% tokens=   1369 lat=  6.92s
+    autogen_qwen2.5_coder_7b                               pass= 95.0% tokens=   1032 lat=  4.64s
+    crewai_qwen2.5_coder_7b                                pass= 95.0% tokens=   1154 lat=  5.83s
+  mbpp:
+    harmonet                                               pass= 95.0% tokens=    230 lat=  1.42s
+    harmonet_v2                                            pass= 90.0% tokens=    299 lat=  0.99s
+    langraph_compat_qwen2.5_coder_7b                       pass= 93.3% tokens=   1187 lat=  6.18s
+    autogen_qwen2.5_coder_7b                               pass= 93.3% tokens=    671 lat=  2.33s
+    crewai_qwen2.5_coder_7b                                pass= 95.0% tokens=    836 lat=  3.76s
