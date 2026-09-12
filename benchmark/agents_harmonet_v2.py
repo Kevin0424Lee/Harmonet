@@ -203,7 +203,7 @@ class HarmoNetV2Adapter:
             completion_tokens += ct
             calls += 1
             stages.append("repair")
-            state.record("self_revise", "builder", self._last_model, self._last_cost, repair_output[:200])
+            state.record("self_revise", "builder", self._last_model, self._last_cost, repair_output[:200], trigger="verify:visible")
             repair_validation = self._cheap_validate(repair_output, task, profile, stage="repair")
             state.record("verify", "static_check", "none", dict(NO_COST, verify_calls=1), f"repair: {repair_validation.reasons}")
             if repair_validation.ok or not validation.ok:
@@ -221,7 +221,7 @@ class HarmoNetV2Adapter:
             calls += 1
             stages.append("validator")
             # reviewer 역할 모델. builder 와 같은 모델이면 get_llm_client 가 "구별 불가" 경고를 낸다
-            state.record("expert_review", "reviewer", self._last_model, self._last_cost, validator_output[:200])
+            state.record("expert_review", "reviewer", self._last_model, self._last_cost, validator_output[:200], trigger="self")
             validator_validation = self._cheap_validate(validator_output, task, profile, stage="validator")
             state.record("verify", "static_check", "none", dict(NO_COST, verify_calls=1), f"validator: {validator_validation.reasons}")
             if validator_validation.ok or not validation.ok:
@@ -311,7 +311,8 @@ class HarmoNetV2Adapter:
         repaired, pt, ct = self._call_llm(prompt, self._system_prompt(profile))
         validation = self._cheap_validate(repaired, task, profile, stage="eval_repair")
         state = self._states.get(task.id) or TaskState(task.id, system=self.name)
-        state.record("self_revise", "builder", self._last_model, self._last_cost, f"eval_repair: {repaired[:160]}")
+        # 채점기의 실패 출력(히든 테스트)을 프롬프트에 넣은 수정 → 누출 위험 라벨 (TaskState.leak_risk)
+        state.record("self_revise", "builder", self._last_model, self._last_cost, f"eval_repair: {repaired[:160]}", trigger="eval:hidden")
         state.record("verify", "static_check", "none", dict(NO_COST, verify_calls=1), f"eval_repair: {validation.reasons}")
         if validation.ok:
             state.artifact = repaired

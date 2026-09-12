@@ -47,3 +47,20 @@ def test_harmonet_trace_has_verify_with_builder_artifact(trace_env):
     # validator 가 검증한 산출물 == builder 산출물 (sha 대조)
     sha = hashlib.sha256(extract_artifact(d["artifact"]).encode()).hexdigest()[:12]
     assert f"artifact_sha={sha}" in d["verification"]["evidence"], d["verification"]
+
+
+FIXTURES = os.path.join(os.path.dirname(__file__), "fixtures", "traces")
+
+
+@pytest.mark.parametrize("name", ["single", "harmonet", "harmonet_v2"])
+def test_fixture_traces_match_schema(name):
+    """Week1-A4c: 커밋된 스모크 trace 3개가 스키마를 통과하고 역할별 모델이 분리돼 있는지."""
+    from harmonet.trace import validate_trace
+    d = json.load(open(os.path.join(FIXTURES, f"{name}.json"), encoding="utf-8"))
+    validate_trace(d)
+    assert d["system"] == name and d["leak_risk"] is False
+    if name == "harmonet_v2":
+        models = {a["kind"]: a["model"] for a in d["history"]}
+        assert models["build"] == "mock-a" and models["expert_review"] == "mock-b"
+    if name == "harmonet":
+        assert d["cost_attribution"] == "tick_aggregate"

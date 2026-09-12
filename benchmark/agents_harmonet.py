@@ -216,7 +216,7 @@ class HarmoNetAdapter:
             before = METER.snapshot()
             repair_output = await get_llm_client().generate_async(repair_prompt)
             total_tokens += len(repair_prompt.split()) + len(repair_output.split())
-            state.record("self_revise", "keyword_repair", model, meter_delta(before), repair_output[:200])
+            state.record("self_revise", "keyword_repair", model, meter_delta(before), repair_output[:200], trigger="verify:visible")
             final_output = (
                 f"{final_output}\n\n---\n\n[Repair]\n{repair_output}"
                 if final_output else repair_output

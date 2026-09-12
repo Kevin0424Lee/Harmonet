@@ -340,11 +340,12 @@ def _run_one(adapter: Any, task: ExternalTask, repeat: int, timeout_s: float) ->
         metadata = dict(result.get("metadata", {}))
         code = _extract_code(output, task)
         passed, eval_error = evaluate_code(code, task, timeout_s)
+        # eval-repair 는 채점기의 실패 출력을 생성 프롬프트에 넣는다 (히든 테스트 누출). 기본 차단.
+        # 켜려면 G1_DISABLE_EVAL_REPAIR=0 을 명시 — 그 실행의 trace 는 leak_risk=true 로 라벨된다.
         if (
             not passed
-            and os.getenv("HARMONET_V2_EVAL_REPAIR", "1") == "1"
             and hasattr(adapter, "repair_after_eval")
-            and os.getenv("G1_DISABLE_EVAL_REPAIR", "").lower() not in ("1", "true", "yes")
+            and os.getenv("G1_DISABLE_EVAL_REPAIR", "1").lower() in ("0", "false", "no")
         ):
             repair_started = time.perf_counter()
             repair = adapter.repair_after_eval(_to_benchmark_task(task), output, eval_error)

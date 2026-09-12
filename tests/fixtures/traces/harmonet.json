@@ -1,0 +1,72 @@
+{
+ "task_id": "fixture_code",
+ "system": "harmonet",
+ "cost_attribution": "tick_aggregate",
+ "artifact": "[MockLLM] Expanded instruction successfully: Role: builder (Bench-Builder).\nTask: Write a Python function add(a, b) that returns a + b.\nReturn concise working Python...",
+ "verification": {
+  "passed": false,
+  "evidence": "artifact_chars=168 artifact_sha=d470e43cf2cb; extraction=raw; ast=syntax_error line 1: invalid syntax",
+  "method": [
+   "ast"
+  ],
+  "cost_tokens": 0
+ },
+ "leak_risk": false,
+ "cost_so_far": {
+  "prompt_tokens": 67,
+  "completion_tokens": 42,
+  "llm_calls": 1,
+  "verify_calls": 1,
+  "source": "estimated"
+ },
+ "history": [
+  {
+   "kind": "build",
+   "agent_role": "builder",
+   "model": "mock",
+   "cost": {
+    "prompt_tokens": 67,
+    "completion_tokens": 42,
+    "llm_calls": 1,
+    "verify_calls": 0,
+    "source": "estimated"
+   },
+   "result_summary": "[MockLLM] Expanded instruction successfully: Role: builder (Bench-Builder).\nTask: Write a Python function add(a, b) that returns a + b.\nReturn concise working Python...",
+   "trigger": "none",
+   "token_source": "estimated",
+   "timestamp": 1789239543.554244
+  },
+  {
+   "kind": "verify",
+   "agent_role": "validator",
+   "model": "none",
+   "cost": {
+    "prompt_tokens": 0,
+    "completion_tokens": 0,
+    "llm_calls": 0,
+    "verify_calls": 1,
+    "source": "none"
+   },
+   "result_summary": "artifact_chars=168 artifact_sha=d470e43cf2cb; extraction=raw; ast=syntax_error line 1: invalid syntax",
+   "trigger": "none",
+   "token_source": "none",
+   "timestamp": 1789239543.5632424
+  },
+  {
+   "kind": "terminate",
+   "agent_role": "system",
+   "model": "none",
+   "cost": {
+    "prompt_tokens": 0,
+    "completion_tokens": 0,
+    "llm_calls": 0,
+    "verify_calls": 0,
+    "source": "none"
+   },
+   "result_summary": "repair_used=False",
+   "trigger": "none",
+   "token_source": "none",
+   "timestamp": 1789239543.5632424
+  }
+ ]
+}

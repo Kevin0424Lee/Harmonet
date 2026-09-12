@@ -1,0 +1,104 @@
+{
+ "task_id": "fixture_api",
+ "system": "harmonet_v2",
+ "cost_attribution": "per_call",
+ "artifact": "[MockLLM] Expanded instruction successfully: Solve the task with enough detail for review, but keep it concise.\nRequired terms: POST, schema\n\nTask:\nDesign an API wit...",
+ "verification": {
+  "passed": true,
+  "evidence": "builder: open-ended checks passed",
+  "method": [
+   "static_check"
+  ],
+  "cost_tokens": 0
+ },
+ "leak_risk": false,
+ "cost_so_far": {
+  "prompt_tokens": 185,
+  "completion_tokens": 84,
+  "llm_calls": 2,
+  "verify_calls": 2,
+  "source": "estimated"
+ },
+ "history": [
+  {
+   "kind": "build",
+   "agent_role": "builder",
+   "model": "mock-a",
+   "cost": {
+    "prompt_tokens": 55,
+    "completion_tokens": 42,
+    "llm_calls": 1,
+    "verify_calls": 0,
+    "source": "estimated"
+   },
+   "result_summary": "[MockLLM] Expanded instruction successfully: Solve the task with enough detail for review, but keep it concise.\nRequired terms: POST, schema\n\nTask:\nDesign an API wit...",
+   "trigger": "none",
+   "token_source": "estimated",
+   "timestamp": 1789239543.5732446
+  },
+  {
+   "kind": "verify",
+   "agent_role": "static_check",
+   "model": "none",
+   "cost": {
+    "prompt_tokens": 0,
+    "completion_tokens": 0,
+    "llm_calls": 0,
+    "verify_calls": 1,
+    "source": "none"
+   },
+   "result_summary": "builder: ['open-ended checks passed']",
+   "trigger": "none",
+   "token_source": "none",
+   "timestamp": 1789239543.5732446
+  },
+  {
+   "kind": "expert_review",
+   "agent_role": "reviewer",
+   "model": "mock-b",
+   "cost": {
+    "prompt_tokens": 130,
+    "completion_tokens": 42,
+    "llm_calls": 1,
+    "verify_calls": 0,
+    "source": "estimated"
+   },
+   "result_summary": "[MockLLM] Expanded instruction successfully: Review and finalize the candidate. If it is correct, return the final artifact unchanged. If it is incomplete, return on...",
+   "trigger": "self",
+   "token_source": "estimated",
+   "timestamp": 1789239543.5732446
+  },
+  {
+   "kind": "verify",
+   "agent_role": "static_check",
+   "model": "none",
+   "cost": {
+    "prompt_tokens": 0,
+    "completion_tokens": 0,
+    "llm_calls": 0,
+    "verify_calls": 1,
+    "source": "none"
+   },
+   "result_summary": "validator: ['keyword hit rate 0.00 < 0.50']",
+   "trigger": "none",
+   "token_source": "none",
+   "timestamp": 1789239543.5732446
+  },
+  {
+   "kind": "terminate",
+   "agent_role": "system",
+   "model": "none",
+   "cost": {
+    "prompt_tokens": 0,
+    "completion_tokens": 0,
+    "llm_calls": 0,
+    "verify_calls": 0,
+    "source": "none"
+   },
+   "result_summary": "accepted_stage=builder",
+   "trigger": "none",
+   "token_source": "none",
+   "timestamp": 1789239543.5732446
+  }
+ ]
+}

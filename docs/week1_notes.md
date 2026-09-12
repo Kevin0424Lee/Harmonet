@@ -9,7 +9,7 @@ Part A 진행 중 확정된 사실과, 2주차 설계(`docs/week2_design_draft.m
 
 ## Part C 공정성 항목
 - `benchmark/agents_harmonet_v2.py:repair_after_eval` 는 외부 채점기의 실패 출력(`eval_error`, 히든 테스트 결과)을
-  프롬프트에 넣는다 — N3 와 같은 누출 패턴. 2주차 설계에서 "운영 중 검증 신호"로 쓰지 말 것 (`G1_DISABLE_EVAL_REPAIR=1`).
+  프롬프트에 넣는다 — N3 와 같은 누출 패턴. A4c 부터 **기본 차단** (`G1_DISABLE_EVAL_REPAIR` 기본 1, 켜려면 `=0` 명시) 이고 켜서 실행하면 trace 에 `trigger=eval:hidden`, `TaskState.leak_risk=true` 라벨.
 - v1 어댑터의 키워드 기반 repair 경로(`benchmark/agents_harmonet.py`, `HARMONET_REPAIR_KEYWORD_THRESHOLD`)는
   HarmoNet 에만 있는 2차 LLM 호출. 조건 간 비교 시 끄거나 전 조건에 동일 적용.
 

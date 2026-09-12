@@ -21,6 +21,10 @@ from typing import Any, Dict, List, Optional
 from .usage import METER
 
 ACTION_KINDS = ("build", "self_revise", "expert_review", "verify", "terminate")
+# 행동을 일으킨 신호. verify:visible = 공개 검증 결과 / eval:hidden = 채점기(히든 테스트) 피드백 = 누출 위험 /
+# self = 에이전트 자체 결정(파이프라인 단계) / none = 무조건 실행·검증·종료
+TRIGGERS = ("verify:visible", "eval:hidden", "self", "none")
+TOKEN_SOURCES = ("measured", "estimated", "none")
 
 
 @dataclass
@@ -30,11 +34,18 @@ class Action:
     model: str                 # 실제 사용 모델 ID (LLM 없는 행동은 "none")
     cost: Dict[str, Any]       # 이 행동의 실측 비용 (meter_delta 형식)
     result_summary: str
+    trigger: str = "none"      # TRIGGERS 중 하나
+    token_source: str = "none" # cost["source"] 와 동일: measured | estimated | none(LLM 호출 없음)
     timestamp: float = field(default_factory=time.time)
 
     def __post_init__(self) -> None:
         if self.kind not in ACTION_KINDS:
             raise ValueError(f"unknown action kind {self.kind!r}; expected one of {ACTION_KINDS}")
+        if self.trigger not in TRIGGERS:
+            raise ValueError(f"unknown trigger {self.trigger!r}; expected one of {TRIGGERS}")
+        self.token_source = self.cost.get("source", "none")
+        if self.token_source not in TOKEN_SOURCES:
+            raise ValueError(f"unknown token_source {self.token_source!r}")
 
 
 @dataclass
@@ -44,14 +55,19 @@ class TaskState:
     cost_attribution: str = "per_call"          # "per_call": 행동마다 실측 | "tick_aggregate": 틱 델타를 builder 에 귀속 (v1)
     artifact: str = ""                          # 현재 산출물 (코드/패치)
     verification: Optional[Dict] = None         # 마지막 검증 결과 (verify.verify_artifact 형식)
+    leak_risk: bool = False                     # eval:hidden 트리거 행동이 하나라도 있으면 True (채점 신호가 생성에 흘러감)
     cost_so_far: Dict[str, Any] = field(default_factory=lambda: {
         "prompt_tokens": 0, "completion_tokens": 0, "llm_calls": 0, "verify_calls": 0, "source": "none"})
     history: List[Action] = field(default_factory=list)
 
-    def record(self, kind: str, agent_role: str, model: str, cost: Dict[str, Any], summary: str) -> Action:
+    def record(self, kind: str, agent_role: str, model: str, cost: Dict[str, Any], summary: str,
+               trigger: str = "none") -> Action:
         """행동 하나를 기록하고 누적 비용을 갱신한다."""
-        act = Action(kind=kind, agent_role=agent_role, model=model, cost=dict(cost), result_summary=summary[:400])
+        act = Action(kind=kind, agent_role=agent_role, model=model, cost=dict(cost), result_summary=summary[:400],
+                     trigger=trigger)
         self.history.append(act)
+        if trigger == "eval:hidden":
+            self.leak_risk = True
         c = self.cost_so_far
         for k in ("prompt_tokens", "completion_tokens", "llm_calls", "verify_calls"):
             c[k] += int(cost.get(k, 0) or 0)
@@ -67,6 +83,28 @@ class TaskState:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(asdict(self), ensure_ascii=False, indent=1), encoding="utf-8")
         return path
+
+
+def validate_trace(data: Dict[str, Any]) -> None:
+    """저장된 trace JSON 의 스키마 검사. 어긋나면 AssertionError (테스트·스모크용)."""
+    for k in ("task_id", "system", "cost_attribution", "artifact", "verification", "leak_risk", "cost_so_far", "history"):
+        assert k in data, f"missing key {k}"
+    assert data["cost_attribution"] in ("per_call", "tick_aggregate")
+    assert isinstance(data["leak_risk"], bool)
+    c = data["cost_so_far"]
+    for k in ("prompt_tokens", "completion_tokens", "llm_calls", "verify_calls"):
+        assert isinstance(c[k], int) and c[k] >= 0, k
+    assert c["source"] in TOKEN_SOURCES
+    assert data["history"], "empty history"
+    for a in data["history"]:
+        for k in ("kind", "agent_role", "model", "cost", "result_summary", "trigger", "token_source", "timestamp"):
+            assert k in a, f"action missing {k}"
+        assert a["kind"] in ACTION_KINDS and a["trigger"] in TRIGGERS and a["token_source"] in TOKEN_SOURCES
+        assert a["token_source"] == a["cost"]["source"]
+        if a["kind"] == "verify":
+            assert a["cost"]["llm_calls"] == 0 and a["token_source"] == "none" and a["model"] == "none"
+    assert data["history"][-1]["kind"] == "terminate"
+    assert data["leak_risk"] == any(a["trigger"] == "eval:hidden" for a in data["history"])
 
 
 # ── 비용 측정 도우미 ──────────────────────────────────────────────────
@@ -130,6 +168,7 @@ if __name__ == "__main__":  # 최소 자체 점검
     st.record("build", "builder", "m", meter_delta(b), "ok")
     st.record("verify", "validator", "none", dict(NO_COST, verify_calls=1), "ast ok")
     st.record("terminate", "system", "none", NO_COST, "done")
+    validate_trace(json.loads(json.dumps(asdict(st))))
     assert st.cost_so_far == {"prompt_tokens": 10, "completion_tokens": 5, "llm_calls": 1, "verify_calls": 1, "source": "measured"}, st.cost_so_far
     p = st.save("selfcheck")
     data = json.loads(p.read_text(encoding="utf-8"))
