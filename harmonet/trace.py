@@ -41,6 +41,7 @@ class Action:
 class TaskState:
     task_id: str
     system: str = ""                            # 어댑터 이름 (저장 경로 <run_id>/<system>/<task_id>.json)
+    cost_attribution: str = "per_call"          # "per_call": 행동마다 실측 | "tick_aggregate": 틱 델타를 builder 에 귀속 (v1)
     artifact: str = ""                          # 현재 산출물 (코드/패치)
     verification: Optional[Dict] = None         # 마지막 검증 결과 (verify.verify_artifact 형식)
     cost_so_far: Dict[str, Any] = field(default_factory=lambda: {

@@ -154,7 +154,7 @@ class HarmoNetAdapter:
         builder_outputs = []      # builder LLM 출력 (최종 산출물 후보)
         verification = None       # validator 기계 검증 판정 (마지막 것)
         total_tokens = architect_tokens
-        state = TaskState(task.id, system=self.name)   # 실행 추적 (WEEK1 A4)
+        state = TaskState(task.id, system=self.name, cost_attribution="tick_aggregate")   # 실행 추적 (WEEK1 A4)
         from harmonet.llm import get_llm_client
         model = model_id(get_llm_client())
         meter_mark = METER.snapshot()
