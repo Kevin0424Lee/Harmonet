@@ -56,6 +56,8 @@ class TaskState:
     artifact: str = ""                          # 현재 산출물 (코드/패치)
     verification: Optional[Dict] = None         # 마지막 검증 결과 (verify.verify_artifact 형식)
     leak_risk: bool = False                     # eval:hidden 트리거 행동이 하나라도 있으면 True (채점 신호가 생성에 흘러감)
+    score: Optional[Dict] = None                # 사후 채점(score_hidden) 결과. trigger="post_hoc" 로만 기록되며 행동 결정에 쓰이지 않는다
+    actions_after_score: int = 0                # score 가 채워진 뒤 추가된 Action 수. 0 이 아니면 save() 가 거부한다
     cost_so_far: Dict[str, Any] = field(default_factory=lambda: {
         "prompt_tokens": 0, "completion_tokens": 0, "llm_calls": 0, "verify_calls": 0, "source": "none"})
     history: List[Action] = field(default_factory=list)
@@ -68,6 +70,8 @@ class TaskState:
         self.history.append(act)
         if trigger == "eval:hidden":
             self.leak_risk = True
+        if self.score is not None:
+            self.actions_after_score += 1     # 채점 뒤의 행동 = 채점 신호가 루프로 흘렀을 가능성
         c = self.cost_so_far
         for k in ("prompt_tokens", "completion_tokens", "llm_calls", "verify_calls"):
             c[k] += int(cost.get(k, 0) or 0)
@@ -78,7 +82,14 @@ class TaskState:
             c["source"] = "measured"
         return act
 
+    def set_score(self, result: Dict[str, Any]) -> None:
+        """에피소드 종료 후 score_hidden 결과를 기록. trigger 는 post_hoc 로 고정."""
+        self.score = dict(result, trigger="post_hoc")
+
     def save(self, run_id: Optional[str] = None) -> Path:
+        if self.actions_after_score:
+            raise RuntimeError(f"[trace] score 가 기록된 뒤 Action {self.actions_after_score}개가 추가됐습니다 — "
+                               "사후 채점 신호가 루프로 흘러간 실행은 저장하지 않습니다.")
         path = trace_dir(run_id) / _safe(self.system or "unknown") / f"{_safe(self.task_id)}.json"
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(asdict(self), ensure_ascii=False, indent=1), encoding="utf-8")
@@ -105,6 +116,9 @@ def validate_trace(data: Dict[str, Any]) -> None:
             assert a["cost"]["llm_calls"] == 0 and a["token_source"] == "none" and a["model"] == "none"
     assert data["history"][-1]["kind"] == "terminate"
     assert data["leak_risk"] == any(a["trigger"] == "eval:hidden" for a in data["history"])
+    assert data.get("actions_after_score", 0) == 0
+    if data.get("score") is not None:
+        assert data["score"].get("trigger") == "post_hoc"
 
 
 # ── 비용 측정 도우미 ──────────────────────────────────────────────────

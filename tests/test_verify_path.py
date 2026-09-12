@@ -14,14 +14,14 @@ os.environ.setdefault("HARMONET_LLM_BACKEND", "mock")
 
 from benchmark.agents_harmonet import HarmoNetAdapter
 from harmonet.agent import AgentRole
-from harmonet.verify import verify_artifact, extract_artifact
+from harmonet.verify import verify_visible, extract_artifact
 
 BUILDER_CODE = "def add(a, b):\n    return a + b\n"
 
 
 def test_verify_artifact_contract():
-    r = verify_artifact(BUILDER_CODE, {"kind": "code", "entry_point": "add", "tests": "assert add(2, 3) == 5"})
-    assert r["passed"] is True
+    r = verify_visible(BUILDER_CODE, {"kind": "code", "entry_point": "add", "tests": ["assert add(2, 3) == 5"]})
+    assert r["passed"] is True and r["level"] == "functional" and r["outcome"] == "pass"
     assert r["method"] == ["ast", "test_exec"]
     assert r["cost_tokens"] == 0
     assert "artifact_sha=" in r["evidence"]
@@ -40,7 +40,7 @@ def test_builder_output_reaches_validator_without_llm():
             return output
         return _exec
 
-    spec = {"kind": "code", "entry_point": "add", "tests": "assert add(2, 3) == 5"}
+    spec = {"kind": "code", "entry_point": "add", "tests": ["assert add(2, 3) == 5"]}
     architect.create_and_deposit_seed("Write add(a, b) returning a + b.", metadata={"task_spec": spec})
 
     for _ in range(3):

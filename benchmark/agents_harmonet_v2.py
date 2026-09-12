@@ -153,8 +153,9 @@ class HarmoNetV2Adapter:
     @staticmethod
     def _validation_dict(v: "ValidationResult") -> Dict[str, Any]:
         """v2 정적 검증 결과를 verify.verify_artifact 와 같은 형식으로 (LLM 0회 → cost_tokens 0)."""
-        return {"passed": bool(v.ok), "evidence": f"{v.stage}: {'; '.join(v.reasons)}",
-                "method": ["static_check"], "cost_tokens": 0}
+        # 정적 검사는 level=static 이므로 passed 는 항상 False (A7: passed=True 는 functional 만). ok 는 outcome 으로 구분
+        return {"passed": False, "level": "static", "outcome": "no_tests" if v.ok else "error",
+                "evidence": f"{v.stage}: {'; '.join(v.reasons)}", "method": ["static_check"], "cost_tokens": 0}
 
     @property
     def name(self) -> str:

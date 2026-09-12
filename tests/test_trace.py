@@ -64,3 +64,18 @@ def test_fixture_traces_match_schema(name):
         assert models["build"] == "mock-a" and models["expert_review"] == "mock-b"
     if name == "harmonet":
         assert d["cost_attribution"] == "tick_aggregate"
+
+
+def test_actions_after_score_block_save(tmp_path, monkeypatch):
+    """A7: score_hidden 결과가 기록된 뒤 Action 이 추가되면 save() 가 거부한다."""
+    from harmonet.trace import TaskState, NO_COST
+    monkeypatch.setenv("HARMONET_TRACE_DIR", str(tmp_path))
+    st = TaskState("s/1", system="t")
+    st.record("build", "builder", "m", dict(NO_COST, source="none"), "x")
+    st.record("terminate", "system", "none", NO_COST, "done")
+    st.set_score({"passed": True, "level": "functional", "outcome": "pass"})
+    assert st.score["trigger"] == "post_hoc"
+    st.save("ok")                                  # 채점 뒤 행동 없음 → 저장 가능
+    st.record("self_revise", "builder", "m", NO_COST, "leaked")
+    with pytest.raises(RuntimeError):
+        st.save("bad")

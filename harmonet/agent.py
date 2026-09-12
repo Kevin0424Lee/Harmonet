@@ -50,7 +50,7 @@ class TaskResult:
     token_count: int       # 사용된 토큰 수 (기존 방식 비교용)
     execution_time: float
     error: Optional[str] = None
-    verification: Optional[Dict] = None  # validator의 기계 검증 판정 (verify.verify_artifact 형식)
+    verification: Optional[Dict] = None  # validator의 기계 검증 판정 (verify.verify_visible 형식)
 
     def __repr__(self):
         return (f"TaskResult(agent={self.agent_id}, "
@@ -350,8 +350,8 @@ class HarmoAgent:
 
     def _verify_seed(self, seed: Seed) -> Dict:
         """validator 경로: LLM 호출 없이 builder 산출물(metadata["artifact"])을 기계 검증."""
-        from .verify import verify_artifact
-        return verify_artifact(seed.metadata.get("artifact", ""), seed.metadata.get("task_spec"))
+        from .verify import verify_visible
+        return verify_visible(seed.metadata.get("artifact", ""), seed.metadata.get("task_spec"))
 
     def scan_and_process(
         self,

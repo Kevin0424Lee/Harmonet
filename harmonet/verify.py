@@ -1,31 +1,86 @@
 """
-harmonet/verify.py — 기계적 검증 (LLM 호출 0회)
+harmonet/verify.py — 기계적 검증 (LLM 호출 0회)  [WEEK1 A1 → A7 재작성]
 
-validator 에이전트가 builder 산출물을 받아 실행하는 검증. 판정은 항상 같은 형식:
+두 검증기:
+    verify_visible(artifact, spec)  루프 안. 행동 결정(자기수정/전문가 추가/종료)에 쓰는 공개 신호.
+    score_hidden(artifact, spec)    에피소드 종료 후 채점. 결과는 TaskState.score 에 trigger="post_hoc" 로만 기록.
+둘은 같은 하네스를 쓰되 spec["tests"](공개) 와 spec["hidden_tests"](채점용) 를 각각 읽는다.
 
-    {"passed": bool, "evidence": str, "method": [..], "cost_tokens": 0}
+판정 형식 (두 검증기 동일):
+    {"passed": bool,                 # True 는 level=="functional" 이고 outcome=="pass" 일 때만
+     "level": "static"|"apply"|"functional",
+     "outcome": "pass"|"fail"|"error"|"timeout"|"no_tests"|"aborted",
+     "applied": bool,                # patch 전용 (git apply --check)
+     "n_run": int, "n_passed": int, "n_failed": int,
+     "flags": [..],                  # AST 사전검사 경고 (차단 아님)
+     "method": [..],                 # "ast" / "apply_check" / "test_exec"
+     "evidence": str, "cost_tokens": 0,
+     "wall_ms": int, "exec_count": int, "sandbox": "subprocess"|"docker"}
 
-method 원소: "ast" (파싱·진입점 존재), "test_exec" (테스트 subprocess 실행), "apply_check" (git apply --check).
-LLM은 여기서 절대 호출하지 않는다 → cost_tokens 는 항상 0. (WEEK1 A1)
+거짓 통과 방지 (A7): 종료 코드는 통과 신호가 아니다. 하네스가 후보를 import 하고 테스트를 하나씩 실행한 뒤
+result.json {n_run, n_passed, n_failed, errors, duration_ms, nonce} 를 쓴다. 검증기는
+  파일 존재 ∧ nonce 일치 ∧ n_run == 기대 테스트 수 ∧ n_passed == n_run  일 때만 pass.
+후보 import 와 각 테스트는 try/except BaseException 으로 감싸 SystemExit 도 error 로 기록한다.
+os._exit 처럼 하네스를 통째로 죽이면 result.json 이 없다 → outcome="aborted".
 
-task_spec 형식 (과제 씨앗 metadata["task_spec"], 피드백 씨앗이 상속):
-    {"kind": "code" | "patch",
-     "entry_point": str | None,        # code: 반드시 정의돼야 하는 함수명
-     "tests": str | None,              # code: 실행할 *공개* 테스트 프로그램. 채점용 히든 테스트는 넣지 않는다
-     "repo_dir": str, "base_commit": str}   # patch 전용
+격리: 새 임시 디렉터리, cwd 고정, 최소 환경변수(PATH·SYSTEMROOT·TEMP 계열)만 전달 — API 키는 절대 넘기지 않는다,
+python -I, 타임아웃. HARMONET_SANDBOX=docker 면 python:3.11-slim 컨테이너(--network none)에서 실행하고 Docker 가
+없으면 RuntimeError (조용한 폴백 금지). 기본은 subprocess.
+
+알려진 한계 (subprocess 모드):
+  - 같은 OS 사용자 권한으로 돈다. 파일시스템·네트워크 격리 없음. 악의적 후보는 임시 디렉터리 밖에 쓸 수 있다.
+  - argv/환경을 읽어 nonce 를 위조하는 고의적 후보는 범위 밖.
+  - CPU/메모리 제한 없음 (타임아웃만).
 """
 from __future__ import annotations
 
 import ast
 import hashlib
+import json
 import os
 import re
+import secrets
+import shutil
 import subprocess
 import sys
 import tempfile
-from typing import Any, Dict, Optional
+import time
+from typing import Any, Dict, List, Optional
 
 _CODE_BLOCK_RE = re.compile(r"```(?:python|py)?\s*(.*?)```", re.I | re.S)
+OUTCOMES = ("pass", "fail", "error", "timeout", "no_tests", "aborted")
+LEVELS = ("static", "apply", "functional")
+
+# 하네스: 후보 import → 테스트 하나씩 실행 → result.json. 종료 코드는 보지 않는다.
+_HARNESS = r'''
+import json, sys, time, traceback
+nonce, expected, out_path = sys.argv[1], int(sys.argv[2]), sys.argv[3]
+t0 = time.time()
+res = {"n_run": 0, "n_passed": 0, "n_failed": 0, "errors": [], "duration_ms": 0, "nonce": nonce}
+def _write():
+    res["duration_ms"] = int((time.time() - t0) * 1000)
+    with open(out_path, "w", encoding="utf-8") as f:
+        json.dump(res, f)
+ns = {"__name__": "candidate"}
+try:
+    with open("candidate.py", encoding="utf-8") as f:
+        src = f.read()
+    exec(compile(src, "candidate.py", "exec"), ns)          # 후보 import (SystemExit 포함 전부 error 로)
+except BaseException as e:                                    # noqa: BLE001
+    res["errors"].append("import: " + type(e).__name__ + ": " + str(e)[:300])
+    _write(); raise SystemExit(0)
+with open("tests.json", encoding="utf-8") as f:
+    tests = json.load(f)
+for i, t in enumerate(tests):
+    res["n_run"] += 1
+    try:
+        exec(compile(t, "test_%d" % i, "exec"), dict(ns))     # 테스트마다 후보 네임스페이스 복사본
+        res["n_passed"] += 1
+    except BaseException as e:                                # noqa: BLE001
+        res["n_failed"] += 1
+        res["errors"].append("test_%d: %s: %s" % (i, type(e).__name__, str(e)[:300]))
+_write()
+'''
 
 
 def extract_artifact(output: str, kind: str = "code", report: Optional[Dict[str, str]] = None) -> str:
@@ -57,68 +112,198 @@ def _artifact_evidence(artifact: str) -> str:
     return f"artifact_chars={len(artifact)} artifact_sha={hashlib.sha256(artifact.encode('utf-8')).hexdigest()[:12]}"
 
 
-def verify_artifact(artifact: str, spec: Optional[Dict[str, Any]] = None, timeout_s: float = 60.0) -> Dict[str, Any]:
+def _exit_flags(tree: ast.AST) -> List[str]:
+    """모듈 레벨(및 if __name__ 블록)의 sys.exit / exit / quit / os._exit / raise SystemExit → 경고 플래그."""
+    flags: List[str] = []
+
+    def is_exit_call(node: ast.AST) -> bool:
+        if isinstance(node, ast.Expr) and isinstance(node.value, ast.Call):
+            f = node.value.func
+            name = f.id if isinstance(f, ast.Name) else (f.attr if isinstance(f, ast.Attribute) else "")
+            return name in ("exit", "quit", "_exit")
+        return isinstance(node, ast.Raise) and isinstance(node.exc, (ast.Call, ast.Name)) and \
+            (getattr(node.exc, "id", None) == "SystemExit" or getattr(getattr(node.exc, "func", None), "id", None) == "SystemExit")
+
+    def walk_block(body: List[ast.stmt], where: str) -> None:
+        for node in body:
+            if is_exit_call(node):
+                flags.append(f"exit_call:{where}:line{node.lineno}")
+            elif isinstance(node, ast.If):
+                walk_block(node.body, "if_main" if "__name__" in ast.dump(node.test) else where)
+                walk_block(node.orelse, where)
+    walk_block(getattr(tree, "body", []), "module")
+    return flags
+
+
+def _result(level: str, outcome: str, evidence: List[str], method: List[str], **extra: Any) -> Dict[str, Any]:
+    r = {"passed": level == "functional" and outcome == "pass", "level": level, "outcome": outcome,
+         "applied": False, "n_run": 0, "n_passed": 0, "n_failed": 0, "flags": [], "method": method,
+         "evidence": "; ".join(evidence), "cost_tokens": 0, "wall_ms": 0, "exec_count": 0, "sandbox": "none"}
+    r.update(extra)
+    return r
+
+
+def _sandbox_mode() -> str:
+    mode = os.getenv("HARMONET_SANDBOX", "subprocess").lower()
+    if mode not in ("subprocess", "docker"):
+        raise RuntimeError(f"HARMONET_SANDBOX={mode!r} 는 지원하지 않습니다 (subprocess | docker)")
+    if mode == "docker":
+        if not shutil.which("docker"):
+            raise RuntimeError("HARMONET_SANDBOX=docker 이지만 docker 실행 파일이 없습니다. 조용히 subprocess 로 대체하지 않습니다.")
+        probe = subprocess.run(["docker", "info"], capture_output=True, text=True, timeout=30)
+        if probe.returncode != 0:
+            raise RuntimeError("HARMONET_SANDBOX=docker 이지만 Docker 데몬에 연결할 수 없습니다: " + (probe.stderr or probe.stdout)[-200:])
+    return mode
+
+
+def _min_env() -> Dict[str, str]:
+    """후보 프로세스에 넘기는 최소 환경. API 키·HARMONET_* 는 절대 넘기지 않는다."""
+    keep = ("PATH", "SYSTEMROOT", "SystemRoot", "TEMP", "TMP", "TMPDIR", "HOME", "USERPROFILE", "LANG", "LC_ALL", "PATHEXT", "COMSPEC")
+    return {k: os.environ[k] for k in keep if k in os.environ}
+
+
+def _run_harness(artifact: str, tests: List[str], timeout_s: float) -> Dict[str, Any]:
+    """격리된 디렉터리에서 하네스 실행. result.json 을 nonce 로 검증해 outcome 을 정한다."""
+    mode = _sandbox_mode()
+    nonce = secrets.token_hex(16)
+    tmp = tempfile.mkdtemp(prefix="harmonet_verify_")
+    try:
+        with open(os.path.join(tmp, "candidate.py"), "w", encoding="utf-8") as f:
+            f.write(artifact + "\n")
+        with open(os.path.join(tmp, "tests.json"), "w", encoding="utf-8") as f:
+            json.dump(tests, f)
+        with open(os.path.join(tmp, "harness.py"), "w", encoding="utf-8") as f:
+            f.write(_HARNESS)
+        out_name = f"result_{nonce[:8]}.json"
+        if mode == "docker":
+            cmd = ["docker", "run", "--rm", "--network", "none", "-v", f"{tmp}:/w", "-w", "/w", "python:3.11-slim",
+                   "python", "-I", "harness.py", nonce, str(len(tests)), out_name]
+        else:
+            cmd = [sys.executable, "-I", "harness.py", nonce, str(len(tests)), out_name]
+        t0 = time.perf_counter()
+        timed_out = False
+        try:
+            proc = subprocess.run(cmd, cwd=tmp, env=_min_env(), capture_output=True, text=True, timeout=timeout_s)
+            tail = (proc.stderr or proc.stdout)[-300:]
+        except subprocess.TimeoutExpired:
+            timed_out, tail = True, "timeout"
+        wall_ms = int((time.perf_counter() - t0) * 1000)
+        out_path = os.path.join(tmp, out_name)
+        data: Optional[Dict[str, Any]] = None
+        if os.path.exists(out_path):
+            try:
+                with open(out_path, encoding="utf-8") as f:
+                    data = json.load(f)
+            except Exception as exc:                          # 손상된 result.json 도 aborted 로
+                tail = f"result.json unreadable: {exc}"
+        if timed_out:
+            outcome = "timeout"
+        elif data is None or data.get("nonce") != nonce:
+            outcome = "aborted"                               # 파일 없음 / nonce 불일치 (후보가 미리 쓴 파일 등)
+            if data is not None:
+                tail = "nonce mismatch"
+        elif data.get("n_run") != len(tests):
+            outcome = "error" if data.get("errors") else "aborted"
+        elif data.get("n_passed") == data.get("n_run"):
+            outcome = "pass"
+        else:
+            outcome = "error" if any(e.startswith("import:") for e in data.get("errors", [])) else "fail"
+        d = data or {}
+        return {"outcome": outcome, "n_run": int(d.get("n_run", 0)), "n_passed": int(d.get("n_passed", 0)),
+                "n_failed": int(d.get("n_failed", 0)), "errors": list(d.get("errors", []))[:5], "tail": tail,
+                "wall_ms": wall_ms, "sandbox": mode}
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
+def _normalize_tests(tests: Any) -> List[str]:
+    if not tests:
+        return []
+    if isinstance(tests, str):
+        return [tests]
+    return [str(t) for t in tests if str(t).strip()]
+
+
+def _verify(artifact: str, spec: Optional[Dict[str, Any]], tests_key: str, timeout_s: float) -> Dict[str, Any]:
     spec = spec or {}
     kind = spec.get("kind", "code")
     evidence = [_artifact_evidence(artifact)]
     if spec.get("extraction"):
         evidence.append(f"extraction={spec['extraction']}")
-    method = []
+    method: List[str] = []
 
     if not artifact.strip():
-        return {"passed": False, "evidence": "empty artifact; " + evidence[0], "method": method, "cost_tokens": 0}
+        return _result("static", "error", ["empty artifact"] + evidence, method)
 
     if kind == "patch":
         from benchmark.swebench_g1 import _check_patch_applies  # git worktree + apply --check (러너와 동일 판정)
         from pathlib import Path
         method.append("apply_check")
+        t0 = time.perf_counter()
         ok, out = _check_patch_applies(Path(spec["repo_dir"]), spec["base_commit"], artifact, timeout=int(timeout_s))
+        wall = int((time.perf_counter() - t0) * 1000)
         evidence.append("apply_check=" + ("ok" if ok else "fail: " + out[-300:]))
-        # ponytail: 패치의 테스트 실행은 SWE-bench 하네스(Docker)가 하므로 여기서는 apply 여부까지만
-        return {"passed": ok, "evidence": "; ".join(evidence), "method": method, "cost_tokens": 0}
+        # ponytail: 패치의 테스트 실행은 SWE-bench 하네스(Docker)가 하므로 여기서는 apply 여부까지만 → level=apply, passed=False
+        return _result("apply", "no_tests" if ok else "error", evidence, method, applied=ok, wall_ms=wall, exec_count=1, sandbox="subprocess")
 
-    # ── code ──
+    # ── code: AST 사전검사 ──
     method.append("ast")
     try:
         tree = ast.parse(artifact)
     except SyntaxError as e:
         evidence.append(f"ast=syntax_error line {e.lineno}: {e.msg}")
-        return {"passed": False, "evidence": "; ".join(evidence), "method": method, "cost_tokens": 0}
+        return _result("static", "error", evidence, method)
     defs = {n.name for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))}
     evidence.append(f"ast=ok defs={sorted(defs)[:8]}")
+    flags = _exit_flags(tree)
+    if flags:
+        evidence.append("flags=" + ",".join(flags))
     entry = spec.get("entry_point")
     if entry and entry not in defs:
         evidence.append(f"entry_point={entry} missing")
-        return {"passed": False, "evidence": "; ".join(evidence), "method": method, "cost_tokens": 0}
+        return _result("static", "error", evidence, method, flags=flags)
 
-    tests = spec.get("tests")
-    if tests:
-        method.append("test_exec")
-        with tempfile.TemporaryDirectory(prefix="harmonet_verify_") as tmp:
-            path = os.path.join(tmp, "candidate_test.py")
-            with open(path, "w", encoding="utf-8") as f:
-                f.write(artifact + "\n\n" + tests + "\n")
-            try:
-                proc = subprocess.run([sys.executable, "-I", path], cwd=tmp, capture_output=True, text=True, timeout=timeout_s)
-                ok = proc.returncode == 0
-                evidence.append("test_exec=" + ("pass" if ok else "fail: " + (proc.stderr or proc.stdout)[-300:]))
-            except subprocess.TimeoutExpired:
-                ok = False
-                evidence.append(f"test_exec=timeout {timeout_s}s")
-        return {"passed": ok, "evidence": "; ".join(evidence), "method": method, "cost_tokens": 0}
+    tests = _normalize_tests(spec.get(tests_key))
+    if not tests:
+        return _result("static", "no_tests", evidence, method, flags=flags)
 
-    return {"passed": True, "evidence": "; ".join(evidence), "method": method, "cost_tokens": 0}
+    # ── functional: 하네스 실행 ──
+    method.append("test_exec")
+    h = _run_harness(artifact, tests, timeout_s)
+    evidence.append(f"harness={h['outcome']} n_run={h['n_run']} n_passed={h['n_passed']} n_failed={h['n_failed']}"
+                    + (" errors=" + " | ".join(h["errors"]) if h["errors"] else "")
+                    + (f" tail={h['tail']!r}" if h["outcome"] in ("timeout", "aborted") and h["tail"] else ""))
+    return _result("functional", h["outcome"], evidence, method, flags=flags, n_run=h["n_run"], n_passed=h["n_passed"],
+                   n_failed=h["n_failed"], wall_ms=h["wall_ms"], exec_count=1, sandbox=h["sandbox"])
+
+
+def verify_visible(artifact: str, spec: Optional[Dict[str, Any]] = None, timeout_s: float = 60.0) -> Dict[str, Any]:
+    """루프 안 검증기. spec["tests"](공개 테스트)만 본다. 행동 결정용 신호."""
+    return _verify(artifact, spec, "tests", timeout_s)
+
+
+def score_hidden(artifact: str, spec: Optional[Dict[str, Any]] = None, timeout_s: float = 60.0) -> Dict[str, Any]:
+    """사후 채점기. spec["hidden_tests"] 를 본다. 에피소드 종료 후에만 호출하고 TaskState.score 에 trigger=post_hoc 로 기록."""
+    r = _verify(artifact, spec, "hidden_tests", timeout_s)
+    r["trigger"] = "post_hoc"
+    return r
+
+
+# 하위 호환 (A1 이름). 새 코드는 verify_visible 을 쓴다.
+verify_artifact = verify_visible
 
 
 if __name__ == "__main__":  # 최소 자체 점검
     good = "def add(a, b):\n    return a + b\n"
-    r = verify_artifact(good, {"kind": "code", "entry_point": "add", "tests": "assert add(1, 2) == 3"})
-    assert r["passed"] and r["method"] == ["ast", "test_exec"] and r["cost_tokens"] == 0, r
-    r = verify_artifact(good, {"kind": "code", "entry_point": "sub"})
+    r = verify_visible(good, {"kind": "code", "entry_point": "add", "tests": ["assert add(1, 2) == 3", "assert add(0, 0) == 0"]})
+    assert r["passed"] and r["level"] == "functional" and r["outcome"] == "pass" and r["n_run"] == 2 and r["cost_tokens"] == 0, r
+    r = verify_visible(good, {"kind": "code", "entry_point": "add"})
+    assert not r["passed"] and r["level"] == "static" and r["outcome"] == "no_tests", r
+    r = verify_visible(good, {"kind": "code", "entry_point": "sub"})
     assert not r["passed"] and "missing" in r["evidence"], r
-    r = verify_artifact("def add(a, b)\n  return", {"kind": "code"})
-    assert not r["passed"] and "syntax_error" in r["evidence"], r
-    r = verify_artifact(good, {"kind": "code", "entry_point": "add", "tests": "assert add(1, 2) == 4"})
-    assert not r["passed"] and "test_exec=fail" in r["evidence"], r
+    r = verify_visible("import sys\nsys.exit(0)\n", {"kind": "code", "tests": ["assert True"]})
+    assert not r["passed"] and r["outcome"] == "error" and r["flags"], r
+    r = score_hidden(good, {"kind": "code", "hidden_tests": ["assert add(1, 2) == 4"]})
+    assert not r["passed"] and r["outcome"] == "fail" and r["trigger"] == "post_hoc", r
     assert extract_artifact("text\n```python\nx = 1\n```\nmore") == "x = 1"
     print("verify.py self-check OK")
