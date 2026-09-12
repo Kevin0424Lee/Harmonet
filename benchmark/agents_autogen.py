@@ -159,11 +159,16 @@ class AutoGenAdapter:
         # 실측: AutoGen 클라이언트가 API 응답 usage를 누적한 값. (이전 구현은 단어수×1.3 추정)
         prompt_tokens = 0
         completion_tokens = 0
+        usage_missing = 0  # usage 가 비어 온 호출 수 — 하나라도 있으면 measured 라고 하지 않는다
         for client in clients:
             u = client.total_usage()
-            prompt_tokens += int(getattr(u, "prompt_tokens", 0) or 0)
-            completion_tokens += int(getattr(u, "completion_tokens", 0) or 0)
-        token_source = "measured"
+            pt = int(getattr(u, "prompt_tokens", 0) or 0)
+            ct = int(getattr(u, "completion_tokens", 0) or 0)
+            if pt <= 0 and ct <= 0:
+                usage_missing += 1
+            prompt_tokens += pt
+            completion_tokens += ct
+        token_source = "measured" if usage_missing == 0 else "estimated"
         if prompt_tokens <= 0 and completion_tokens <= 0:
             # 엔드포인트가 usage를 생략한 경우에만 추정치로 폴백
             prompt_tokens = _count_tokens(task.prompt + plan + build_prompt + final_prompt)

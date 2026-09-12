@@ -772,8 +772,8 @@ class HarmoAgent:
             # rule_description은 임베딩 한도(256 토큰) 내 짧은 요약만 사용
             # 실제 코드 출력은 metadata에 보관 (투하 전에 설정 → Redis 복사본에도 포함)
             from .verify import extract_artifact
-            spec = parent_seed.metadata.get("task_spec") or {}
-            artifact = extract_artifact(str(output), spec.get("kind", "code"))
+            spec = dict(parent_seed.metadata.get("task_spec") or {})
+            artifact = extract_artifact(str(output), spec.get("kind", "code"), report=spec)  # spec["extraction"] 기록
             feedback_desc = (
                 "Validation required: run static checks and tests on the builder implementation "
                 f"for task {parent_seed.id[:8]}."

@@ -28,6 +28,29 @@ except ImportError:
     _redis_available = False
 
 
+# 폴백 허용 스위치. 없으면 Redis 부재/오류는 예외 → 실행 중단.
+# (G3 "Redis 장애 복구 PASS"가 미연결 상태의 조용한 폴백 위에서 나온 전력 — WEEK1 A2)
+_ALLOW_NO_REDIS_ENV = "HARMONET_ALLOW_NO_REDIS"
+
+
+def redis_endpoint() -> Tuple[str, int]:
+    """Redis 접속 정보. HARMONET_REDIS_HOST/PORT 우선, 없으면 Compose가 주는 REDIS_HOST/PORT (불일치 해소)."""
+    host = os.getenv("HARMONET_REDIS_HOST") or os.getenv("REDIS_HOST") or "127.0.0.1"
+    port = int(os.getenv("HARMONET_REDIS_PORT") or os.getenv("REDIS_PORT") or "6379")
+    return host, port
+
+
+def _fallback_or_raise(reason: str) -> None:
+    """로컬 인메모리 폴백은 HARMONET_ALLOW_NO_REDIS=1 일 때만. 아니면 RuntimeError."""
+    if os.getenv(_ALLOW_NO_REDIS_ENV) == "1":
+        print(f"[RedisStore] {reason} → {_ALLOW_NO_REDIS_ENV}=1 이므로 로컬 인메모리 대체 모드로 계속합니다.")
+        return
+    raise RuntimeError(
+        f"[RedisStore] {reason}. 조용한 폴백은 허용되지 않습니다. "
+        f"Redis 없이 돌리려면 {_ALLOW_NO_REDIS_ENV}=1 (또는 HARMONET_DISABLE_REDIS=1) 을 설정하세요."
+    )
+
+
 def serialize_seed(seed: Seed) -> str:
     """Seed 객체를 JSON 문자열로 직렬화 (numpy 배열은 base64 인코딩)"""
     return json.dumps({
@@ -71,8 +94,9 @@ class RedisFieldStore:
     """Redis 기반 공유 필드 및 시드 공유 저장소 (멀티프로세스 동기화용)"""
     
     def __init__(self, host: str = "127.0.0.1", port: int = 6379, db: int = 0, key_prefix: str = "harmo"):
-        self.host = os.getenv("HARMONET_REDIS_HOST", host)
-        self.port = int(os.getenv("HARMONET_REDIS_PORT", str(port)))
+        env_host, env_port = redis_endpoint()
+        self.host = env_host if (os.getenv("HARMONET_REDIS_HOST") or os.getenv("REDIS_HOST")) else host
+        self.port = env_port if (os.getenv("HARMONET_REDIS_PORT") or os.getenv("REDIS_PORT")) else port
         self.db = db
         self.prefix = key_prefix
         self.client = None
@@ -110,9 +134,10 @@ class RedisFieldStore:
                 self.is_active = True
                 print(f"[RedisStore] Redis 서버가 감지되었습니다. 분산 저장소를 활성화합니다 ({self.host}:{self.port}).")
             except Exception as e:
-                print(f"[RedisStore] Redis 서버 연결 실패 ({str(e)}). 로컬 인메모리 대체 모드를 사용합니다.")
+                self.client = None
+                _fallback_or_raise(f"Redis 서버 연결 실패 ({self.host}:{self.port}: {str(e)})")
         else:
-            print("[RedisStore] redis-py 라이브러리가 존재하지 않습니다. 로컬 인메모리 대체 모드를 사용합니다.")
+            _fallback_or_raise("redis-py 라이브러리가 존재하지 않습니다")
             
         # 로컬 폴백용 스토리지
         self._local_field: Optional[np.ndarray] = None
@@ -128,7 +153,7 @@ class RedisFieldStore:
                 self.client.set(f"{self.prefix}:field:shape", shape_str)
                 return True
             except Exception as e:
-                print(f"[RedisStore] save_field 에러: {str(e)}, 로컬 폴백 수행.")
+                _fallback_or_raise(f"save_field 에러: {str(e)}")
                 
         self._local_field = field_array.copy()
         return False
@@ -145,7 +170,7 @@ class RedisFieldStore:
                     arr = np.frombuffer(data_bytes, dtype=np.float32).reshape(shape)
                     return arr.copy()
             except Exception as e:
-                print(f"[RedisStore] load_field 에러: {str(e)}, 로컬 폴백 수행.")
+                _fallback_or_raise(f"load_field 에러: {str(e)}")
                 
         if self._local_field is not None:
             return self._local_field.copy()
@@ -163,7 +188,7 @@ class RedisFieldStore:
                 self.client.hset(f"{self.prefix}:seeds:positions", seed.id, grid_position)
                 return True
             except Exception as e:
-                print(f"[RedisStore] deposit_seed 에러: {str(e)}, 로컬 폴백 수행.")
+                _fallback_or_raise(f"deposit_seed 에러: {str(e)}")
                 
         self._local_seeds[seed.id] = (grid_position, seed)
         return False
@@ -183,7 +208,7 @@ class RedisFieldStore:
                     active_seeds.append((pos, seed))
                 return active_seeds
             except Exception as e:
-                print(f"[RedisStore] get_active_seeds 에러: {str(e)}, 로컬 폴백 수행.")
+                _fallback_or_raise(f"get_active_seeds 에러: {str(e)}")
                 
         return list(self._local_seeds.values())
 
@@ -219,8 +244,9 @@ class RedisFieldStore:
             result = self.client.set(key, agent_id, nx=True, ex=ttl_sec)
             return result is True
         except Exception as e:
-            print(f"[RedisStore] claim_seed_redis 에러: {str(e)}, 처리 허용.")
-            return True  # 에러 시 안전하게 허용 (liveness 우선)
+            # 오류 시 "허용"은 같은 씨앗을 두 프로세스가 실행하게 만든다. 명시 허용 없이는 예외.
+            _fallback_or_raise(f"claim_seed_redis 에러: {str(e)}")
+            return True
 
     def clear(self) -> None:
         """스토어 초기화"""

@@ -501,9 +501,13 @@ def _wrap_estimating(cls):
     _orig_async = getattr(cls, "generate_async", None)
     if _orig_async is not None:
         async def generate_async(self, prompt, system_prompt=None):
+            before = METER.snapshot()["calls"]
             out = await _orig_async(self, prompt, system_prompt)
-            METER.record(_est_tokens((system_prompt or "") + (prompt or "")),
-                         _est_tokens(out), estimated=True)
+            # Mock 의 generate_async 는 내부에서 (이미 감싸진) generate 를 부르므로 그때 기록됨.
+            # 그 경우 다시 기록하면 호출·토큰이 2배로 잡힌다 (WEEK1 A2 이중 계수 버그).
+            if METER.snapshot()["calls"] == before:
+                METER.record(_est_tokens((system_prompt or "") + (prompt or "")),
+                             _est_tokens(out), estimated=True)
             return out
         cls.generate_async = generate_async
     return cls
@@ -582,30 +586,22 @@ def get_llm_client() -> LLMClient:
         return _llm_client_singleton
 
     # ── 2. 자동 감지 (우선순위: OpenAI → Anthropic → RunYourAI → Ollama → Mock) ──
+    # 키가 설정돼 있으면 그 백엔드를 쓰겠다는 뜻. 생성 실패를 삼키고 다음/Mock 으로 넘어가지 않는다 (WEEK1 A2).
     if os.getenv("OPENAI_API_KEY"):
-        try:
-            _llm_client_singleton = OpenAIClient()
-            print("[LLM] OpenAI 클라이언트 활성화 (gpt-4o-mini)")
-            return _llm_client_singleton
-        except Exception:
-            pass
+        _llm_client_singleton = OpenAIClient()
+        print("[LLM] OpenAI 클라이언트 활성화 (gpt-4o-mini)")
+        return _llm_client_singleton
     if os.getenv("ANTHROPIC_API_KEY"):
-        try:
-            _llm_client_singleton = AnthropicClient()
-            print(f"[LLM] Anthropic 클라이언트 활성화 ({_llm_client_singleton.model}, 프롬프트 캐싱 ON)")
-            return _llm_client_singleton
-        except Exception:
-            pass
+        _llm_client_singleton = AnthropicClient()
+        print(f"[LLM] Anthropic 클라이언트 활성화 ({_llm_client_singleton.model}, 프롬프트 캐싱 ON)")
+        return _llm_client_singleton
     if os.getenv("RUNYOURAI_API_KEY"):
-        try:
-            _llm_client_singleton = RunYourAIClient()
-            print(
-                f"[LLM] RunYourAI 클라이언트 자동 감지 "
-                f"({_llm_client_singleton.model} @ {_llm_client_singleton.base_url})"
-            )
-            return _llm_client_singleton
-        except Exception:
-            pass
+        _llm_client_singleton = RunYourAIClient()
+        print(
+            f"[LLM] RunYourAI 클라이언트 자동 감지 "
+            f"({_llm_client_singleton.model} @ {_llm_client_singleton.base_url})"
+        )
+        return _llm_client_singleton
 
     # Ollama 자동 감지 — localhost:11434 도달 가능하면 사용
     try:
@@ -625,9 +621,11 @@ def get_llm_client() -> LLMClient:
             print(f"[LLM] Ollama 로컬 클라이언트 자동 감지 ({model} @ {host})")
             return _llm_client_singleton
     except Exception:
-        pass
+        pass  # Ollama 미기동은 '감지 실패'이지 오류가 아님 — 아래에서 명시적으로 중단한다
 
-    _llm_client_singleton = MockLLMClient()
-    print("[LLM] MockLLM 활성화 (실제 LLM 사용 옵션: "
-          "OPENAI_API_KEY, ANTHROPIC_API_KEY, RUNYOURAI_API_KEY, 또는 Ollama 로컬 서버)")
-    return _llm_client_singleton
+    # 어떤 백엔드도 설정되지 않았다. Mock 은 HARMONET_LLM_BACKEND=mock 으로만 켠다 (조용한 Mock 폴백 금지).
+    raise RuntimeError(
+        "[LLM] 사용할 백엔드가 없습니다. HARMONET_LLM_BACKEND 를 설정하세요 "
+        "(mock | openai | anthropic | openai_compatible | ollama | runyourai) "
+        "또는 OPENAI_API_KEY / ANTHROPIC_API_KEY / RUNYOURAI_API_KEY / Ollama 서버 중 하나를 준비하세요."
+    )

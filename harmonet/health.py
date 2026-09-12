@@ -50,10 +50,10 @@ _START_TIME = time.time()
 # ── 의존성 체크 ───────────────────────────────────────────────────
 
 def _check_redis() -> Dict[str, Any]:
-    """Redis 연결 확인."""
+    """Redis 연결 확인. store 와 같은 접속 정보를 쓴다 (예전엔 REDIS_HOST 만 봐서 store 와 어긋났음)."""
+    from .store import redis_endpoint
     try:
-        host = os.environ.get("REDIS_HOST", "localhost")
-        port = int(os.environ.get("REDIS_PORT", "6379"))
+        host, port = redis_endpoint()
         with socket.create_connection((host, port), timeout=0.2) as conn:
             conn.settimeout(0.2)
             conn.sendall(b"*1\r\n$4\r\nPING\r\n")
@@ -75,14 +75,19 @@ def _check_faiss() -> Dict[str, Any]:
 
 
 def _check_llm() -> Dict[str, Any]:
-    """LLM 백엔드 가용 여부 확인."""
-    has_openai = bool(os.environ.get("OPENAI_API_KEY"))
-    has_anthropic = bool(os.environ.get("ANTHROPIC_API_KEY"))
-    if has_openai:
-        return {"status": "ok", "backend": "openai"}
-    if has_anthropic:
-        return {"status": "ok", "backend": "anthropic"}
-    return {"status": "mock", "note": "API 키 없음 — MockLLM 사용 중"}
+    """설정된 LLM 백엔드 보고 (키 유무로 추측하지 않는다)."""
+    backend = os.environ.get("HARMONET_LLM_BACKEND", "").lower() or "(unset → get_llm_client 자동 감지)"
+    return {"status": "mock" if backend == "mock" else "configured", "backend": backend}
+
+
+def _check_embedding() -> Dict[str, Any]:
+    """임베딩 모델이 실제로 로드되는지 (난수 폴백이면 실패)."""
+    try:
+        from .embed import assert_embedding_sane
+        gap = assert_embedding_sane()
+        return {"status": "ok", "cos_gap": round(gap, 3)}
+    except Exception as exc:
+        return {"status": "unavailable", "error": str(exc)[:200]}
 
 
 # ── 엔드포인트 ────────────────────────────────────────────────────
@@ -100,17 +105,19 @@ async def liveness():
 async def readiness():
     """
     Kubernetes readiness probe.
-    핵심 의존성(Redis, FAISS) 상태를 확인합니다.
-    Redis는 폴백이 있어 UNAVAILABLE이어도 ready=true.
+    ready 조건 (하드코딩 True 였던 것을 실제 의존성으로 교체 — WEEK1 A2):
+      - 임베딩 모델이 로드되고 건전성 검사를 통과
+      - Redis 에 연결되거나, HARMONET_ALLOW_NO_REDIS=1 / HARMONET_DISABLE_REDIS=1 로 명시적으로 없이 운영
     """
     checks = {
         "redis": _check_redis(),
+        "embedding": _check_embedding(),
         "faiss": _check_faiss(),
         "llm": _check_llm(),
     }
-
-    # Redis가 없어도 폴백 모드로 운영 가능 → 항상 ready
-    ready = True
+    redis_optional = os.environ.get("HARMONET_ALLOW_NO_REDIS") == "1" or \
+        os.environ.get("HARMONET_DISABLE_REDIS", "").lower() in {"1", "true", "yes"}
+    ready = checks["embedding"]["status"] == "ok" and (checks["redis"]["status"] == "ok" or redis_optional)
 
     return Response(
         content=__import__("json").dumps({

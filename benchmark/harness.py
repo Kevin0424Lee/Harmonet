@@ -154,6 +154,10 @@ def _count_tokens(text: str) -> int:
         enc = tiktoken.get_encoding("cl100k_base")
         return len(enc.encode(text))
     except ImportError:
+        global _TIKTOKEN_WARNED
+        if not globals().get("_TIKTOKEN_WARNED"):
+            print("[harness] tiktoken 없음 → 단어수×1.3 추정치 사용 (실측 아님)")
+            _TIKTOKEN_WARNED = True
         return max(1, int(len(text.split()) * 1.3))
 
 

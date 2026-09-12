@@ -29,12 +29,18 @@ class UsageMeter:
             self.completion_tokens = 0
             self.calls = 0
             self.estimated_calls = 0   # usage 미제공으로 추정한 호출 수
+            # Anthropic 프롬프트 캐시. input_tokens 에는 빠져 있으므로 별도 집계하고 prompt_tokens 에 합산한다
+            self.cache_read_input_tokens = 0
+            self.cache_creation_input_tokens = 0
 
     def record(self, prompt_tokens: Optional[int], completion_tokens: Optional[int],
-               estimated: bool = False) -> None:
+               estimated: bool = False, cache_read: int = 0, cache_creation: int = 0) -> None:
         with self._lock:
-            self.prompt_tokens += int(prompt_tokens or 0)
+            # prompt_tokens = 모델이 처리한 입력 전체 (캐시 적중분 포함). 캐시 내역은 별도 필드로도 남긴다.
+            self.prompt_tokens += int(prompt_tokens or 0) + int(cache_read or 0) + int(cache_creation or 0)
             self.completion_tokens += int(completion_tokens or 0)
+            self.cache_read_input_tokens += int(cache_read or 0)
+            self.cache_creation_input_tokens += int(cache_creation or 0)
             self.calls += 1
             if estimated:
                 self.estimated_calls += 1
@@ -47,13 +53,16 @@ class UsageMeter:
             return
         pt = getattr(u, "prompt_tokens", None)
         ct = getattr(u, "completion_tokens", None)
+        cache_read = cache_creation = 0
         if pt is None and ct is None:                       # Anthropic 형식
             pt = getattr(u, "input_tokens", None)
             ct = getattr(u, "output_tokens", None)
+            cache_read = getattr(u, "cache_read_input_tokens", 0) or 0
+            cache_creation = getattr(u, "cache_creation_input_tokens", 0) or 0
         if pt is None and ct is None:
             self.record(None, None, estimated=True)
             return
-        self.record(pt, ct, estimated=False)
+        self.record(pt, ct, estimated=False, cache_read=cache_read, cache_creation=cache_creation)
 
     def snapshot(self) -> Dict[str, int]:
         with self._lock:
@@ -63,6 +72,8 @@ class UsageMeter:
                 "total_tokens": self.prompt_tokens + self.completion_tokens,
                 "calls": self.calls,
                 "estimated_calls": self.estimated_calls,
+                "cache_read_input_tokens": self.cache_read_input_tokens,
+                "cache_creation_input_tokens": self.cache_creation_input_tokens,
                 "measured": self.estimated_calls == 0,
             }
 

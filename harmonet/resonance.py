@@ -200,8 +200,11 @@ class ResonanceDetector:
                         pos_val = universe.store.client.hget(f"{universe.store.prefix}:seeds:positions", seed.id)
                         if pos_val:
                             grid_pos = int(pos_val.decode("utf-8"))
-                    except:
-                        pass
+                    except Exception as e:
+                        # 위치를 모르면 거리 필터가 무의미해진다. Redis 오류는 store 의 폴백 규칙을 따른다 (명시 허용 없으면 예외)
+                        from .store import _fallback_or_raise
+                        _fallback_or_raise(f"씨앗 위치 조회 실패 ({str(e)})")
+                        continue
 
                 # 거리 필터
                 distance = abs(grid_pos - scan_position)
@@ -393,7 +396,8 @@ class ResonanceDetector:
             try:
                 return self._tda_approximation(before_snapshot, after_snapshot)
             except Exception as e_inner:
-                return True, f"TDA 예외 발생으로 인한 패스: {str(e_inner)}"
+                # 예외를 '유효' 판정으로 바꾸던 조용한 폴백 제거 (WEEK1 A2). 실패는 실패로 돌려준다.
+                return False, f"TDA 계산 실패 (근사 경로도 실패): {str(e_inner)}"
 
     def _tda_with_scipy(
         self,

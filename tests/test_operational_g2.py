@@ -36,17 +36,27 @@ def test_healthz_is_fast_and_stable() -> None:
     assert p99 < 0.05
 
 
-def test_readyz_reports_dependency_state_without_failing_fallback_mode() -> None:
+def test_readyz_ready_only_when_dependencies_or_explicit_allowance(monkeypatch) -> None:
+    """WEEK1 A2: ready 는 하드코딩이 아니라 실제 의존성 — 임베딩 OK 이고 (Redis OK 또는 명시적으로 없이 운영)."""
     client = TestClient(app)
+    monkeypatch.setenv("HARMONET_ALLOW_NO_REDIS", "1")
     response = client.get("/readyz")
-
-    assert response.status_code == 200
     payload = response.json()
-    assert payload["ready"] is True
-    assert set(payload["checks"]) == {"redis", "faiss", "llm"}
-    assert payload["checks"]["redis"]["status"] in {"ok", "unavailable"}
-    assert payload["checks"]["faiss"]["status"] in {"ok", "unavailable"}
-    assert payload["checks"]["llm"]["status"] in {"ok", "mock"}
+    assert set(payload["checks"]) == {"redis", "embedding", "faiss", "llm"}
+    assert payload["checks"]["embedding"]["status"] == "ok", payload["checks"]["embedding"]
+    assert payload["ready"] is True and response.status_code == 200
+
+
+def test_readyz_not_ready_without_redis_unless_allowed(monkeypatch) -> None:
+    client = TestClient(app)
+    monkeypatch.delenv("HARMONET_ALLOW_NO_REDIS", raising=False)
+    monkeypatch.delenv("HARMONET_DISABLE_REDIS", raising=False)
+    monkeypatch.setenv("HARMONET_REDIS_HOST", "127.0.0.1")
+    monkeypatch.setenv("HARMONET_REDIS_PORT", "1")  # 아무것도 안 듣는 포트
+    response = client.get("/readyz")
+    payload = response.json()
+    assert payload["checks"]["redis"]["status"] == "unavailable"
+    assert payload["ready"] is False and response.status_code == 503
 
 
 def test_status_endpoint_exposes_service_metadata() -> None:

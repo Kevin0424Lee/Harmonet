@@ -236,7 +236,8 @@ def security_scan(output: Path) -> dict[str, Any]:
         scanned_files += 1
         try:
             content = path.read_text(encoding="utf-8", errors="replace")
-        except Exception:
+        except Exception as exc:
+            print(f"[g3] 시크릿 스캔에서 읽지 못한 파일: {path} ({exc})")
             continue
         for pattern in SECRET_PATTERNS:
             if pattern.search(content):

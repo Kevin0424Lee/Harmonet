@@ -122,6 +122,9 @@ class DataUniverseField:
             seed:          투하할 씨앗 수식
             grid_position: 투하 위치 (0 ~ grid_size-1)
         """
+        # NaN/Inf 벡터는 필드 전체를 오염시키므로 거부 (조용히 더하지 않는다 — WEEK1 A2)
+        if not (np.all(np.isfinite(seed.frequency)) and np.all(np.isfinite(seed.payload))):
+            raise ValueError(f"[DataUniverse] 씨앗 {seed.id[:8]} 벡터에 NaN/Inf 가 있습니다. 투하 거부.")
         # 에너지가 최소 단위(ħ) 이상인지 검증
         if seed.energy < self.H_DATA:
             print(f"[DataUniverse] ⚠ 씨앗 에너지({seed.energy:.4f}) < ħ({self.H_DATA}). 투하 거부.")

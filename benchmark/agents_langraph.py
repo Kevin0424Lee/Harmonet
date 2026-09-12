@@ -227,8 +227,16 @@ else:
     else:
         _try_ollama()
 
+if _LLM is None and _FORCE_BACKEND not in ("", "mock"):
+    # 명시한 백엔드를 못 잡았는데 Mock 으로 조용히 떨어져 9월 실행 하나가 통째로 무효가 될 뻔했다 (WEEK1 A2).
+    raise RuntimeError(
+        f"[LangGraph] HARMONET_LLM_BACKEND={_FORCE_BACKEND!r} 백엔드를 초기화하지 못했습니다 "
+        "(패키지 미설치 또는 설정 누락). Mock 으로 대체하지 않습니다."
+    )
+if _LLM is None and _FORCE_BACKEND == "":
+    raise RuntimeError("[LangGraph] 백엔드가 지정되지 않았습니다. HARMONET_LLM_BACKEND 를 설정하세요 (mock 포함).")
 if _LLM is None:
-    # Mock LLM — 실제 API 키 없는 환경에서도 구조 테스트 가능
+    # HARMONET_LLM_BACKEND=mock — 구조 테스트용
     class _MockLLM:
         def invoke(self, messages):
             class _R:

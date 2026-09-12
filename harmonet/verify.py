@@ -28,16 +28,27 @@ from typing import Any, Dict, Optional
 _CODE_BLOCK_RE = re.compile(r"```(?:python|py)?\s*(.*?)```", re.I | re.S)
 
 
-def extract_artifact(output: str, kind: str = "code") -> str:
-    """LLM 출력에서 산출물(코드 블록 / unified diff)만 뽑는다. str(output) 전체를 씨앗에 싣지 않기 위함."""
+def extract_artifact(output: str, kind: str = "code", report: Optional[Dict[str, str]] = None) -> str:
+    """LLM 출력에서 산출물(코드 블록 / unified diff)만 뽑는다. str(output) 전체를 씨앗에 싣지 않기 위함.
+
+    코드 블록이 없을 때는 (1) 첫 import/def/class 부터, (2) 그것도 없으면 출력 전체를 돌려준다.
+    이 강등은 report["extraction"] 에 "fenced" / "heuristic" / "raw" 로 남겨 검증 evidence 에 찍힌다 — 조용히 하지 않는다.
+    """
     output = output or ""
     if kind == "patch":
         from benchmark.swebench_g1 import _extract_patch  # 패치 추출·정규화 로직은 러너 것을 재사용
-        return _extract_patch(output)
+        patch = _extract_patch(output)
+        if report is not None:
+            report["extraction"] = "diff" if patch else "none"
+        return patch
     blocks = _CODE_BLOCK_RE.findall(output)
     if blocks:
+        if report is not None:
+            report["extraction"] = "fenced"
         return max(blocks, key=len).strip()
     m = re.search(r"(^|\n)(from\s+\S+\s+import\s+|import\s+|def\s+|class\s+)", output)
+    if report is not None:
+        report["extraction"] = "heuristic" if m else "raw"
     return output[m.start():].strip() if m else output.strip()
 
 
@@ -50,6 +61,8 @@ def verify_artifact(artifact: str, spec: Optional[Dict[str, Any]] = None, timeou
     spec = spec or {}
     kind = spec.get("kind", "code")
     evidence = [_artifact_evidence(artifact)]
+    if spec.get("extraction"):
+        evidence.append(f"extraction={spec['extraction']}")
     method = []
 
     if not artifact.strip():
