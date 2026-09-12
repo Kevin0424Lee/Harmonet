@@ -28,6 +28,7 @@ from typing import Any, Dict
 
 from benchmark.tasks import BenchmarkTask
 from harmonet.llm import get_llm_client
+from harmonet.trace import NO_COST, TaskState, meter_delta, model_id
 from harmonet.usage import METER
 
 _DEFAULT_SYSTEM = (
@@ -52,11 +53,19 @@ class SingleCallAdapter:
     def run(self, task: BenchmarkTask) -> Dict[str, Any]:
         METER.reset()
         started = time.perf_counter()
+        state = TaskState(task.id, system=self.name)
+        client = get_llm_client()
 
+        before = METER.snapshot()
         output = get_llm_client().generate(task.prompt, system_prompt=self.system_prompt)
+        state.artifact = output or ""
+        state.record("build", "single", model_id(client), meter_delta(before), (output or "")[:200])
+        state.record("terminate", "single", "none", NO_COST, "single call, no verification")
+        trace_path = state.save()
 
         snap = METER.snapshot()
         return {
+            "trace_path": str(trace_path),
             "output": output or "",
             "prompt_tokens": snap["prompt_tokens"],
             "completion_tokens": snap["completion_tokens"],

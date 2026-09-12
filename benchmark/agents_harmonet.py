@@ -20,6 +20,7 @@ from harmonet.field import DataUniverseField
 from harmonet.agent import HarmoAgent, AgentRole, SOCController
 from harmonet.resonance import KuraMotoCoupler
 from harmonet.usage import METER
+from harmonet.trace import NO_COST, TaskState, meter_delta, model_id
 
 
 def _keyword_hits(output: str, expected_keywords: List[str]) -> int:
@@ -153,6 +154,10 @@ class HarmoNetAdapter:
         builder_outputs = []      # builder LLM 출력 (최종 산출물 후보)
         verification = None       # validator 기계 검증 판정 (마지막 것)
         total_tokens = architect_tokens
+        state = TaskState(task.id, system=self.name)   # 실행 추적 (WEEK1 A4)
+        from harmonet.llm import get_llm_client
+        model = model_id(get_llm_client())
+        meter_mark = METER.snapshot()
 
         for _ in range(self.ticks):
             universe.propagate(dt=0.3)
@@ -164,6 +169,11 @@ class HarmoNetAdapter:
             results_list = await asyncio.gather(*scan_tasks)
             kuramoto.step(dt=0.1)
 
+            # 이 틱의 LLM 비용은 틱 단위로만 실측된다 (에이전트가 동시에 돌아 호출별 분리 불가).
+            # 틱에 LLM 행동이 하나면 그 행동에, 여럿이면 첫 행동에 귀속하고 나머지는 0 으로 기록한다.
+            tick_cost = meter_delta(meter_mark)
+            meter_mark = METER.snapshot()
+            llm_actions_left = sum(1 for _, rs in zip(agents, results_list) for r in rs if r.success and r.verification is None)
             for agent, agent_results in zip(agents, results_list):
                 for res in agent_results:
                     if not res.success:
@@ -171,8 +181,18 @@ class HarmoNetAdapter:
                     total_tokens += res.token_count
                     if res.verification is not None:
                         verification = res.verification
-                    elif agent.role == AgentRole.BUILDER and res.output:
-                        builder_outputs.append(res.output)
+                        state.verification = res.verification
+                        state.record("verify", "validator", "none", dict(NO_COST, verify_calls=1), res.verification["evidence"])
+                    else:
+                        cost = tick_cost if llm_actions_left == 1 or agent.role == AgentRole.BUILDER else dict(NO_COST)
+                        if cost is tick_cost:
+                            tick_cost = dict(NO_COST)
+                        llm_actions_left -= 1
+                        kind = "build" if agent.role == AgentRole.BUILDER else "expert_review"
+                        state.record(kind, agent.role.value, model, cost, str(res.output)[:200])
+                        if agent.role == AgentRole.BUILDER and res.output:
+                            builder_outputs.append(res.output)
+                            state.artifact = res.output
 
         # ── 3. 최종 출력 = builder 산출물 (validator 판정은 별도 필드) ───────────
         from harmonet.verify import extract_artifact
@@ -193,8 +213,10 @@ class HarmoNetAdapter:
                 "Use every missing term verbatim at least once, include no unrelated explanation, "
                 "and do not switch to a different task."
             )
+            before = METER.snapshot()
             repair_output = await get_llm_client().generate_async(repair_prompt)
             total_tokens += len(repair_prompt.split()) + len(repair_output.split())
+            state.record("self_revise", "keyword_repair", model, meter_delta(before), repair_output[:200])
             final_output = (
                 f"{final_output}\n\n---\n\n[Repair]\n{repair_output}"
                 if final_output else repair_output
@@ -208,8 +230,14 @@ class HarmoNetAdapter:
         completion_tokens = _snap["completion_tokens"]
         final_missing = _missing_keywords(final_output, task.expected_keywords)
 
+        if final_output:
+            state.artifact = final_output
+        state.record("terminate", "system", "none", NO_COST, f"repair_used={repair_used}")
+        trace_path = state.save()
+
         return {
             "output": final_output,
+            "trace_path": str(trace_path),
             "prompt_tokens": prompt_tokens,
             "completion_tokens": completion_tokens,
             "token_source": "measured" if _snap["measured"] else "estimated",

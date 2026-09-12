@@ -455,7 +455,7 @@ class HarmoAgent:
                       f"벡터 변화량={vec_shift:.4f} | 공명 채널이 강화되었습니다.")
 
                 # 자동 피드백 루프: 결과 기반 후속 씨앗 투하
-                self._scatter_feedback_seed(event.seed, output)
+                self._scatter_feedback_seed(event.seed, output, verification)
 
             except Exception as e:
                 result = TaskResult(
@@ -631,7 +631,7 @@ class HarmoAgent:
                       f"벡터 변화량={vec_shift:.4f} | 공명 채널이 강화되었습니다.")
 
                 # 자동 피드백 루프: 결과 기반 후속 씨앗 투하
-                self._scatter_feedback_seed(event.seed, output)
+                self._scatter_feedback_seed(event.seed, output, verification)
 
             except Exception as e:
                 result = TaskResult(
@@ -683,7 +683,7 @@ class HarmoAgent:
 
         return results
 
-    def _scatter_feedback_seed(self, parent_seed: Seed, output: Any) -> Optional[Seed]:
+    def _scatter_feedback_seed(self, parent_seed: Seed, output: Any, verification: Optional[Dict] = None) -> Optional[Seed]:
         """
         작업 완료 후 후속 에이전트들이 공명할 수 있도록 피드백 씨앗을 생성 및 투하.
         (협업 체인 구축)
@@ -713,7 +713,7 @@ class HarmoAgent:
         # 2. Validator가 검증을 완료한 경우 -> Architect 및 Builder가 확인할 수 있도록 결과 씨앗 투하
         elif self.role == AgentRole.VALIDATOR:
             # 마찬가지로 요약만 rule_description에
-            verification = self.task_results[-1].verification if self.task_results else None
+            # 판정은 호출자가 인자로 넘긴다 (task_results[-1] 은 append 전이라 한 결과 전을 가리켰음 — A1 보고)
             passed = bool(verification and verification.get("passed"))
             methods = ", ".join((verification or {}).get("method") or ["none"])
             feedback_desc = f"Verification {'passed' if passed else 'failed'} for task {parent_seed.id[:8]}: {methods}."

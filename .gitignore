@@ -31,3 +31,6 @@ tmp/
 Thumbs.db
 .idea/
 .vscode/
+
+# 실행 추적 (WEEK1 A4). 실험 산출물은 evidence/<실험>/ 로 옮겨 커밋한다
+evidence/traces/
