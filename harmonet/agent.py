@@ -19,7 +19,8 @@ from typing import Dict, List, Optional, Any, Callable
 from enum import Enum
 
 from .field import Seed, DataUniverseField
-from .resonance import ResonanceDetector, ResonanceEvent, KuraMotoCoupler
+from .resonance import ResonanceDetector, ResonanceEvent
+from .legacy import KuraMotoCoupler, SOCController, legacy_enabled  # noqa: F401 — SOCController 는 호환 re-export
 
 # ── Prometheus 메트릭 (선택적 의존성) ────────────────────────────
 # prometheus_client가 없거나 초기화 실패 시에도 에이전트는 정상 작동.
@@ -158,88 +159,6 @@ class SeedEncoder:
         return seed.rule_description
 
 
-class SOCController:
-    """
-    SOC (자기조직화 임계성) 컨트롤러.
-    
-    Per Bak의 BTW 모래 더미 모델 구현:
-    - 에이전트 부하가 임계값 초과 시 이웃 에이전트로 작업 위임 (토플링)
-    - 협업 캐스케이드 = 눈사태 (avalanche)
-    - P(s) ~ s^(-α) 파워 법칙으로 스케일 불변성 달성
-    """
-
-    def __init__(self, threshold: float = 0.75):
-        self.threshold = threshold
-        self.activation_levels: Dict[str, float] = {}
-        self.cascade_history: List[int] = []  # 눈사태 크기 기록
-
-    def register(self, agent_id: str, initial_load: float = 0.0):
-        self.activation_levels[agent_id] = initial_load
-
-    def add_load(self, agent_id: str, load: float) -> List[str]:
-        """
-        부하를 추가하고 필요시 BTW 토플링 수행.
-        
-        Returns:
-            위임받은 에이전트 ID 목록 (눈사태 참여자)
-        """
-        if agent_id not in self.activation_levels:
-            self.activation_levels[agent_id] = 0.0
-
-        self.activation_levels[agent_id] += load
-        cascade = []
-
-        if self.activation_levels[agent_id] > self.threshold:
-            cascade = self._topple(agent_id)
-
-        return cascade
-
-    def _topple(self, overloaded_id: str) -> List[str]:
-        """BTW 토플링: 과부하 에이전트의 작업을 이웃에게 분산"""
-        neighbors = [
-            aid for aid in self.activation_levels.keys()
-            if aid != overloaded_id
-        ]
-        if not neighbors:
-            return []
-
-        # 균등 분산 (실제 구현에서는 주파수 유사도 기반 선택적 분산)
-        spill = self.activation_levels[overloaded_id] * 0.5
-        per_neighbor = spill / len(neighbors)
-
-        for neighbor_id in neighbors:
-            self.activation_levels[neighbor_id] += per_neighbor
-
-        self.activation_levels[overloaded_id] -= spill
-        self.cascade_history.append(len(neighbors))
-        # 캐스케이드 히스토리 상한 — 파워 법칙 추정에는 최근 200개면 충분
-        if len(self.cascade_history) > 200:
-            self.cascade_history = self.cascade_history[-100:]
-
-        return neighbors
-
-    def get_power_law_exponent(self) -> Optional[float]:
-        """
-        캐스케이드 크기 분포의 파워 법칙 지수 α 추정.
-        P(s) ~ s^(-α) → log P(s) = -α·log s + const
-        """
-        if len(self.cascade_history) < 10:
-            return None
-
-        sizes = np.array(self.cascade_history)
-        unique, counts = np.unique(sizes, return_counts=True)
-        probs = counts / counts.sum()
-
-        # 로그-로그 선형 회귀
-        log_s = np.log(unique + 1e-8)
-        log_p = np.log(probs + 1e-8)
-
-        if len(log_s) > 1:
-            alpha = -np.polyfit(log_s, log_p, 1)[0]
-            return float(alpha)
-        return None
-
-
 class HarmoAgent:
     """
     HarmoNet 에이전트.
@@ -270,7 +189,7 @@ class HarmoAgent:
         self.role = role
         self.domain_tags = domain_tags
         self.universe = universe
-        self.soc_controller = soc_controller
+        self.soc_controller = soc_controller if legacy_enabled() else None
         self.learning_rate = learning_rate
 
         # 에이전트의 고유 주파수 벡터 (도메인 특성)
@@ -285,9 +204,15 @@ class HarmoAgent:
         )
 
         # 쿠라모토 커플러 등록
-        self.kuramoto = kuramoto_coupler
-        if kuramoto_coupler:
-            kuramoto_coupler.register_agent(agent_id, self.natural_frequency)
+        # legacy 메커니즘(Kuramoto·TDA·SOC)은 HARMONET_LEGACY_MECHANISMS=1 일 때만 주 경로에 참여 (WEEK1 A3)
+        self.legacy = legacy_enabled()
+        self.kuramoto = kuramoto_coupler if self.legacy else None
+        if self.kuramoto:
+            self.kuramoto.register_agent(agent_id, self.natural_frequency)
+        else:
+            # 위상은 Kuramoto 전용. 플래그 없이는 감지기의 무작위 초기 위상(resonance.py)을 0 으로 고정해
+            # 주 경로에 남는 유일한 난수 원천을 제거한다 (게이트엔 영향 없고 강도 로그값만 흔들리던 것)
+            self.detector.phase = 0.0
 
         # 그리드 위치 (데이터 우주에서의 좌표)
         self.grid_position = grid_position or hash(agent_id) % universe.grid_size
@@ -303,7 +228,8 @@ class HarmoAgent:
         self._processed_timestamps: Dict[str, float] = {}
 
         # SOC 등록
-        soc_controller.register(agent_id)
+        if self.soc_controller:
+            self.soc_controller.register(agent_id)
 
         print(f"[{agent_id}] 🤖 에이전트 초기화: role={role.value}, "
               f"domain={domain_tags}, pos={self.grid_position}")
@@ -371,7 +297,8 @@ class HarmoAgent:
                 pass
 
         # SOC 부하 증가
-        self.soc_controller.add_load(self.agent_id, 0.2)
+        if self.soc_controller:
+            self.soc_controller.add_load(self.agent_id, 0.2)
 
         # 비교용: 기존 방식이었다면 필요했을 토큰 수 추정
         self.token_count_traditional += len(task_description.split()) * 3
@@ -476,16 +403,13 @@ class HarmoAgent:
                 print(f"[{self.agent_id}] ⏭ 씨앗 {event.seed.id[:8]} 이미 선점됨 → 스킵")
                 continue
 
-            # TDA로 진짜 공명인지 검증
-            is_valid, tda_reason = self.detector.validate_resonance_with_betti(
-                snapshot_before, snapshot_after
-            )
-
-            print(f"[{self.agent_id}] TDA 검증: {'✅ 유효' if is_valid else '❌ 노이즈'} | {tda_reason}")
-
-            if not is_valid and len(self.detector.resonance_history) > 1:
-                # TDA 검증 실패 = 노이즈 신호 (첫 이벤트는 통과)
-                continue
+            # (legacy) TDA 검증 — 플래그 없이는 코사인 유사도 + δ 게이트만으로 판정
+            if self.legacy:
+                from .legacy import validate_resonance_with_betti
+                is_valid, tda_reason = validate_resonance_with_betti(self.detector, snapshot_before, snapshot_after)
+                print(f"[{self.agent_id}] TDA 검증: {'✅ 유효' if is_valid else '❌ 노이즈'} | {tda_reason}")
+                if not is_valid and len(self.detector.resonance_history) > 1:
+                    continue
 
             task_text = SeedEncoder.decode_seed(event.seed)
             prompt = self._build_execution_prompt(task_text)
@@ -552,7 +476,7 @@ class HarmoAgent:
             self.seeds_received += 1
 
             # SOC: 씨앗 실행 = 부하 추가
-            cascade = self.soc_controller.add_load(self.agent_id, 0.3)
+            cascade = self.soc_controller.add_load(self.agent_id, 0.3) if self.soc_controller else None
             if cascade:
                 print(f"[{self.agent_id}] 🌊 SOC 캐스케이드 발생 → {cascade}에게 부하 분산")
 
@@ -652,16 +576,13 @@ class HarmoAgent:
                     _METRICS.resonance_strength.observe(event.resonance_strength)
                 except Exception:
                     pass
-
-            # TDA로 진짜 공명인지 검증
-            is_valid, tda_reason = self.detector.validate_resonance_with_betti(
-                snapshot_before, snapshot_after
-            )
-
-            print(f"[{self.agent_id}] TDA 검증: {'✅ 유효' if is_valid else '❌ 노이즈'} | {tda_reason}")
-
-            if not is_valid and len(self.detector.resonance_history) > 1:
-                continue
+            # (legacy) TDA 검증 — 플래그 없이는 코사인 유사도 + δ 게이트만으로 판정
+            if self.legacy:
+                from .legacy import validate_resonance_with_betti
+                is_valid, tda_reason = validate_resonance_with_betti(self.detector, snapshot_before, snapshot_after)
+                print(f"[{self.agent_id}] TDA 검증: {'✅ 유효' if is_valid else '❌ 노이즈'} | {tda_reason}")
+                if not is_valid and len(self.detector.resonance_history) > 1:
+                    continue
 
             task_text = SeedEncoder.decode_seed(event.seed)
             prompt = self._build_execution_prompt(task_text)
@@ -748,7 +669,7 @@ class HarmoAgent:
                     pass
 
             # SOC: 씨앗 실행 = 부하 추가
-            cascade = self.soc_controller.add_load(self.agent_id, 0.3)
+            cascade = self.soc_controller.add_load(self.agent_id, 0.3) if self.soc_controller else None
             if cascade:
                 print(f"[{self.agent_id}] 🌊 SOC 캐스케이드 발생 → {cascade}에게 부하 분산")
                 if _METRICS_AVAILABLE and _METRICS:
@@ -846,7 +767,7 @@ class HarmoAgent:
             "token_count_harmonet": 0,               # HarmoNet: 0 토큰!
             "token_count_traditional": self.token_count_traditional,  # 기존 방식 예상
             "token_savings_pct": 100.0,               # 이론적 100% 절감
-            "activation_level": self.soc_controller.activation_levels.get(self.agent_id, 0),
+            "activation_level": self.soc_controller.activation_levels.get(self.agent_id, 0) if self.soc_controller else 0,
         }
 
     def __repr__(self):

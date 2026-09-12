@@ -1,7 +1,7 @@
 """
 tests/test_resonance.py
 =======================
-ResonanceDetector · KuraMotoCoupler 단위 테스트 — CI 회귀 방지.
+ResonanceDetector 단위 테스트 (Kuramoto·TDA 는 tests/legacy/) — CI 회귀 방지.
 """
 
 import time
@@ -9,7 +9,7 @@ import numpy as np
 import pytest
 
 from harmonet.field import DataUniverseField, Seed
-from harmonet.resonance import ResonanceDetector, ResonanceEvent, KuraMotoCoupler
+from harmonet.resonance import ResonanceDetector, ResonanceEvent
 
 DIM  = 16
 GRID = 8
@@ -204,96 +204,3 @@ class TestAdaptiveDelta:
         before = detector._scan_count
         detector.update_adaptive_delta([0.5], resonance_count=0, candidate_count=1)
         assert detector._scan_count == before + 1
-
-
-# ── TDA validate_resonance_with_betti 테스트 ─────────────────────
-
-class TestTDAValidation:
-    def test_identical_snapshots_early_exit(self, detector):
-        snap = np.random.randn(GRID, DIM).astype(np.float32)
-        is_valid, reason = detector.validate_resonance_with_betti(snap, snap)
-        # Δ=0 → early exit returns True
-        assert is_valid is True
-        assert "스킵" in reason or "TDA" in reason
-
-    def test_different_snapshots_returns_bool(self, detector):
-        before = np.zeros((GRID, DIM), dtype=np.float32)
-        after  = np.random.randn(GRID, DIM).astype(np.float32)
-        is_valid, reason = detector.validate_resonance_with_betti(before, after)
-        assert isinstance(is_valid, bool)
-        assert isinstance(reason, str)
-
-    def test_small_change_fast_execution(self, detector):
-        before = np.random.randn(GRID, DIM).astype(np.float32) * 0.1
-        after  = before + np.random.randn(GRID, DIM).astype(np.float32) * 0.5
-        import time as _t
-        t0 = _t.time()
-        detector.validate_resonance_with_betti(before, after)
-        elapsed = _t.time() - t0
-        assert elapsed < 2.0  # TDA 서브샘플링으로 2초 내 완료
-
-
-# ── KuraMotoCoupler 테스트 ────────────────────────────────────────
-
-class TestKuraMotoCoupler:
-    def test_register_agent(self):
-        kc = KuraMotoCoupler(coupling_strength=0.5)
-        kc.register_agent("A", natural_frequency=1.0)
-        assert "A" in kc.phases
-        assert "A" in kc.frequencies
-
-    def test_initial_order_parameter_single(self):
-        kc = KuraMotoCoupler()
-        kc.register_agent("A", 1.0)
-        r, psi = kc.get_order_parameter()
-        assert r == pytest.approx(1.0, abs=0.01)
-
-    def test_order_parameter_range(self):
-        kc = KuraMotoCoupler(coupling_strength=0.5)
-        for i in range(5):
-            kc.register_agent(f"agent{i}", float(i))
-        r, psi = kc.get_order_parameter()
-        assert 0.0 <= r <= 1.0
-
-    def test_step_changes_phases(self):
-        kc = KuraMotoCoupler(coupling_strength=1.0)
-        kc.register_agent("A", 1.0)
-        kc.register_agent("B", 1.5)
-        before = dict(kc.phases)
-        kc.step(dt=0.1)
-        # At least one phase should change
-        assert any(kc.phases[k] != before[k] for k in before)
-
-    def test_synchronization_over_time(self):
-        kc = KuraMotoCoupler(coupling_strength=2.0)
-        for i in range(3):
-            kc.register_agent(f"a{i}", float(i) * 0.1)  # similar frequencies
-        r_init, _ = kc.get_order_parameter()
-        for _ in range(50):
-            kc.step(dt=0.1)
-        r_final, _ = kc.get_order_parameter()
-        # Strong coupling + similar freq → r should increase
-        assert r_final >= r_init - 0.1  # allow small tolerance
-
-    def test_get_phase_returns_float(self):
-        kc = KuraMotoCoupler()
-        kc.register_agent("X", 1.0)
-        assert isinstance(kc.get_phase("X"), float)
-
-    def test_get_phase_unknown_agent(self):
-        kc = KuraMotoCoupler()
-        assert kc.get_phase("nonexistent") == 0.0
-
-    def test_order_parameter_empty(self):
-        kc = KuraMotoCoupler()
-        r, psi = kc.get_order_parameter()
-        assert r == 0.0
-        assert psi == 0.0
-
-    def test_adaptive_coupling_strength(self):
-        kc = KuraMotoCoupler(coupling_strength=0.5)
-        kc.register_agent("A", 1.0)
-        kc.register_agent("B", 1.0)
-        # After step, K should adapt based on r
-        kc.step(dt=0.1)
-        assert kc.K != kc.base_K or True  # K adapts; just verify no crash
