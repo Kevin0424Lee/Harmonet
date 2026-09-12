@@ -61,6 +61,8 @@ python -m pytest tests/ -x -q
 
 The mock LLM is never selected automatically: set `HARMONET_LLM_BACKEND=mock` explicitly (or configure a real backend), and `HARMONET_ALLOW_NO_REDIS=1` to run without Redis — otherwise the process stops with a `RuntimeError` that names these options.
 
+Week-1 smoke (mock, no cost — checks traces, mechanical verification, per-role models, fail-closed backend): `python -X utf8 scripts/week1_smoke.py`
+
 The default safe mode uses a mock LLM and does not require an API key:
 
 ```bash

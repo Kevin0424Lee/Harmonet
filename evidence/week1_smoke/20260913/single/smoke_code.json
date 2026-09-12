@@ -1,0 +1,49 @@
+{
+ "task_id": "smoke_code",
+ "system": "single",
+ "cost_attribution": "per_call",
+ "artifact": "[MockLLM] Expanded instruction successfully: Write a Python function add(a, b) that returns a + b....",
+ "verification": null,
+ "leak_risk": false,
+ "cost_so_far": {
+  "prompt_tokens": 61,
+  "completion_tokens": 25,
+  "llm_calls": 1,
+  "verify_calls": 0,
+  "source": "estimated"
+ },
+ "history": [
+  {
+   "kind": "build",
+   "agent_role": "builder",
+   "model": "mock-a",
+   "cost": {
+    "prompt_tokens": 61,
+    "completion_tokens": 25,
+    "llm_calls": 1,
+    "verify_calls": 0,
+    "source": "estimated"
+   },
+   "result_summary": "[MockLLM] Expanded instruction successfully: Write a Python function add(a, b) that returns a + b....",
+   "trigger": "none",
+   "token_source": "estimated",
+   "timestamp": 1789239644.1104703
+  },
+  {
+   "kind": "terminate",
+   "agent_role": "single",
+   "model": "none",
+   "cost": {
+    "prompt_tokens": 0,
+    "completion_tokens": 0,
+    "llm_calls": 0,
+    "verify_calls": 0,
+    "source": "none"
+   },
+   "result_summary": "single call, no verification",
+   "trigger": "none",
+   "token_source": "none",
+   "timestamp": 1789239644.1104703
+  }
+ ]
+}
