@@ -27,7 +27,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from benchmark.tasks import BenchmarkTask
 from harmonet.llm import get_llm_client
-from harmonet.trace import NO_COST, TaskState, meter_delta, model_used
+from harmonet.trace import NO_COST, TaskState, meter_delta, model_used, verify_cost
 from harmonet.usage import METER
 
 
@@ -155,7 +155,8 @@ class HarmoNetV2Adapter:
         """v2 정적 검증 결과를 verify.verify_artifact 와 같은 형식으로 (LLM 0회 → cost_tokens 0)."""
         # 정적 검사는 level=static 이므로 passed 는 항상 False (A7: passed=True 는 functional 만). ok 는 outcome 으로 구분
         return {"passed": False, "level": "static", "outcome": "no_tests" if v.ok else "error",
-                "evidence": f"{v.stage}: {'; '.join(v.reasons)}", "method": ["static_check"], "cost_tokens": 0}
+                "evidence": f"{v.stage}: {'; '.join(v.reasons)}", "method": ["static_check"], "cost_tokens": 0,
+                "wall_ms": 0, "exec_count": 0, "sandbox": "none"}
 
     @property
     def name(self) -> str:
@@ -191,9 +192,11 @@ class HarmoNetV2Adapter:
         state.artifact = builder_output
         state.record("build", "builder", self._last_model, self._last_cost, builder_output[:200])
 
+        t_v = time.perf_counter()
         validation = self._cheap_validate(builder_output, task, profile, stage="builder")
         state.verification = self._validation_dict(validation)
-        state.record("verify", "static_check", "none", dict(NO_COST, verify_calls=1), f"{validation.stage}: {validation.reasons}")
+        state.record("verify", "static_check", "none", verify_cost(state.verification, int((time.perf_counter() - t_v) * 1000)),
+                     f"{validation.stage}: {validation.reasons}")
         final_output = builder_output
         accepted_stage = "builder"
 
@@ -205,8 +208,10 @@ class HarmoNetV2Adapter:
             calls += 1
             stages.append("repair")
             state.record("self_revise", "builder", self._last_model, self._last_cost, repair_output[:200], trigger="verify:visible")
+            t_v = time.perf_counter()
             repair_validation = self._cheap_validate(repair_output, task, profile, stage="repair")
-            state.record("verify", "static_check", "none", dict(NO_COST, verify_calls=1), f"repair: {repair_validation.reasons}")
+            state.record("verify", "static_check", "none", verify_cost(self._validation_dict(repair_validation), int((time.perf_counter() - t_v) * 1000)),
+                         f"repair: {repair_validation.reasons}")
             if repair_validation.ok or not validation.ok:
                 final_output = repair_output
                 validation = repair_validation
@@ -223,8 +228,10 @@ class HarmoNetV2Adapter:
             stages.append("validator")
             # reviewer 역할 모델. builder 와 같은 모델이면 get_llm_client 가 "구별 불가" 경고를 낸다
             state.record("expert_review", "reviewer", self._last_model, self._last_cost, validator_output[:200], trigger="self")
+            t_v = time.perf_counter()
             validator_validation = self._cheap_validate(validator_output, task, profile, stage="validator")
-            state.record("verify", "static_check", "none", dict(NO_COST, verify_calls=1), f"validator: {validator_validation.reasons}")
+            state.record("verify", "static_check", "none", verify_cost(self._validation_dict(validator_validation), int((time.perf_counter() - t_v) * 1000)),
+                         f"validator: {validator_validation.reasons}")
             if validator_validation.ok or not validation.ok:
                 final_output = validator_output
                 validation = validator_validation
@@ -314,7 +321,7 @@ class HarmoNetV2Adapter:
         state = self._states.get(task.id) or TaskState(task.id, system=self.name)
         # 채점기의 실패 출력(히든 테스트)을 프롬프트에 넣은 수정 → 누출 위험 라벨 (TaskState.leak_risk)
         state.record("self_revise", "builder", self._last_model, self._last_cost, f"eval_repair: {repaired[:160]}", trigger="eval:hidden")
-        state.record("verify", "static_check", "none", dict(NO_COST, verify_calls=1), f"eval_repair: {validation.reasons}")
+        state.record("verify", "static_check", "none", verify_cost(self._validation_dict(validation)), f"eval_repair: {validation.reasons}")
         if validation.ok:
             state.artifact = repaired
             state.verification = self._validation_dict(validation)
@@ -495,9 +502,10 @@ class HarmoNetV2Adapter:
         """실측 usage 기반. system_prompt를 포함한 API 실사용량을 역할별 델타로 반환한다 (WEEK1 A5)."""
         client = get_llm_client(role)
         before = METER.snapshot(role)
+        t_call = time.perf_counter()
         output = client.generate(prompt, system_prompt=system_prompt)
         after = METER.snapshot(role)
-        self._last_cost = meter_delta(before, after)   # trace Action.cost 용 (역할 귀속)
+        self._last_cost = meter_delta(before, after, wall_ms=int((time.perf_counter() - t_call) * 1000))   # 역할 귀속 + wall
         self._last_model = model_used(role, client)
         return (output,
                 after["prompt_tokens"] - before["prompt_tokens"],

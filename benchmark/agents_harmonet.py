@@ -20,7 +20,7 @@ from harmonet.field import DataUniverseField
 from harmonet.agent import HarmoAgent, AgentRole, SOCController
 from harmonet.resonance import KuraMotoCoupler
 from harmonet.usage import METER
-from harmonet.trace import NO_COST, TaskState, meter_delta, model_id
+from harmonet.trace import NO_COST, TaskState, meter_delta, model_id, verify_cost
 
 
 def _keyword_hits(output: str, expected_keywords: List[str]) -> int:
@@ -160,6 +160,7 @@ class HarmoNetAdapter:
         meter_mark = METER.snapshot()
 
         for _ in range(self.ticks):
+            t_tick = time.perf_counter()
             universe.propagate(dt=0.3)
             for agent in agents:
                 agent.sync_phase(dt=0.1)
@@ -171,7 +172,7 @@ class HarmoNetAdapter:
 
             # 이 틱의 LLM 비용은 틱 단위로만 실측된다 (에이전트가 동시에 돌아 호출별 분리 불가).
             # 틱에 LLM 행동이 하나면 그 행동에, 여럿이면 첫 행동에 귀속하고 나머지는 0 으로 기록한다.
-            tick_cost = meter_delta(meter_mark)
+            tick_cost = meter_delta(meter_mark, wall_ms=int((time.perf_counter() - t_tick) * 1000))
             meter_mark = METER.snapshot()
             llm_actions_left = sum(1 for _, rs in zip(agents, results_list) for r in rs if r.success and r.verification is None)
             for agent, agent_results in zip(agents, results_list):
@@ -182,7 +183,7 @@ class HarmoNetAdapter:
                     if res.verification is not None:
                         verification = res.verification
                         state.verification = res.verification
-                        state.record("verify", "validator", "none", dict(NO_COST, verify_calls=1), res.verification["evidence"])
+                        state.record("verify", "validator", "none", verify_cost(res.verification), res.verification["evidence"])
                     else:
                         cost = tick_cost if llm_actions_left == 1 or agent.role == AgentRole.BUILDER else dict(NO_COST)
                         if cost is tick_cost:
@@ -214,9 +215,11 @@ class HarmoNetAdapter:
                 "and do not switch to a different task."
             )
             before = METER.snapshot()
+            t_call = time.perf_counter()
             repair_output = await get_llm_client().generate_async(repair_prompt)
             total_tokens += len(repair_prompt.split()) + len(repair_output.split())
-            state.record("self_revise", "keyword_repair", model, meter_delta(before), repair_output[:200], trigger="verify:visible")
+            state.record("self_revise", "keyword_repair", model, meter_delta(before, wall_ms=int((time.perf_counter() - t_call) * 1000)),
+                         repair_output[:200], trigger="verify:visible")
             final_output = (
                 f"{final_output}\n\n---\n\n[Repair]\n{repair_output}"
                 if final_output else repair_output

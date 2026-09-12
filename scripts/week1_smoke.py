@@ -9,6 +9,7 @@ scripts/week1_smoke.py — 1주차 통과 조건 묶음 스모크 (WEEK1 A6). mo
   A6-3 v2 에서 build.model != expert_review.model (BUILDER=mock-a, REVIEWER=mock-b)
   A6-4 HARMONET_LLM_BACKEND 미설정(+키 없음) 시 RuntimeError — 자동 Mock 폴백 없음
   A6-5 v2 어떤 액션에도 trigger="eval:hidden" 없음 (G1_DISABLE_EVAL_REPAIR 기본값)
+  A6-6 validate_trace 비용 정합성: per_call 트레이스는 Σaction.cost == cost_so_far, 모든 행동에 cost_usd·price_snapshot_id·wall_ms
 실패하면 exit 1. trace 는 evidence/week1_smoke/<YYYYMMDD>/ 에 저장.
 """
 from __future__ import annotations
@@ -99,6 +100,23 @@ check("RUNTIME_ERROR" in proc.stdout, f"A6-4 백엔드 미설정 → RuntimeErro
 check(all(a["trigger"] != "eval:hidden" for a in traces.get("harmonet_v2", {}).get("history", []))
       and traces.get("harmonet_v2", {}).get("leak_risk") is False,
       "A6-5 v2 trace 에 trigger=eval:hidden 없음, leak_risk=false")
+
+
+# A6-6: 비용 정합성 (validate_trace 가 per_call 합계·부호·가격표 id 를 검사한다)
+def _cost_ok(d: dict) -> bool:
+    try:
+        validate_trace(d)
+    except AssertionError as exc:
+        print("   cost error:", exc)
+        return False
+    return all(a.get("price_snapshot_id") and "wall_ms" in a["cost"] and "cost_usd" in a for a in d["history"])
+
+
+check(all(_cost_ok(d) for d in traces.values())
+      and traces["single"]["cost_attribution"] == "per_call"
+      and traces["harmonet_v2"]["cost_attribution"] == "per_call"
+      and traces["harmonet"]["cost_attribution"] == "tick_aggregate",
+      "A6-6 비용 정합성: per_call Σaction == cost_so_far, cost_usd/price_snapshot_id/wall_ms 전 행동 기록")
 
 print(f"\ntraces: {OUT}")
 if failures:

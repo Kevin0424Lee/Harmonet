@@ -5,18 +5,35 @@
  "artifact": "[MockLLM] Expanded instruction successfully: Role: builder (Bench-Builder).\nTask: Write a Python function add(a, b) that returns a + b.\nReturn concise working Python...",
  "verification": {
   "passed": false,
-  "evidence": "artifact_chars=168 artifact_sha=d470e43cf2cb; extraction=raw; ast=syntax_error line 1: invalid syntax",
+  "level": "static",
+  "outcome": "error",
+  "applied": false,
+  "n_run": 0,
+  "n_passed": 0,
+  "n_failed": 0,
+  "flags": [],
   "method": [
    "ast"
   ],
-  "cost_tokens": 0
+  "evidence": "artifact_chars=168 artifact_sha=d470e43cf2cb; extraction=raw; ast=syntax_error line 1: invalid syntax",
+  "cost_tokens": 0,
+  "wall_ms": 0,
+  "exec_count": 0,
+  "sandbox": "none"
  },
  "leak_risk": false,
+ "score": null,
+ "actions_after_score": 0,
  "cost_so_far": {
   "prompt_tokens": 67,
   "completion_tokens": 42,
+  "cache_read_tokens": 0,
+  "cache_write_tokens": 0,
   "llm_calls": 1,
   "verify_calls": 1,
+  "wall_ms": 541,
+  "cost_usd": 0.0,
+  "cost_usd_unknown_actions": 0,
   "source": "estimated"
  },
  "history": [
@@ -27,14 +44,21 @@
    "cost": {
     "prompt_tokens": 67,
     "completion_tokens": 42,
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
     "llm_calls": 1,
     "verify_calls": 0,
-    "source": "estimated"
+    "wall_ms": 541,
+    "source": "estimated",
+    "cost_usd": 0.0
    },
    "result_summary": "[MockLLM] Expanded instruction successfully: Role: builder (Bench-Builder).\nTask: Write a Python function add(a, b) that returns a + b.\nReturn concise working Python...",
    "trigger": "none",
    "token_source": "estimated",
-   "timestamp": 1789239656.3800988
+   "cost_usd": 0.0,
+   "price_snapshot_id": "prices_2026-09",
+   "flags": [],
+   "timestamp": 1789242089.604993
   },
   {
    "kind": "verify",
@@ -43,14 +67,23 @@
    "cost": {
     "prompt_tokens": 0,
     "completion_tokens": 0,
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
     "llm_calls": 0,
     "verify_calls": 1,
-    "source": "none"
+    "wall_ms": 0,
+    "source": "none",
+    "exec_count": 0,
+    "sandbox": "none",
+    "cost_usd": 0.0
    },
    "result_summary": "artifact_chars=168 artifact_sha=d470e43cf2cb; extraction=raw; ast=syntax_error line 1: invalid syntax",
    "trigger": "none",
    "token_source": "none",
-   "timestamp": 1789239656.3910987
+   "cost_usd": 0.0,
+   "price_snapshot_id": "prices_2026-09",
+   "flags": [],
+   "timestamp": 1789242089.617993
   },
   {
    "kind": "terminate",
@@ -59,14 +92,21 @@
    "cost": {
     "prompt_tokens": 0,
     "completion_tokens": 0,
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
     "llm_calls": 0,
     "verify_calls": 0,
-    "source": "none"
+    "wall_ms": 0,
+    "source": "none",
+    "cost_usd": 0.0
    },
    "result_summary": "repair_used=False",
    "trigger": "none",
    "token_source": "none",
-   "timestamp": 1789239656.3910987
+   "cost_usd": 0.0,
+   "price_snapshot_id": "prices_2026-09",
+   "flags": [],
+   "timestamp": 1789242089.6189928
   }
  ]
 }

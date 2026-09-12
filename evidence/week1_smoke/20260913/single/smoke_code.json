@@ -5,11 +5,18 @@
  "artifact": "[MockLLM] Expanded instruction successfully: Write a Python function add(a, b) that returns a + b....",
  "verification": null,
  "leak_risk": false,
+ "score": null,
+ "actions_after_score": 0,
  "cost_so_far": {
   "prompt_tokens": 61,
   "completion_tokens": 25,
+  "cache_read_tokens": 0,
+  "cache_write_tokens": 0,
   "llm_calls": 1,
   "verify_calls": 0,
+  "wall_ms": 0,
+  "cost_usd": 0.0,
+  "cost_usd_unknown_actions": 0,
   "source": "estimated"
  },
  "history": [
@@ -20,14 +27,21 @@
    "cost": {
     "prompt_tokens": 61,
     "completion_tokens": 25,
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
     "llm_calls": 1,
     "verify_calls": 0,
-    "source": "estimated"
+    "wall_ms": 0,
+    "source": "estimated",
+    "cost_usd": 0.0
    },
    "result_summary": "[MockLLM] Expanded instruction successfully: Write a Python function add(a, b) that returns a + b....",
    "trigger": "none",
    "token_source": "estimated",
-   "timestamp": 1789239644.1104703
+   "cost_usd": 0.0,
+   "price_snapshot_id": "prices_2026-09",
+   "flags": [],
+   "timestamp": 1789242077.4336338
   },
   {
    "kind": "terminate",
@@ -36,14 +50,21 @@
    "cost": {
     "prompt_tokens": 0,
     "completion_tokens": 0,
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
     "llm_calls": 0,
     "verify_calls": 0,
-    "source": "none"
+    "wall_ms": 0,
+    "source": "none",
+    "cost_usd": 0.0
    },
    "result_summary": "single call, no verification",
    "trigger": "none",
    "token_source": "none",
-   "timestamp": 1789239644.1104703
+   "cost_usd": 0.0,
+   "price_snapshot_id": "prices_2026-09",
+   "flags": [],
+   "timestamp": 1789242077.4336338
   }
  ]
 }

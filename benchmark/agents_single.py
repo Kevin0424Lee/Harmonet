@@ -57,9 +57,12 @@ class SingleCallAdapter:
         client = get_llm_client("builder")   # 역할별 모델 (WEEK1 A5)
 
         before = METER.snapshot("builder")
+        t_call = time.perf_counter()
         output = client.generate(task.prompt, system_prompt=self.system_prompt)
+        wall_ms = int((time.perf_counter() - t_call) * 1000)
         state.artifact = output or ""
-        state.record("build", "builder", model_used("builder", client), meter_delta(before, METER.snapshot("builder")), (output or "")[:200])
+        state.record("build", "builder", model_used("builder", client),
+                     meter_delta(before, METER.snapshot("builder"), wall_ms=wall_ms), (output or "")[:200])
         state.record("terminate", "single", "none", NO_COST, "single call, no verification")
         trace_path = state.save()
 
