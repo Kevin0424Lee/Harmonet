@@ -12,7 +12,7 @@ benchmark/tasks.py — 표준화된 벤치마크 태스크 정의
 """
 
 from dataclasses import dataclass, field
-from typing import List
+from typing import Any, Dict, List, Optional
 
 
 @dataclass
@@ -22,6 +22,8 @@ class BenchmarkTask:
     prompt: str
     expected_keywords: List[str]
     complexity: int  # 1, 2, 3
+    # 기계 검증용 명세 (harmonet/verify.py task_spec 형식). 러너가 채움; 없으면 validator는 AST 검사만.
+    spec: Optional[Dict[str, Any]] = None
 
 
 # ── 카테고리 1: 코드 생성 (Code Generation) ──────────────────────

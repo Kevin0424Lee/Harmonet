@@ -145,11 +145,13 @@ class HarmoNetAdapter:
         architect, builder, validator = agents
 
         # ── 1. Architect: 씨앗 투하 ──────────────────────────────
-        seed = architect.create_and_deposit_seed(task.prompt)
+        # task_spec(진입점·테스트·유형)을 과제 씨앗에 실어 builder→validator 피드백 씨앗이 상속하게 한다
+        seed = architect.create_and_deposit_seed(task.prompt, metadata={"task_spec": task.spec or {}})
         architect_tokens = len(task.prompt.split()) * 2  # 씨앗 생성 비용
 
         # ── 2. N틱 실행 ───────────────────────────────────────────
-        all_outputs = []
+        builder_outputs = []      # builder LLM 출력 (최종 산출물 후보)
+        verification = None       # validator 기계 검증 판정 (마지막 것)
         total_tokens = architect_tokens
 
         for _ in range(self.ticks):
@@ -162,14 +164,20 @@ class HarmoNetAdapter:
             results_list = await asyncio.gather(*scan_tasks)
             kuramoto.step(dt=0.1)
 
-            for agent_results in results_list:
+            for agent, agent_results in zip(agents, results_list):
                 for res in agent_results:
-                    if res.success and res.output:
-                        all_outputs.append(res.output)
-                        total_tokens += res.token_count
+                    if not res.success:
+                        continue
+                    total_tokens += res.token_count
+                    if res.verification is not None:
+                        verification = res.verification
+                    elif agent.role == AgentRole.BUILDER and res.output:
+                        builder_outputs.append(res.output)
 
-        # ── 3. 최종 출력 취합 ────────────────────────────────────
-        final_output = "\n\n---\n\n".join(all_outputs[-3:]) if all_outputs else ""
+        # ── 3. 최종 출력 = builder 산출물 (validator 판정은 별도 필드) ───────────
+        from harmonet.verify import extract_artifact
+        kind = (task.spec or {}).get("kind", "code")
+        final_output = extract_artifact(builder_outputs[-1], kind) if builder_outputs else ""
         repair_used = False
         initial_missing = _missing_keywords(final_output, task.expected_keywords)
         repair_threshold = float(os.getenv("HARMONET_REPAIR_KEYWORD_THRESHOLD", "0.50"))
@@ -206,6 +214,7 @@ class HarmoNetAdapter:
             "completion_tokens": completion_tokens,
             "token_source": "measured" if _snap["measured"] else "estimated",
             "llm_calls": _snap["calls"],
+            "verification": verification,   # validator 기계 검증 판정 (없으면 None = validator 미실행)
             "metadata": {
                 "seeds_created": sum(a.seeds_created for a in agents),
                 "seeds_received": sum(a.seeds_received for a in agents),

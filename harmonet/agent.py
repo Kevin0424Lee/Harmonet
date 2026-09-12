@@ -49,6 +49,7 @@ class TaskResult:
     token_count: int       # 사용된 토큰 수 (기존 방식 비교용)
     execution_time: float
     error: Optional[str] = None
+    verification: Optional[Dict] = None  # validator의 기계 검증 판정 (verify.verify_artifact 형식)
 
     def __repr__(self):
         return (f"TaskResult(agent={self.agent_id}, "
@@ -152,6 +153,8 @@ class SeedEncoder:
         """
         씨앗을 실행 가능한 작업 명세로 복원 (Lazy Decompression).
         """
+        # TODO(week2): 구조화된 반환으로 통일 — 지금은 rule_description 문자열만 돌려주고,
+        # 산출물·task_spec·판정은 seed.metadata 에서 호출자가 직접 꺼낸다.
         return seed.rule_description
 
 
@@ -413,6 +416,16 @@ class HarmoAgent:
             "Return a concise, actionable development output. Do not restate the task."
         )
 
+    def _is_addressed_to_me(self, seed: Seed) -> bool:
+        """씨앗의 metadata["target_role"]이 있으면 그 역할만 실행 (architect가 검증 요청 씨앗을 집어가지 않게)."""
+        target = seed.metadata.get("target_role")
+        return target is None or target == self.role.value
+
+    def _verify_seed(self, seed: Seed) -> Dict:
+        """validator 경로: LLM 호출 없이 builder 산출물(metadata["artifact"])을 기계 검증."""
+        from .verify import verify_artifact
+        return verify_artifact(seed.metadata.get("artifact", ""), seed.metadata.get("task_spec"))
+
     def scan_and_process(
         self,
         task_executor: Optional[Callable[[str], Any]] = None,
@@ -455,6 +468,8 @@ class HarmoAgent:
             # 이미 처리한 씨앗은 스킵 (동일 에이전트 중복 방지)
             if event.seed.id in self.processed_seed_ids:
                 continue
+            if not self._is_addressed_to_me(event.seed):
+                continue
 
             # 분산 선점 (Race Condition 방지)
             if not self.universe.claim_seed(event.seed.id, self.agent_id):
@@ -476,14 +491,19 @@ class HarmoAgent:
             prompt = self._build_execution_prompt(task_text)
 
             start_time = time.time()
+            verification = None
             try:
-                if task_executor:
+                if self.role == AgentRole.VALIDATOR and "artifact" in event.seed.metadata:
+                    # 기계 검증 — LLM 호출 0회
+                    verification = self._verify_seed(event.seed)
+                    output = verification["evidence"]
+                elif task_executor:
                     output = task_executor(task_text)
                 else:
                     # 로컬 LLM을 통한 지연 복원
                     output = llm.generate(prompt)
 
-                local_tokens = len(prompt.split()) + len(output.split())
+                local_tokens = 0 if verification else len(prompt.split()) + len(output.split())
 
                 result = TaskResult(
                     agent_id=self.agent_id,
@@ -492,6 +512,7 @@ class HarmoAgent:
                     output=output,
                     token_count=local_tokens,  # 로컬 디코딩에 사용된 토큰 수
                     execution_time=time.time() - start_time,
+                    verification=verification,
                 )
 
                 # ─── 창발적 잠재 언어 최적화 (도메인 벡터 학습) ──────────────────
@@ -582,6 +603,8 @@ class HarmoAgent:
             # 이미 처리한 씨앗은 스킵 (동일 에이전트 중복 방지)
             if event.seed.id in self.processed_seed_ids:
                 continue
+            if not self._is_addressed_to_me(event.seed):
+                continue
 
             # ─── 도메인 유사도 기반 선점 우선순위 ────────────────
             # 씨앗의 주파수 벡터와 이 에이전트의 도메인 벡터 간 코사인 유사도를 계산.
@@ -644,8 +667,13 @@ class HarmoAgent:
             prompt = self._build_execution_prompt(task_text)
 
             start_time = time.time()
+            verification = None
             try:
-                if task_executor:
+                if self.role == AgentRole.VALIDATOR and "artifact" in event.seed.metadata:
+                    # 기계 검증 — LLM 호출 0회 (subprocess가 있을 수 있어 스레드로)
+                    verification = await asyncio.to_thread(self._verify_seed, event.seed)
+                    output = verification["evidence"]
+                elif task_executor:
                     if inspect.iscoroutinefunction(task_executor):
                         output = await task_executor(task_text)
                     else:
@@ -654,7 +682,7 @@ class HarmoAgent:
                     # 비동기 LLM 생성 호출
                     output = await llm.generate_async(prompt)
 
-                local_tokens = len(prompt.split()) + len(output.split())
+                local_tokens = 0 if verification else len(prompt.split()) + len(output.split())
 
                 result = TaskResult(
                     agent_id=self.agent_id,
@@ -663,6 +691,7 @@ class HarmoAgent:
                     output=output,
                     token_count=local_tokens,
                     execution_time=time.time() - start_time,
+                    verification=verification,
                 )
 
                 # 도메인 벡터 최적화(언어 창발)
@@ -742,32 +771,38 @@ class HarmoAgent:
         if self.role == AgentRole.BUILDER:
             # rule_description은 임베딩 한도(256 토큰) 내 짧은 요약만 사용
             # 실제 코드 출력은 metadata에 보관 (투하 전에 설정 → Redis 복사본에도 포함)
+            from .verify import extract_artifact
+            spec = parent_seed.metadata.get("task_spec") or {}
+            artifact = extract_artifact(str(output), spec.get("kind", "code"))
             feedback_desc = (
-                "Security validation required: FastAPI JWT authentication implementation. "
-                "Perform OWASP Top 10 audit and write security report."
+                "Validation required: run static checks and tests on the builder implementation "
+                f"for task {parent_seed.id[:8]}."
             )
             print(f"[{self.agent_id}] 🔄 피드백 체인: 구현 완료 -> 검증 요청 씨앗 투하 준비 중...")
             return self.create_and_deposit_seed(
                 feedback_desc,
                 metadata={
                     "parent_seed_id": parent_seed.id,
-                    "full_output": str(output),
+                    "artifact": artifact,            # str(output) 전체가 아니라 추출한 코드/패치만
+                    "task_spec": spec,               # 과제 씨앗에서 상속: 진입점·테스트·유형
+                    "target_role": AgentRole.VALIDATOR.value,
                 },
             )
 
         # 2. Validator가 검증을 완료한 경우 -> Architect 및 Builder가 확인할 수 있도록 결과 씨앗 투하
         elif self.role == AgentRole.VALIDATOR:
             # 마찬가지로 요약만 rule_description에
-            feedback_desc = (
-                f"Security audit complete for task {parent_seed.id[:8]}. "
-                "Implementation passed OWASP validation. Ready for deployment."
-            )
-            print(f"[{self.agent_id}] 🔄 피드백 체인: 검증 완료 -> 최종 보고서 씨앗 투하 준비 중...")
+            verification = self.task_results[-1].verification if self.task_results else None
+            passed = bool(verification and verification.get("passed"))
+            methods = ", ".join((verification or {}).get("method") or ["none"])
+            feedback_desc = f"Verification {'passed' if passed else 'failed'} for task {parent_seed.id[:8]}: {methods}."
+            print(f"[{self.agent_id}] 🔄 피드백 체인: 검증 완료 -> 판정 씨앗 투하 준비 중...")
             return self.create_and_deposit_seed(
                 feedback_desc,
                 metadata={
                     "parent_seed_id": parent_seed.id,
-                    "full_output": str(output),
+                    "verification": verification,
+                    "target_role": "none",  # 필드 기록용. 어떤 에이전트도 실행하지 않음 (LLM 낭비 방지)
                 },
             )
 

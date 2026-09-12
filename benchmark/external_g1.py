@@ -312,6 +312,8 @@ def _to_benchmark_task(task: ExternalTask) -> BenchmarkTask:
         prompt=task.prompt,
         expected_keywords=[task.entry_point],
         complexity=2,
+        # validator 기계 검증 명세. tests 는 채점용 히든 테스트이므로 넣지 않는다 (누출 방지) → AST + 진입점 검사만.
+        spec={"kind": "code", "entry_point": task.entry_point, "tests": None},
     )
 
 

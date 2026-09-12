@@ -517,6 +517,7 @@ def generate(args: argparse.Namespace) -> int:
                     prompt=prompt,
                     expected_keywords=["diff --git"] + _patch_files(instance.get("patch", "")),
                     complexity=3,
+                    spec={"kind": "patch", "repo_dir": str(repo_dir), "base_commit": instance["base_commit"]},
                 )
                 result = adapter.run(task)
                 prompt_tokens += int(result.get("prompt_tokens", 0) or 0)
@@ -563,6 +564,7 @@ def generate(args: argparse.Namespace) -> int:
                             prompt=_make_repair_prompt(prompt, patch, apply_error, failure_kind, failure_context),
                             expected_keywords=["diff --git"] + _patch_files(instance.get("patch", "")),
                             complexity=3,
+                            spec={"kind": "patch", "repo_dir": str(repo_dir), "base_commit": instance["base_commit"]},
                         )
                         repair_result = adapter.run(repair_task)
                         prompt_tokens += int(repair_result.get("prompt_tokens", 0) or 0)
