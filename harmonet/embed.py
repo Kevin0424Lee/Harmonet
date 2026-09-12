@@ -49,6 +49,46 @@ def get_shared_encoder() -> Union["EmbeddingEncoder", "OpenAIEmbeddingEncoder"]:
 def get_embedding_dim() -> int:
     return _embedding_dim
 
+
+# 폴백 허용 스위치. 미설정 시 임베딩 모델 실패는 예외 → 실행 중단.
+# 조용한 난수 폴백이 벤치마크 결과를 통째로 무효화한 전력이 있어(AUDIT.md N1) 기본은 fail-closed.
+_ALLOW_OFFLINE_ENV = "HARMONET_ALLOW_OFFLINE_EMBED"
+
+
+def _fallback_or_raise(reason: str) -> None:
+    """오프라인 폴백이 명시적으로 허용됐을 때만 통과, 아니면 예외."""
+    if os.getenv(_ALLOW_OFFLINE_ENV) == "1":
+        print(f"[Embedding] {reason} → {_ALLOW_OFFLINE_ENV}=1 이므로 오프라인 해시 임베딩으로 대체합니다 (의미 없는 벡터!).")
+        return
+    raise RuntimeError(
+        f"[Embedding] {reason}. 해시 폴백은 의미 벡터가 아니므로 중단합니다. "
+        f"정말 폴백을 원하면 {_ALLOW_OFFLINE_ENV}=1 을 설정하세요."
+    )
+
+
+def assert_embedding_sane(min_gap: float = 0.3) -> float:
+    """
+    임베딩 건전성 게이트. 유사 문장 쌍과 무관 문장 쌍의 코사인 차이가 min_gap 이상인지 확인.
+    난수 폴백이면 두 값 모두 ≈0이라 차이가 0.05 안팎으로 나와 즉시 실패한다.
+    벤치마크 러너 시작 시 호출. 반환값은 측정된 차이.
+    """
+    enc = get_shared_encoder()
+    if getattr(enc, "offline_mode", False):
+        raise RuntimeError("[Embedding] offline_mode=True 상태에서는 벤치마크를 실행할 수 없습니다.")
+    a, b, c = enc.embed_batch([
+        "sort a list of integers in ascending order",
+        "order the numbers from smallest to largest",
+        "the cat sat on the mat",
+    ])
+    gap = float(a @ b) - float(a @ c)
+    if gap < min_gap:
+        raise RuntimeError(
+            f"[Embedding] 건전성 검사 실패: cos(유사)-cos(무관)={gap:.3f} < {min_gap}. "
+            "임베딩이 의미를 담고 있지 않습니다."
+        )
+    print(f"[Embedding] 건전성 OK (gap={gap:.3f})")
+    return gap
+
 class EmbeddingEncoder:
     """텍스트 임베딩 엔코더"""
     
@@ -64,7 +104,7 @@ class EmbeddingEncoder:
                 _transformer_model = SentenceTransformer(model_name)
                 print(f"[Embedding] {model_name} 로드 완료.")
             except Exception as e:
-                print(f"[Embedding] SentenceTransformers 로드 실패 ({str(e)}). 오프라인 결정론적 대체 모드로 전환합니다.")
+                _fallback_or_raise(f"SentenceTransformers 로드 실패 ({str(e)})")
                 self.offline_mode = True
 
     @staticmethod
@@ -164,7 +204,7 @@ class EmbeddingEncoder:
                         result[idx] = vec
                         _embed_cache[text] = vec
                 except Exception as e:
-                    print(f"[Embedding] 배치 추론 에러 ({str(e)}), 오프라인 폴백 실행.")
+                    _fallback_or_raise(f"배치 추론 에러 ({str(e)})")
                     self.offline_mode = True
                     for idx, text in zip(miss_indices, miss_texts):
                         vec = self._offline_embed(text)
@@ -275,8 +315,7 @@ class OpenAIEmbeddingEncoder:
                         del _embed_cache[k]
 
             except Exception as e:
-                print(f"[Embedding] OpenAI API 오류 ({e}). "
-                      "오프라인 해시 폴백으로 전환합니다.")
+                _fallback_or_raise(f"OpenAI API 오류 ({e})")
                 # 폴백: 해시 기반 결정론적 임베딩
                 fallback = EmbeddingEncoder.__new__(EmbeddingEncoder)
                 fallback.offline_mode = True

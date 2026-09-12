@@ -1,0 +1,7 @@
+system,benchmark,task_id,repeat,passed,prompt_tokens,completion_tokens,token_source,total_tokens,latency_seconds,eval_error
+harmonet,humaneval,HumanEval/0,1,False,868,466,estimated,1334,2.0736,"syntax error before execution: invalid syntax (<unknown>, line 42)"
+harmonet,humaneval,HumanEval/1,1,False,1026,466,estimated,1492,1.7855,"syntax error before execution: invalid syntax (<unknown>, line 42)"
+harmonet,humaneval,HumanEval/2,1,False,848,466,estimated,1314,1.7971,"syntax error before execution: invalid syntax (<unknown>, line 42)"
+harmonet,mbpp,mbpp_2,1,False,818,466,estimated,1284,1.8108,"syntax error before execution: invalid syntax (<unknown>, line 31)"
+harmonet,mbpp,mbpp_3,1,False,686,466,estimated,1152,1.7834,"syntax error before execution: invalid syntax (<unknown>, line 31)"
+harmonet,mbpp,mbpp_4,1,False,900,466,estimated,1366,1.7709,"syntax error before execution: invalid syntax (<unknown>, line 31)"

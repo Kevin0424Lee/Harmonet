@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import ast
+import builtins
 import contextlib
 import csv
 import gzip
@@ -48,6 +49,9 @@ MBPP_URL = (
 )
 
 DATA_DIR = Path("benchmark_data")
+# 진입점 추론 폴백에서 제외할 이름 (set, sum, len, sorted …)
+# import된 모듈 안에서 __builtins__는 dict라 dir()이 builtin 이름을 안 줌 → builtins 모듈 사용
+BUILTIN_NAMES = frozenset(dir(builtins)) | {"math", "re", "collections", "itertools"}
 
 COMMON_PREAMBLE = """
 from typing import *
@@ -138,11 +142,23 @@ def _jsonl_gz(path: Path) -> Iterable[Dict[str, Any]]:
                 yield json.loads(line)
 
 
-def _infer_entry_point_from_tests(tests: Iterable[str]) -> str:
-    for test in tests:
-        match = re.search(r"assert\s+([A-Za-z_]\w*)\s*\(", test)
-        if match:
-            return match.group(1)
+def _infer_entry_point_from_tests(tests: Iterable[str], code: str = "") -> str:
+    """
+    MBPP 진입점 추론. 참조 코드의 마지막 최상위 def를 우선 사용.
+    (구 정규식은 `assert set(f(...)) == ...`에서 `set`을 잡아 mbpp_2/7의 프롬프트가
+    "define function `set`"이 됐고, v2 정적 검증이 이를 강제해 짝 비교 2패를 만들었음 — AUDIT.md N2)
+    """
+    tests = list(tests)
+    defs = re.findall(r"^def\s+([A-Za-z_]\w*)\s*\(", code, re.M)
+    called = [n for t in tests for n in re.findall(r"([A-Za-z_]\w*)\s*\(", t)]
+    for name in called:  # 테스트가 실제 호출하는 def가 진입점
+        if name in defs:
+            return name
+    if defs:
+        return defs[-1]
+    for name in called:  # 참조 코드 없을 때: builtin이 아닌 첫 호출 식별자
+        if name not in BUILTIN_NAMES:
+            return name
     return "candidate"
 
 
@@ -179,7 +195,7 @@ def load_mbpp(limit: Optional[int]) -> List[ExternalTask]:
     tasks = []
     for item in items:
         tests = item.get("test_list") or []
-        entry = _infer_entry_point_from_tests(tests)
+        entry = _infer_entry_point_from_tests(tests, item.get("code", ""))
         prompt_text = item.get("prompt") or item.get("text") or ""
         prompt = (
             "Solve this MBPP Python programming task. Return only Python code. "
@@ -541,6 +557,12 @@ def main() -> int:
         raise SystemExit("No external tasks loaded.")
 
     adapter_names = [a.strip().lower() for a in args.adapters.split(",") if a.strip()]
+    # 임베딩을 쓰는 어댑터(v1, 그리고 v1 폴백이 가능한 v2)가 있으면 실행 전 건전성 게이트.
+    # 난수 임베딩 위에서 돌린 결과가 다시는 나오지 않게 함 (AUDIT.md N1).
+    if any(a in ("harmonet", "harmonet_v2") for a in adapter_names) and not args.skip_harmonet:
+        from harmonet.embed import assert_embedding_sane
+
+        assert_embedding_sane()
     adapters = []
     if "harmonet" in adapter_names and not args.skip_harmonet:
         adapters.append(HarmoNetAdapter(ticks=args.harmonet_ticks))

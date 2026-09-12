@@ -7,6 +7,9 @@ faiss-cpu>=1.7.4
 sentence-transformers>=2.2
 torch>=2.0
 transformers>=4.30
+# transformers 5.x가 요구하는 범위. 1.4.1이 설치돼 있으면 import가 실패하고
+# embed.py가 폴백으로 빠져 9월 실행 전체가 난수 임베딩 위에서 돌았음 (AUDIT.md N1)
+huggingface-hub>=1.5.0,<2.0
 
 # LLM clients
 openai>=1.0

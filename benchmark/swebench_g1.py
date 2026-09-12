@@ -365,7 +365,8 @@ def _make_prompt(instance: Dict[str, Any], repo_dir: Path, max_file_chars: int, 
         total += len(block)
 
     file_list = "\n".join(f"- {p}" for p in files) or "- unknown"
-    hints = instance.get("hints_text") or ""
+    # hints_text(수정 PR 이전 이슈 코멘트)는 표준 SWE-bench 시스템이 쓰지 않으며 종종 해법을 담는다.
+    # 2026-09-11까지의 실행은 이를 포함했음 → 절대값 비교 불가 (AUDIT.md N6). 이후 실행은 미포함.
     return (
         "You are generating a SWE-bench prediction patch.\n"
         "Return only a valid unified diff. Do not use markdown fences. Do not explain.\n"
@@ -374,7 +375,6 @@ def _make_prompt(instance: Dict[str, Any], repo_dir: Path, max_file_chars: int, 
         f"Base commit: {instance['base_commit']}\n"
         f"Instance: {instance['instance_id']}\n\n"
         f"Issue:\n{instance['problem_statement']}\n\n"
-        f"Hints:\n{hints}\n\n"
         "Relevant file paths from oracle retrieval:\n"
         f"{file_list}\n"
         f"{''.join(chunks)}\n"
@@ -459,6 +459,11 @@ def generate(args: argparse.Namespace) -> int:
 
     dataset = list(load_dataset(args.dataset_name, split=args.split))
     selected = dataset[args.offset : args.offset + args.limit if args.limit else None]
+    if args.adapter.startswith("harmonet"):
+        # 임베딩 건전성 게이트 — 난수 폴백 위에서 돌지 않게 (AUDIT.md N1)
+        from harmonet.embed import assert_embedding_sane
+
+        assert_embedding_sane()
     adapter = _adapter(args.adapter)
     system_name = args.name or adapter.name
 

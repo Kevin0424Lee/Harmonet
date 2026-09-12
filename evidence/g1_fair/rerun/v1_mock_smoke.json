@@ -1,0 +1,212 @@
+{
+  "metadata": {
+    "benchmarks": [
+      "humaneval",
+      "mbpp"
+    ],
+    "task_count": 6,
+    "sources": {
+      "humaneval": "https://raw.githubusercontent.com/openai/human-eval/master/data/HumanEval.jsonl.gz",
+      "mbpp": "https://raw.githubusercontent.com/google-research/google-research/master/mbpp/sanitized-mbpp.json"
+    },
+    "backend": "mock",
+    "runyourai_model": ""
+  },
+  "systems": [
+    {
+      "summary": {
+        "system": "harmonet",
+        "runs": 6,
+        "pass_rate": 0.0,
+        "pass_rate_ci95": 0.0,
+        "avg_total_tokens": 1323.7,
+        "avg_total_tokens_ci95": 88.6,
+        "avg_latency_s": 1.837,
+        "avg_latency_ci95_s": 0.093,
+        "p99_latency_s": 2.074
+      },
+      "measurements": [
+        {
+          "system": "harmonet",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/0",
+          "repeat": 1,
+          "passed": false,
+          "prompt_tokens": 868,
+          "completion_tokens": 466,
+          "total_tokens": 1334,
+          "latency_seconds": 2.0736,
+          "eval_error": "syntax error before execution: invalid syntax (<unknown>, line 42)",
+          "output_chars": 956,
+          "extracted_chars": 1244,
+          "metadata": {
+            "seeds_created": 3,
+            "seeds_received": 2,
+            "tasks_completed": 2,
+            "ticks": 2,
+            "kuramoto_r": 0.3852743947898517,
+            "repair_used": true,
+            "repair_keyword_threshold": 0.5,
+            "initial_missing_keywords": [
+              "has_close_elements"
+            ],
+            "final_missing_keywords": [
+              "has_close_elements"
+            ]
+          },
+          "token_source": "estimated"
+        },
+        {
+          "system": "harmonet",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/1",
+          "repeat": 1,
+          "passed": false,
+          "prompt_tokens": 1026,
+          "completion_tokens": 466,
+          "total_tokens": 1492,
+          "latency_seconds": 1.7855,
+          "eval_error": "syntax error before execution: invalid syntax (<unknown>, line 42)",
+          "output_chars": 956,
+          "extracted_chars": 1402,
+          "metadata": {
+            "seeds_created": 3,
+            "seeds_received": 2,
+            "tasks_completed": 2,
+            "ticks": 2,
+            "kuramoto_r": 0.581194977317498,
+            "repair_used": true,
+            "repair_keyword_threshold": 0.5,
+            "initial_missing_keywords": [
+              "separate_paren_groups"
+            ],
+            "final_missing_keywords": [
+              "separate_paren_groups"
+            ]
+          },
+          "token_source": "estimated"
+        },
+        {
+          "system": "harmonet",
+          "benchmark": "humaneval",
+          "task_id": "HumanEval/2",
+          "repeat": 1,
+          "passed": false,
+          "prompt_tokens": 848,
+          "completion_tokens": 466,
+          "total_tokens": 1314,
+          "latency_seconds": 1.7971,
+          "eval_error": "syntax error before execution: invalid syntax (<unknown>, line 42)",
+          "output_chars": 956,
+          "extracted_chars": 1227,
+          "metadata": {
+            "seeds_created": 3,
+            "seeds_received": 2,
+            "tasks_completed": 2,
+            "ticks": 2,
+            "kuramoto_r": 0.5565986339719089,
+            "repair_used": true,
+            "repair_keyword_threshold": 0.5,
+            "initial_missing_keywords": [
+              "truncate_number"
+            ],
+            "final_missing_keywords": [
+              "truncate_number"
+            ]
+          },
+          "token_source": "estimated"
+        },
+        {
+          "system": "harmonet",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_2",
+          "repeat": 1,
+          "passed": false,
+          "prompt_tokens": 818,
+          "completion_tokens": 466,
+          "total_tokens": 1284,
+          "latency_seconds": 1.8108,
+          "eval_error": "syntax error before execution: invalid syntax (<unknown>, line 31)",
+          "output_chars": 956,
+          "extracted_chars": 896,
+          "metadata": {
+            "seeds_created": 3,
+            "seeds_received": 2,
+            "tasks_completed": 2,
+            "ticks": 2,
+            "kuramoto_r": 0.08832315824506409,
+            "repair_used": true,
+            "repair_keyword_threshold": 0.5,
+            "initial_missing_keywords": [
+              "set"
+            ],
+            "final_missing_keywords": [
+              "set"
+            ]
+          },
+          "token_source": "estimated"
+        },
+        {
+          "system": "harmonet",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_3",
+          "repeat": 1,
+          "passed": false,
+          "prompt_tokens": 686,
+          "completion_tokens": 466,
+          "total_tokens": 1152,
+          "latency_seconds": 1.7834,
+          "eval_error": "syntax error before execution: invalid syntax (<unknown>, line 31)",
+          "output_chars": 956,
+          "extracted_chars": 896,
+          "metadata": {
+            "seeds_created": 3,
+            "seeds_received": 2,
+            "tasks_completed": 2,
+            "ticks": 2,
+            "kuramoto_r": 0.3733601036059874,
+            "repair_used": true,
+            "repair_keyword_threshold": 0.5,
+            "initial_missing_keywords": [
+              "is_not_prime"
+            ],
+            "final_missing_keywords": [
+              "is_not_prime"
+            ]
+          },
+          "token_source": "estimated"
+        },
+        {
+          "system": "harmonet",
+          "benchmark": "mbpp",
+          "task_id": "mbpp_4",
+          "repeat": 1,
+          "passed": false,
+          "prompt_tokens": 900,
+          "completion_tokens": 466,
+          "total_tokens": 1366,
+          "latency_seconds": 1.7709,
+          "eval_error": "syntax error before execution: invalid syntax (<unknown>, line 31)",
+          "output_chars": 956,
+          "extracted_chars": 896,
+          "metadata": {
+            "seeds_created": 3,
+            "seeds_received": 2,
+            "tasks_completed": 2,
+            "ticks": 2,
+            "kuramoto_r": 0.3343879041726505,
+            "repair_used": true,
+            "repair_keyword_threshold": 0.5,
+            "initial_missing_keywords": [
+              "heap_queue_largest"
+            ],
+            "final_missing_keywords": [
+              "heap_queue_largest"
+            ]
+          },
+          "token_source": "estimated"
+        }
+      ]
+    }
+  ]
+}
