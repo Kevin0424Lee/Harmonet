@@ -74,7 +74,7 @@ EXECUTABLE_SCENARIOS = [
 def test_g2_executable_builder_path(monkeypatch, scenario):
     task_id, entry, code, args, expected = scenario
     fake = FakeLLM([code])
-    monkeypatch.setattr("benchmark.agents_harmonet_v2.get_llm_client", lambda: fake)
+    monkeypatch.setattr("benchmark.agents_harmonet_v2.get_llm_client", lambda role=None: fake)
 
     result = HarmoNetV2Adapter().run(_code_task(task_id, entry, code))
 
@@ -103,7 +103,7 @@ REPAIR_SCENARIOS = [
 def test_g2_static_repair_path(monkeypatch, scenario):
     task_id, entry, bad, fixed = scenario
     fake = FakeLLM([bad, fixed])
-    monkeypatch.setattr("benchmark.agents_harmonet_v2.get_llm_client", lambda: fake)
+    monkeypatch.setattr("benchmark.agents_harmonet_v2.get_llm_client", lambda role=None: fake)
 
     result = HarmoNetV2Adapter().run(_code_task(task_id, entry, fixed))
 
@@ -130,7 +130,7 @@ EVAL_REPAIR_SCENARIOS = [
 def test_g2_evaluator_aware_repair_path(monkeypatch, scenario):
     task_id, entry, bad, fixed = scenario
     fake = FakeLLM([fixed])
-    monkeypatch.setattr("benchmark.agents_harmonet_v2.get_llm_client", lambda: fake)
+    monkeypatch.setattr("benchmark.agents_harmonet_v2.get_llm_client", lambda role=None: fake)
     adapter = HarmoNetV2Adapter()
     task = _code_task(task_id, entry, fixed)
 
@@ -162,7 +162,7 @@ def test_g2_open_ended_uses_validator(monkeypatch, scenario):
     task_id, prompt, keywords = scenario
     answer = " ".join(keywords) + " final design"
     fake = FakeLLM([answer, answer])
-    monkeypatch.setattr("benchmark.agents_harmonet_v2.get_llm_client", lambda: fake)
+    monkeypatch.setattr("benchmark.agents_harmonet_v2.get_llm_client", lambda role=None: fake)
     task = BenchmarkTask(task_id, "architecture", prompt, keywords, complexity=3)
 
     result = HarmoNetV2Adapter().run(task)
@@ -189,7 +189,7 @@ CACHE_SCENARIOS = [
 def test_g2_cache_is_exact_and_opt_in(monkeypatch, scenario):
     task_id, entry = scenario
     fake = FakeLLM([f"def {entry}(x):\n    return x\n"])
-    monkeypatch.setattr("benchmark.agents_harmonet_v2.get_llm_client", lambda: fake)
+    monkeypatch.setattr("benchmark.agents_harmonet_v2.get_llm_client", lambda role=None: fake)
     adapter = HarmoNetV2Adapter(enable_cache=True)
     task = _code_task(task_id, entry, f"def {entry}(x):")
 

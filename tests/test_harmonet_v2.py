@@ -16,7 +16,7 @@ class FakeLLM:
 
 def test_harmonet_v2_executable_code_uses_builder_only(monkeypatch):
     fake = FakeLLM(["def add(a, b):\n    return a + b\n"])
-    monkeypatch.setattr("benchmark.agents_harmonet_v2.get_llm_client", lambda: fake)
+    monkeypatch.setattr("benchmark.agents_harmonet_v2.get_llm_client", lambda role=None: fake)
 
     task = BenchmarkTask(
         id="he_unit_add",
@@ -39,7 +39,7 @@ def test_harmonet_v2_open_ended_keeps_validator(monkeypatch):
         "Use POST endpoints and a schema for request validation.",
         "Use POST endpoints and a schema for request validation.",
     ])
-    monkeypatch.setattr("benchmark.agents_harmonet_v2.get_llm_client", lambda: fake)
+    monkeypatch.setattr("benchmark.agents_harmonet_v2.get_llm_client", lambda role=None: fake)
 
     task = BenchmarkTask(
         id="api_unit",
@@ -61,7 +61,7 @@ def test_harmonet_v2_repairs_invalid_executable_code(monkeypatch):
         "def add(a, b):\n    return a +\n",
         "def add(a, b):\n    return a + b\n",
     ])
-    monkeypatch.setattr("benchmark.agents_harmonet_v2.get_llm_client", lambda: fake)
+    monkeypatch.setattr("benchmark.agents_harmonet_v2.get_llm_client", lambda role=None: fake)
 
     task = BenchmarkTask(
         id="he_unit_repair",
@@ -80,7 +80,7 @@ def test_harmonet_v2_repairs_invalid_executable_code(monkeypatch):
 
 def test_harmonet_v2_exact_cache_is_opt_in(monkeypatch):
     fake = FakeLLM(["def cached(x):\n    return x\n"])
-    monkeypatch.setattr("benchmark.agents_harmonet_v2.get_llm_client", lambda: fake)
+    monkeypatch.setattr("benchmark.agents_harmonet_v2.get_llm_client", lambda role=None: fake)
 
     task = BenchmarkTask(
         id="he_unit_cache_unique",

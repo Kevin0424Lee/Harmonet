@@ -89,8 +89,13 @@ NO_COST = {"prompt_tokens": 0, "completion_tokens": 0, "llm_calls": 0, "verify_c
 
 
 def model_id(client: Any) -> str:
-    """클라이언트가 실제로 쓰는 모델 ID. Mock 은 'mock'."""
+    """클라이언트가 실제로 쓰는 모델 ID. Mock 은 설정된 이름(기본 'mock')."""
     return str(getattr(client, "model", None) or type(client).__name__.replace("Client", "").lower())
+
+
+def model_used(role: str, client: Any) -> str:
+    """역할이 마지막 호출에서 실제로 쓴 모델: response.model 우선, 없으면 설정 문자열."""
+    return METER.snapshot(role).get("last_model") or model_id(client)
 
 
 # ── run_id / 저장 경로 ────────────────────────────────────────────────

@@ -28,7 +28,7 @@ from typing import Any, Dict
 
 from benchmark.tasks import BenchmarkTask
 from harmonet.llm import get_llm_client
-from harmonet.trace import NO_COST, TaskState, meter_delta, model_id
+from harmonet.trace import NO_COST, TaskState, meter_delta, model_used
 from harmonet.usage import METER
 
 _DEFAULT_SYSTEM = (
@@ -54,12 +54,12 @@ class SingleCallAdapter:
         METER.reset()
         started = time.perf_counter()
         state = TaskState(task.id, system=self.name)
-        client = get_llm_client()
+        client = get_llm_client("builder")   # 역할별 모델 (WEEK1 A5)
 
-        before = METER.snapshot()
-        output = get_llm_client().generate(task.prompt, system_prompt=self.system_prompt)
+        before = METER.snapshot("builder")
+        output = client.generate(task.prompt, system_prompt=self.system_prompt)
         state.artifact = output or ""
-        state.record("build", "single", model_id(client), meter_delta(before), (output or "")[:200])
+        state.record("build", "builder", model_used("builder", client), meter_delta(before, METER.snapshot("builder")), (output or "")[:200])
         state.record("terminate", "single", "none", NO_COST, "single call, no verification")
         trace_path = state.save()
 

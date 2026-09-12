@@ -16,7 +16,7 @@ import time as _time
 import functools
 import asyncio as _asyncio
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Dict, Optional
 
 # ── 지수 백오프 재시도 유틸리티 ────────────────────────────────
 
@@ -72,6 +72,7 @@ def _est_tokens(text: str) -> int:
 
 class LLMClient(ABC):
     """LLM 클라이언트 인터페이스"""
+    role: str = "default"   # 역할별 클라이언트(get_llm_client(role)) 가 설정. METER 집계 태그 (WEEK1 A5)
     
     @abstractmethod
     def generate(self, prompt: str, system_prompt: Optional[str] = None) -> str:
@@ -85,6 +86,9 @@ class LLMClient(ABC):
 
 class MockLLMClient(LLMClient):
     """API 키가 없을 때 작동하는 하이브리드 Mock LLM"""
+
+    def __init__(self, model: str = "mock"):
+        self.model = model   # HARMONET_MODEL_BUILDER=mock-a 같은 설정명을 그대로 echo (trace 에서 역할 구분용)
     
     def generate(self, prompt: str, system_prompt: Optional[str] = None) -> str:
         # 간단한 휴리스틱 매칭으로 실제 LLM이 생성한 것 같은 고품질 코드 출력 반환
@@ -185,10 +189,11 @@ Overall Status: ✅ SECURE
 class OpenAIClient(LLMClient):
     """OpenAI API 연동 클라이언트 (동기 + 진짜 비동기, 지수 백오프 재시도)"""
 
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: Optional[str] = None, model: Optional[str] = None):
         self.api_key = api_key or os.getenv("OPENAI_API_KEY")
         if not self.api_key:
             raise ValueError("OpenAI API key is missing.")
+        self.model = model or os.getenv("OPENAI_MODEL", "gpt-4o-mini")
         from openai import OpenAI, AsyncOpenAI
         self.client = OpenAI(api_key=self.api_key)
         # AsyncOpenAI: 스레드 풀 없이 이벤트 루프에서 직접 비동기 처리
@@ -201,11 +206,11 @@ class OpenAIClient(LLMClient):
             messages.append({"role": "system", "content": system_prompt})
         messages.append({"role": "user", "content": prompt})
         response = self.client.chat.completions.create(
-            model="gpt-4o-mini",
+            model=self.model,
             messages=messages,
             temperature=0.2,
         )
-        METER.record_from_response(response)
+        METER.record_from_response(response, role=self.role)
         return response.choices[0].message.content
 
     async def generate_async(self, prompt: str, system_prompt: Optional[str] = None) -> str:
@@ -217,13 +222,13 @@ class OpenAIClient(LLMClient):
 
         async def _call():
             return await self.async_client.chat.completions.create(
-                model="gpt-4o-mini",
+                model=self.model,
                 messages=messages,
                 temperature=0.2,
             )
 
         response = await _call_with_async_retry(_call)
-        METER.record_from_response(response)
+        METER.record_from_response(response, role=self.role)
         return response.choices[0].message.content
 
 
@@ -279,7 +284,7 @@ class OpenAICompatibleClient(LLMClient):
             messages.append({"role": "system", "content": system_prompt})
         messages.append({"role": "user", "content": prompt})
         response = self.client.chat.completions.create(**self._chat_kwargs(messages))
-        METER.record_from_response(response)
+        METER.record_from_response(response, role=self.role)
         return response.choices[0].message.content or ""
 
     async def generate_async(self, prompt: str, system_prompt: Optional[str] = None) -> str:
@@ -294,19 +299,19 @@ class OpenAICompatibleClient(LLMClient):
             )
 
         response = await _call_with_async_retry(_call, base_delay=2.0)
-        METER.record_from_response(response)
+        METER.record_from_response(response, role=self.role)
         return response.choices[0].message.content or ""
 
 
 class RunYourAIClient(OpenAICompatibleClient):
     """RunYourAI API router client using its OpenAI-compatible endpoint."""
 
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: Optional[str] = None, model: Optional[str] = None):
         max_tokens = os.getenv("RUNYOURAI_MAX_TOKENS")
         super().__init__(
             api_key=api_key or os.getenv("RUNYOURAI_API_KEY"),
             base_url=os.getenv("RUNYOURAI_BASE_URL", "https://api.runyour.ai/v1"),
-            model=os.getenv("RUNYOURAI_MODEL", "runyour/free"),
+            model=model or os.getenv("RUNYOURAI_MODEL", "runyour/free"),
             temperature=float(os.getenv("RUNYOURAI_TEMPERATURE", "0.2")),
             timeout=float(os.getenv("RUNYOURAI_TIMEOUT_SECONDS", "120")),
             max_tokens=int(max_tokens) if max_tokens else 1024,
@@ -354,7 +359,7 @@ class AnthropicClient(LLMClient):
     @_retry_sync(max_retries=3, base_delay=2.0)
     def generate(self, prompt: str, system_prompt: Optional[str] = None) -> str:
         response = self.client.messages.create(**self._msg_kwargs(prompt, self._build_system_blocks(system_prompt)))
-        METER.record_from_response(response)
+        METER.record_from_response(response, role=self.role)
         return response.content[0].text
 
     def _msg_kwargs(self, prompt: str, system_blocks) -> dict:
@@ -378,7 +383,7 @@ class AnthropicClient(LLMClient):
             return await self.async_client.messages.create(**self._msg_kwargs(prompt, system_blocks))
 
         response = await _call_with_async_retry(_call, base_delay=2.0)
-        METER.record_from_response(response)
+        METER.record_from_response(response, role=self.role)
         return response.content[0].text
 
 
@@ -443,10 +448,10 @@ class OllamaClient(LLMClient):
         pt = data.get("prompt_eval_count")
         ct = data.get("eval_count")
         if pt is not None or ct is not None:
-            METER.record(pt, ct, estimated=False)
+            METER.record(pt, ct, estimated=False, role=self.role, model=self.model)
         else:
             METER.record(_est_tokens((system_prompt or "") + prompt),
-                         _est_tokens(data.get("response", "")), estimated=True)
+                         _est_tokens(data.get("response", "")), estimated=True, role=self.role, model=self.model)
         return data["response"]
 
     async def generate_async(self, prompt: str, system_prompt: Optional[str] = None) -> str:
@@ -475,10 +480,10 @@ class OllamaClient(LLMClient):
                 pt = data.get("prompt_eval_count")
                 ct = data.get("eval_count")
                 if pt is not None or ct is not None:
-                    METER.record(pt, ct, estimated=False)
+                    METER.record(pt, ct, estimated=False, role=self.role, model=self.model)
                 else:
                     METER.record(_est_tokens((system_prompt or "") + prompt),
-                                 _est_tokens(data.get("response", "")), estimated=True)
+                                 _est_tokens(data.get("response", "")), estimated=True, role=self.role, model=self.model)
                 return data["response"]
 
         return await _call_with_async_retry(_call, max_retries=3, base_delay=2.0)
@@ -493,7 +498,7 @@ def _wrap_estimating(cls):
     def generate(self, prompt, system_prompt=None):
         out = _orig_sync(self, prompt, system_prompt)
         METER.record(_est_tokens((system_prompt or "") + (prompt or "")),
-                     _est_tokens(out), estimated=True)
+                     _est_tokens(out), estimated=True, role=self.role, model=getattr(self, "model", "mock"))
         return out
 
     cls.generate = generate
@@ -507,7 +512,7 @@ def _wrap_estimating(cls):
             # 그 경우 다시 기록하면 호출·토큰이 2배로 잡힌다 (WEEK1 A2 이중 계수 버그).
             if METER.snapshot()["calls"] == before:
                 METER.record(_est_tokens((system_prompt or "") + (prompt or "")),
-                             _est_tokens(out), estimated=True)
+                             _est_tokens(out), estimated=True, role=self.role, model=getattr(self, "model", "mock"))
             return out
         cls.generate_async = generate_async
     return cls
@@ -517,9 +522,81 @@ _wrap_estimating(MockLLMClient)
 # OllamaClient는 prompt_eval_count/eval_count를 직접 기록하므로 래핑하지 않음
 
 
-def get_llm_client() -> LLMClient:
+# ── 역할별 모델 지정 (WEEK1 A5) ──────────────────────────────────────────
+# 역할명은 코드에 존재하는 것만: "builder"(build/self_revise 호출), "reviewer"(expert_review 호출).
+# 환경변수 HARMONET_MODEL_DEFAULT / HARMONET_MODEL_BUILDER / HARMONET_MODEL_REVIEWER.
+ROLES = ("builder", "reviewer")
+_role_clients: Dict[str, "LLMClient"] = {}
+_role_warned: set = set()
+
+
+def _resolved_model(role: str) -> Optional[str]:
+    """역할의 모델 설정 문자열. 역할별 → DEFAULT → None(백엔드 기본값)."""
+    return os.getenv(f"HARMONET_MODEL_{role.upper()}") or os.getenv("HARMONET_MODEL_DEFAULT") or None
+
+
+def _warn_once(key: str, msg: str) -> None:
+    if key not in _role_warned:
+        _role_warned.add(key)
+        print(f"[LLM][WARN] {msg}")
+
+
+def _assert_model_available(client: "LLMClient", role: str) -> None:
+    """명시적으로 지정한 모델을 백엔드가 열 수 있는지 확인. 못 열면 RuntimeError (다른 모델로 대체하지 않는다)."""
+    model = getattr(client, "model", None)
+    try:
+        if isinstance(client, MockLLMClient):
+            return                                   # mock 은 어떤 이름이든 echo
+        if isinstance(client, OllamaClient):
+            tags = client.requests.get(f"{client.host}/api/tags", timeout=5).json().get("models", [])
+            if model not in {m["name"] for m in tags}:
+                raise RuntimeError(f"Ollama 에 모델 {model!r} 이 없습니다 (ollama pull {model})")
+            return
+        if isinstance(client, (OpenAIClient, OpenAICompatibleClient, AnthropicClient)):
+            client.client.models.retrieve(model)     # 무료 조회. 없으면 예외
+            return
+    except RuntimeError:
+        raise
+    except Exception as exc:
+        raise RuntimeError(f"[LLM] 역할 {role!r} 에 지정한 모델 {model!r} 을 백엔드가 열 수 없습니다: {exc}") from exc
+
+
+def get_llm_client(role: Optional[str] = None) -> "LLMClient":
     """
-    LLM 클라이언트 싱글턴 반환.
+    role 이 없으면 기본 클라이언트 싱글턴(기존 동작).
+    role 이 있으면 그 역할 전용 클라이언트 (HARMONET_MODEL_<ROLE> 로 모델 지정, 없으면 DEFAULT, 없으면 백엔드 기본값+경고 1회).
+    """
+    if role is None:
+        return _default_client()
+    if role not in ROLES:
+        raise ValueError(f"unknown LLM role {role!r}; expected one of {ROLES}")
+    if role in _role_clients:
+        return _role_clients[role]
+
+    model = _resolved_model(role)
+    if model is None:
+        _warn_once(f"unset:{role}", f"역할 {role!r} 의 모델이 지정되지 않아 백엔드 기본 모델을 씁니다 "
+                                     f"(HARMONET_MODEL_{role.upper()} 또는 HARMONET_MODEL_DEFAULT).")
+    client = _build_client(model)
+    client.role = role
+    if model is not None:
+        _assert_model_available(client, role)
+    if role == "reviewer" and _resolved_model("builder") == _resolved_model("reviewer"):
+        _warn_once("same:builder-reviewer", "builder 와 reviewer 가 같은 모델로 해석됩니다 — expert_review 와 self_revise 구별 불가.")
+    _role_clients[role] = client
+    return client
+
+
+def _default_client() -> "LLMClient":
+    global _llm_client_singleton
+    if _llm_client_singleton is None:
+        _llm_client_singleton = _build_client(None)
+    return _llm_client_singleton
+
+
+def _build_client(model: Optional[str]) -> "LLMClient":
+    """
+    HARMONET_LLM_BACKEND 에 따라 클라이언트 생성. model 이 있으면 그 모델로 (역할별 지정), 없으면 백엔드 기본값.
 
     선택 우선순위:
         1. HARMONET_LLM_BACKEND 환경변수가 명시되면 그것 사용
@@ -535,31 +612,27 @@ def get_llm_client() -> LLMClient:
         export OLLAMA_MODEL=llama3.1:8b          # 또는 qwen2.5:7b, mistral:7b
         export OLLAMA_HOST=http://localhost:11434  # (선택) 기본값
     """
-    global _llm_client_singleton
-    if _llm_client_singleton is not None:
-        return _llm_client_singleton
-
     backend = os.getenv("HARMONET_LLM_BACKEND", "").lower().strip()
 
     # ── 1. 명시적 백엔드 지정 ────────────────────────────────────
     if backend == "openai":
-        _llm_client_singleton = OpenAIClient()
-        print(f"[LLM] OpenAI 클라이언트 활성화 (gpt-4o-mini) [HARMONET_LLM_BACKEND=openai]")
-        return _llm_client_singleton
+        client = OpenAIClient(model=model)
+        print(f"[LLM] OpenAI 클라이언트 활성화 ({client.model}) [HARMONET_LLM_BACKEND=openai]")
+        return client
     if backend == "anthropic":
-        _llm_client_singleton = AnthropicClient()
-        print(f"[LLM] Anthropic 클라이언트 활성화 ({_llm_client_singleton.model}) [HARMONET_LLM_BACKEND=anthropic]")
-        return _llm_client_singleton
+        client = AnthropicClient(model=model)
+        print(f"[LLM] Anthropic 클라이언트 활성화 ({client.model}) [HARMONET_LLM_BACKEND=anthropic]")
+        return client
     if backend == "ollama":
         host = os.getenv("OLLAMA_HOST", "http://localhost:11434")
-        model = os.getenv("OLLAMA_MODEL", "llama3.1:8b")
-        _llm_client_singleton = OllamaClient(host=host, model=model)
+        model = model or os.getenv("OLLAMA_MODEL", "llama3.1:8b")
+        client = OllamaClient(host=host, model=model)
         print(f"[LLM] Ollama 로컬 클라이언트 활성화 ({model} @ {host}) [HARMONET_LLM_BACKEND=ollama]")
-        return _llm_client_singleton
+        return client
     if backend in ("openai_compatible", "compat", "ollama_openai"):
         base_url = os.getenv("OPENAI_COMPAT_BASE_URL", "http://localhost:11434/v1")
-        model = os.getenv("OPENAI_COMPAT_MODEL", "qwen2.5:7b")
-        _llm_client_singleton = OpenAICompatibleClient(
+        model = model or os.getenv("OPENAI_COMPAT_MODEL", "qwen2.5:7b")
+        client = OpenAICompatibleClient(
             api_key=os.getenv("OPENAI_COMPAT_API_KEY", "ollama"),
             base_url=base_url,
             model=model,
@@ -570,38 +643,35 @@ def get_llm_client() -> LLMClient:
         )
         print(f"[LLM] OpenAI 호환 클라이언트 활성화 ({model} @ {base_url}) "
               f"[HARMONET_LLM_BACKEND={backend}]")
-        return _llm_client_singleton
+        return client
 
     if backend in ("runyourai", "runyour"):
-        _llm_client_singleton = RunYourAIClient()
+        client = RunYourAIClient(model=model)
         print(
             f"[LLM] RunYourAI 클라이언트 활성화 "
-            f"({_llm_client_singleton.model} @ {_llm_client_singleton.base_url}) "
+            f"({client.model} @ {client.base_url}) "
             f"[HARMONET_LLM_BACKEND=runyourai]"
         )
-        return _llm_client_singleton
+        return client
     if backend == "mock":
-        _llm_client_singleton = MockLLMClient()
-        print("[LLM] MockLLM 강제 활성화 [HARMONET_LLM_BACKEND=mock]")
-        return _llm_client_singleton
+        client = MockLLMClient(model=model or "mock")
+        print(f"[LLM] MockLLM 강제 활성화 ({client.model}) [HARMONET_LLM_BACKEND=mock]")
+        return client
 
     # ── 2. 자동 감지 (우선순위: OpenAI → Anthropic → RunYourAI → Ollama → Mock) ──
     # 키가 설정돼 있으면 그 백엔드를 쓰겠다는 뜻. 생성 실패를 삼키고 다음/Mock 으로 넘어가지 않는다 (WEEK1 A2).
     if os.getenv("OPENAI_API_KEY"):
-        _llm_client_singleton = OpenAIClient()
-        print("[LLM] OpenAI 클라이언트 활성화 (gpt-4o-mini)")
-        return _llm_client_singleton
+        client = OpenAIClient(model=model)
+        print(f"[LLM] OpenAI 클라이언트 활성화 ({client.model})")
+        return client
     if os.getenv("ANTHROPIC_API_KEY"):
-        _llm_client_singleton = AnthropicClient()
-        print(f"[LLM] Anthropic 클라이언트 활성화 ({_llm_client_singleton.model}, 프롬프트 캐싱 ON)")
-        return _llm_client_singleton
+        client = AnthropicClient(model=model)
+        print(f"[LLM] Anthropic 클라이언트 활성화 ({client.model}, 프롬프트 캐싱 ON)")
+        return client
     if os.getenv("RUNYOURAI_API_KEY"):
-        _llm_client_singleton = RunYourAIClient()
-        print(
-            f"[LLM] RunYourAI 클라이언트 자동 감지 "
-            f"({_llm_client_singleton.model} @ {_llm_client_singleton.base_url})"
-        )
-        return _llm_client_singleton
+        client = RunYourAIClient(model=model)
+        print(f"[LLM] RunYourAI 클라이언트 자동 감지 ({client.model} @ {client.base_url})")
+        return client
 
     # Ollama 자동 감지 — localhost:11434 도달 가능하면 사용
     try:
@@ -610,16 +680,16 @@ def get_llm_client() -> LLMClient:
         r = _rq.get(f"{host}/api/tags", timeout=1.0)
         if r.ok:
             tags = [m["name"] for m in r.json().get("models", [])]
-            model = os.getenv("OLLAMA_MODEL")
+            model = model or os.getenv("OLLAMA_MODEL")
             if not model and tags:
                 # 모델 자동 선택: 7B/8B 우선
                 preferred = ("llama3.1:8b", "qwen2.5:7b", "mistral:7b", "llama3:8b", "phi3:mini")
                 model = next((m for m in preferred if m in tags), tags[0])
             elif not model:
                 model = "llama3.1:8b"
-            _llm_client_singleton = OllamaClient(host=host, model=model)
+            client = OllamaClient(host=host, model=model)
             print(f"[LLM] Ollama 로컬 클라이언트 자동 감지 ({model} @ {host})")
-            return _llm_client_singleton
+            return client
     except Exception:
         pass  # Ollama 미기동은 '감지 실패'이지 오류가 아님 — 아래에서 명시적으로 중단한다
 

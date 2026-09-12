@@ -25,6 +25,9 @@ class UsageMeter:
 
     def reset(self) -> None:
         with self._lock:
+            # 역할별 분리 집계 (WEEK1 A5): role → 같은 키의 카운터. Action.cost 를 역할 단위로 귀속하기 위함
+            self.by_role: Dict[str, Dict[str, int]] = {}
+            self.last_model: Dict[str, Optional[str]] = {}   # role → 마지막 응답의 model (response.model 우선)
             self.prompt_tokens = 0
             self.completion_tokens = 0
             self.calls = 0
@@ -34,22 +37,36 @@ class UsageMeter:
             self.cache_creation_input_tokens = 0
 
     def record(self, prompt_tokens: Optional[int], completion_tokens: Optional[int],
-               estimated: bool = False, cache_read: int = 0, cache_creation: int = 0) -> None:
+               estimated: bool = False, cache_read: int = 0, cache_creation: int = 0,
+               role: str = "default", model: Optional[str] = None) -> None:
         with self._lock:
-            # prompt_tokens = 모델이 처리한 입력 전체 (캐시 적중분 포함). 캐시 내역은 별도 필드로도 남긴다.
-            self.prompt_tokens += int(prompt_tokens or 0) + int(cache_read or 0) + int(cache_creation or 0)
-            self.completion_tokens += int(completion_tokens or 0)
+            pt = int(prompt_tokens or 0) + int(cache_read or 0) + int(cache_creation or 0)
+            ct = int(completion_tokens or 0)
+            # prompt_tokens = 모델이 처리한 입력 전체 (캐시 적중분 포함). 캐시 내역은 별도 필드로도 남긴다
+            self.prompt_tokens += pt
+            self.completion_tokens += ct
             self.cache_read_input_tokens += int(cache_read or 0)
             self.cache_creation_input_tokens += int(cache_creation or 0)
             self.calls += 1
             if estimated:
                 self.estimated_calls += 1
+            r = self.by_role.setdefault(role, {"prompt_tokens": 0, "completion_tokens": 0, "calls": 0, "estimated_calls": 0,
+                                                "cache_read_input_tokens": 0, "cache_creation_input_tokens": 0})
+            r["prompt_tokens"] += pt
+            r["completion_tokens"] += ct
+            r["calls"] += 1
+            r["estimated_calls"] += 1 if estimated else 0
+            r["cache_read_input_tokens"] += int(cache_read or 0)
+            r["cache_creation_input_tokens"] += int(cache_creation or 0)
+            if model:
+                self.last_model[role] = model
 
-    def record_from_response(self, response) -> None:
-        """OpenAI 호환 / Anthropic 응답에서 usage를 추출해 기록."""
+    def record_from_response(self, response, role: str = "default") -> None:
+        """OpenAI 호환 / Anthropic 응답에서 usage를 추출해 기록. response.model 이 있으면 역할의 실제 모델로 기록."""
+        model = getattr(response, "model", None)
         u = getattr(response, "usage", None)
         if u is None:
-            self.record(None, None, estimated=True)
+            self.record(None, None, estimated=True, role=role, model=model)
             return
         pt = getattr(u, "prompt_tokens", None)
         ct = getattr(u, "completion_tokens", None)
@@ -60,12 +77,18 @@ class UsageMeter:
             cache_read = getattr(u, "cache_read_input_tokens", 0) or 0
             cache_creation = getattr(u, "cache_creation_input_tokens", 0) or 0
         if pt is None and ct is None:
-            self.record(None, None, estimated=True)
+            self.record(None, None, estimated=True, role=role, model=model)
             return
-        self.record(pt, ct, estimated=False, cache_read=cache_read, cache_creation=cache_creation)
+        self.record(pt, ct, estimated=False, cache_read=cache_read, cache_creation=cache_creation, role=role, model=model)
 
-    def snapshot(self) -> Dict[str, int]:
+    def snapshot(self, role: Optional[str] = None) -> Dict[str, int]:
+        """role 을 주면 그 역할의 누적만 (같은 키 + last_model). 없으면 전체."""
         with self._lock:
+            if role is not None:
+                r = self.by_role.get(role) or {"prompt_tokens": 0, "completion_tokens": 0, "calls": 0, "estimated_calls": 0,
+                                               "cache_read_input_tokens": 0, "cache_creation_input_tokens": 0}
+                return {**r, "total_tokens": r["prompt_tokens"] + r["completion_tokens"],
+                        "measured": r["estimated_calls"] == 0, "last_model": self.last_model.get(role)}
             return {
                 "prompt_tokens": self.prompt_tokens,
                 "completion_tokens": self.completion_tokens,
