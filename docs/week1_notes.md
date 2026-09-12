@@ -16,11 +16,16 @@ Part A 진행 중 확정된 사실과, 2주차 설계(`docs/week2_design_draft.m
   현재 G1 러너는 채점용 히든 테스트를 넣지 않으므로(누출 방지) validator 는 AST + 진입점 검사까지만 수행.
 
 ## A1~A3 관찰 기록
-- Architect 비공명: A0 의 mock 실행 1회에서 architect 가 builder 피드백 씨앗을 실행하는 것을 관찰(2회 중 1회, 비결정적).
-  A1 에서 `target_role` 로 구조적으로 차단. A3 에서 Kuramoto 를 legacy 로 옮긴 뒤 mock 3회 × (legacy on/off) 모두
-  에이전트별 호출 수·공명 이벤트 수 동일 → **Kuramoto 위상은 원천이 아님**. `target_role` 필터를 끄고 5회 돌려도
-  architect 실행 0 으로 A0 관찰은 재현되지 않음. 남은 후보: async 스캔이 builder 의 씨앗 투하 전/후 어느 시점에
-  도는지(틱 내 순서) + `priority_delay` sleep 기반 claim 경쟁. 주 경로의 마지막 난수 원천(감지기 초기 위상,
-  `resonance.py:71`)은 legacy 가 아닐 때 0 으로 고정.
+- Architect 오배송 (정정): A0 에서 architect 가 builder 피드백 씨앗에 공명하는 것을 봤고 "실행"으로 보고했으나,
+  실행은 아니었다(당시 호출 수 Architect 0). A3 후 재현: `target_role` 필터를 끄고 피드백 문구를 A0 당시
+  "Security validation required: FastAPI JWT … OWASP audit" 로 되돌리면 **3/3 회 architect 공명**(유사도 0.636 > δ 0.20),
+  단 claim 우선순위 지연이 유사도 기반이라 validator(0.835, 8ms)가 항상 먼저 선점하고 architect(18ms)는 스킵.
+  결론: **코사인 게이팅은 씨앗 문구에 민감하다. 검증 요청을 보안 감사처럼 쓰면 Architect(sim 0.636)로 오배송된다.**
+  비결정성은 없었다(Kuramoto on/off, 필터 on/off 모두 반복 동일). 현재는 `target_role` 로 구조 차단.
+  주 경로의 마지막 난수 원천(감지기 초기 위상, `resonance.py:71`)은 legacy 가 아닐 때 0 으로 고정.
 - validator 결과 씨앗의 `verification` 은 `_scatter_feedback_seed` 가 `task_results.append` 전에 호출돼
   한 결과 전 것을 가리킬 수 있음 → A4 에서 판정을 인자로 직접 전달.
+
+## Part C 지연 측정 항목
+- `benchmark/agents_harmonet.py` 와 데모는 legacy 플래그가 없어도 `KuraMotoCoupler.step()` / `sync_phase()` 를 매 틱 호출한다
+  (에이전트는 무시). 지연시간 비교에 이 낭비 연산이 섞이지 않게 v1 어댑터에서 제거하거나 측정에서 분리.
