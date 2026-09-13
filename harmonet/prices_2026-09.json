@@ -4,15 +4,63 @@
   "unit": "USD per 1M tokens",
   "note": "Anthropic 1st-party rates (cache_read = 0.1x input, cache_write = 1.25x input). Local/mock models are 0. Unknown models are NOT priced silently: cost_usd=null + flag.",
   "models": {
-    "claude-haiku-4-5":   {"input": 1.00, "output": 5.00,  "cache_read": 0.10, "cache_write": 1.25, "source": "claude-api skill model table, cached 2026-06-24"},
-    "claude-sonnet-4-6":  {"input": 3.00, "output": 15.00, "cache_read": 0.30, "cache_write": 3.75, "source": "claude-api skill model table, cached 2026-06-24"},
-    "claude-sonnet-5":    {"input": 2.00, "output": 10.00, "cache_read": 0.20, "cache_write": 2.50, "source": "claude-api skill model table, cached 2026-06-24"},
-    "claude-opus-5":      {"input": 5.00, "output": 25.00, "cache_read": 0.50, "cache_write": 6.25, "source": "claude-api skill model table, cached 2026-06-24"},
-    "gpt-4o-mini":        {"input": 0.15, "output": 0.60,  "cache_read": 0.075, "cache_write": 0.15, "source": "OpenAI list price as of 2025; re-verify before use"},
-    "qwen2.5-coder:7b":     {"input": 0.0, "output": 0.0, "cache_read": 0.0, "cache_write": 0.0, "source": "local Ollama"},
-    "qwen2.5-coder:7b-32k": {"input": 0.0, "output": 0.0, "cache_read": 0.0, "cache_write": 0.0, "source": "local Ollama"}
+    "claude-haiku-4-5": {
+      "input": 1.0,
+      "output": 5.0,
+      "cache_read": 0.1,
+      "cache_write": 1.25,
+      "source": "https://www.anthropic.com/pricing (checked 2026-09-13; cross-checked with claude-api skill model table cached 2026-06-24)"
+    },
+    "claude-sonnet-4-6": {
+      "input": 3.0,
+      "output": 15.0,
+      "cache_read": 0.3,
+      "cache_write": 3.75,
+      "source": "https://www.anthropic.com/pricing (checked 2026-09-13; cross-checked with claude-api skill model table cached 2026-06-24)"
+    },
+    "claude-sonnet-5": {
+      "input": 2.0,
+      "output": 10.0,
+      "cache_read": 0.2,
+      "cache_write": 2.5,
+      "source": "https://www.anthropic.com/pricing (checked 2026-09-13; cross-checked with claude-api skill model table cached 2026-06-24)"
+    },
+    "claude-opus-5": {
+      "input": 5.0,
+      "output": 25.0,
+      "cache_read": 0.5,
+      "cache_write": 6.25,
+      "source": "https://www.anthropic.com/pricing (checked 2026-09-13; cross-checked with claude-api skill model table cached 2026-06-24)"
+    },
+    "gpt-4o-mini": {
+      "input": 0.15,
+      "output": 0.6,
+      "cache_read": 0.075,
+      "cache_write": 0.15,
+      "source": "https://openai.com/api/pricing/ (list price as remembered from 2025; NOT re-verified on 2026-09-13 — verify before use)"
+    },
+    "qwen2.5-coder:7b": {
+      "input": 0.0,
+      "output": 0.0,
+      "cache_read": 0.0,
+      "cache_write": 0.0,
+      "source": "local Ollama, $0 (2026-09-13)"
+    },
+    "qwen2.5-coder:7b-32k": {
+      "input": 0.0,
+      "output": 0.0,
+      "cache_read": 0.0,
+      "cache_write": 0.0,
+      "source": "local Ollama, $0 (2026-09-13)"
+    }
   },
   "prefix_rules": {
-    "mock": {"input": 0.0, "output": 0.0, "cache_read": 0.0, "cache_write": 0.0, "source": "mock backend"}
+    "mock": {
+      "input": 0.0,
+      "output": 0.0,
+      "cache_read": 0.0,
+      "cache_write": 0.0,
+      "source": "mock backend, $0"
+    }
   }
 }
