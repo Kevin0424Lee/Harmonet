@@ -1,0 +1,48 @@
+{
+ "pool": "livecodebench/code_generation_lite",
+ "revision": "0fe84c3912ea0c4d4a78037083943e8f0c4dd505",
+ "release": "release_v6",
+ "files": [
+  "test5.jsonl",
+  "test6.jsonl"
+ ],
+ "filter": {
+  "testtype": "stdin",
+  "difficulty": [
+   "medium"
+  ],
+  "contest_date_min": "2025-01-01"
+ },
+ "seed": 20260913,
+ "n_available": 26,
+ "n_probe_planned": 60,
+ "probe_ids": [
+  "abc394_c",
+  "abc397_c",
+  "abc390_d",
+  "abc390_c",
+  "arc192_a",
+  "abc398_c",
+  "abc397_b",
+  "arc191_a",
+  "abc387_c",
+  "abc399_c",
+  "abc388_d",
+  "abc398_b",
+  "abc392_d",
+  "arc195_a",
+  "arc194_a",
+  "abc400_c",
+  "abc400_d",
+  "abc388_c",
+  "abc394_d",
+  "abc396_d",
+  "abc396_c",
+  "abc395_c",
+  "abc392_c",
+  "abc391_d",
+  "abc399_d",
+  "abc389_d"
+ ],
+ "note": "n_available < 60 and confirm set (>=200) impossible; probe NOT run"
+}

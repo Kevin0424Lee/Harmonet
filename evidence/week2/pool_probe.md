@@ -25,3 +25,43 @@ MBPP 는 히든이 없어(A7c) 애초에 부적격. 따라서 functional 트랙�
 | **LiveCodeBench** (HF `livecodebench/code_generation_lite`, release_v5/v6) | 400~880 | stdin/stdout 테스트 (`public_test_cases` / `private_test_cases`), `starter_code` | public/private 가 필드로 분리 → 가시 = public, 히든 = private. 가장 깔끔 | 커스텀 로딩 스크립트(`trust_remote_code`), private 테스트는 인코딩돼 있어 디코딩 필요; stdin/stdout 러너를 하네스에 추가 ≈ 0.5~1일 | **낮음**: 표준 라이브러리만. subprocess 샌드박스로 충분 | 난이도별 편차 큼: easy 70%+, medium 30~50%, hard <20% — **medium 만 쓰면 구간 안** 가능. 시간 오염 회피 위해 2025-01 이후 문제만 |
 
 권고(승인 대상): **LiveCodeBench medium(2025-01 이후)** 를 1순위 — public/private 분리가 설계(§15)와 정확히 맞고 채점 환경이 가볍다. 실제 통과율은 같은 프로브($≈0.5)로 재확인 후 [30%,70%] 판정.
+
+---
+
+# 프로브 2 사전 등록 — LiveCodeBench (2026-09-13, 실행 전 작성)
+
+## 풀
+- `livecodebench/code_generation_lite`, revision `0fe84c3912ea0c4d4a78037083943e8f0c4dd505`, release `release_v6` (파일 test5.jsonl·test6.jsonl = 2024-09~2025-04),
+  testtype=stdin, difficulty=medium, contest_date ≥ 2025-01-01.
+- 추출: seed 20260913, N_probe = 60 (필터 후 60 미만이면 전부). 문제 ID: `probe_ids_lcb_medium_2025.json`.
+- 모델·설정: claude-haiku-4-5 single 1회, temperature 0.2, max_tokens 4096, hints 없음. 채점: `score_hidden`(private). 판정 [30%, 70%].
+- 층 순서(고정): medium > 70% → hard 재프로브. medium < 30% → easy+medium 1:1 재프로브. 그래도 밖 → LCB 보류, EvalPlus 로 이동. 재프로브도 각각 사전 등록 후.
+- 프로브에 쓴 문제는 확인용에서 제외. 확인용 ≥200 이 남는지 **실행 전 확인**. 결론은 이 풀(필터·날짜·난이도)에만 적용. 비용 상한 $1.
+
+## 실행 전 확인 (필터 후 문제 수) — **프로브 미실행**
+
+test5+test6 stdin 217개, 난이도 × 월:
+
+| difficulty | 2024-09 | 2024-10 | 2024-11 | 2024-12 | 2025-01 | 2025-02 | 2025-03 | 2025-04 | total |
+|---|---|---|---|---|---|---|---|---|---|
+| easy | 0 | 7 | 10 | 7 | 8 | 8 | 8 | 2 | 50 |
+| medium | 0 | 9 | 7 | 8 | 7 | 6 | 11 | 2 | 50 |
+| hard | 3 | 21 | 20 | 13 | 15 | 17 | 22 | 6 | 117 |
+
+contest_date ≥ 2025-01-01 (stdin 112개):
+
+| difficulty | 2025-01 | 2025-02 | 2025-03 | 2025-04 | total |
+|---|---|---|---|---|---|
+| easy | 8 | 8 | 8 | 2 | 26 |
+| medium | 7 | 6 | 11 | 2 | 26 |
+| hard | 15 | 17 | 22 | 6 | 60 |
+
+- 사전 등록 필터(medium · 2025-01-01+)로 남는 문제: **26개**. N_probe 60 미만 → 전부 사용 가정 시 **확인용 0개** (≥200 필요).
+- 2025+ 전 난이도를 합쳐도 112개, 난이도·날짜 무관 stdin 전체도 217개 → **이 풀에서는 어떤 층 조합으로도 확인용 ≥200 을 확보할 수 없다.**
+- 규칙("안 남으면 프로브를 실행하지 말고 보고")에 따라 **프로브를 실행하지 않았다.** 비용 $0.
+
+## 다음 사전 등록 후보 (승인 필요 — 어느 것도 실행하지 않음)
+1. **확인용 규모 재설정**: LCB 2025+ stdin 전 난이도 112개 중 프로브 60 → 확인용 52. Δ=10pp 검정력이 안 나올 가능성이 크므로 §4.5 "검정력 부족" 보고를 전제로 진행.
+2. **날짜 완화**: 2024-10+ stdin 217개 (medium 50). haiku-4-5 학습 데이터 오염 가능성(컷오프 이전 문제) 을 한계로 명시해야 함.
+3. **EvalPlus(HumanEval+/MBPP+) 로 이동**: 층 순서의 최종 대안. HumanEval+ 164 + MBPP+ 378 = 542개로 확인용 ≥200 확보 가능. 단 HumanEval 은 A 단독 96.3%(천장) 이므로 MBPP+ 만 후보. 로더 비용: `pip install evalplus`, plus_input 기대 출력은 canonical 실행으로 생성.
+4. **release_v1~v4(2023-05~2024-09) 포함**: 문제 수는 충분하지만 오염 위험이 가장 큼 — 권하지 않음.

@@ -87,3 +87,6 @@ Part A 진행 중 확정된 사실과, 2주차 설계(`docs/week2_design_draft.m
   사전 등록 필터(medium·2025+)로는 프로브 60 도 확인용 ≥200 도 확보 불가 → 프로브 미실행 (pool_probe.md).
 - 하네스 메모리 상한은 Windows 에서 미적용(`mem_limit=not_applied(windows)` 로 기록). POSIX 는 RLIMIT_AS 2GiB.
 - 비교 규칙은 공식 `grade_stdio` 를 옮김: 줄 수 일치 필수, 줄 단위 strip, 정확 일치 아니면 양쪽 Decimal 리스트 일치. 비수치 줄은 대소문자 구분.
+- 원인 불명 1회 관찰: Week2-A0 커밋 직후 콘솔에 `python.exe: can't open file '<repo>\candidate.py'` 가 한 줄 찍힘 (cwd=저장소 루트에서
+  `python -I candidate.py` 가 실행된 흔적). 재실행·잔여 프로세스 확인으로 재현 안 됨. 하네스는 후보를 tmp/run 에서만 띄우므로 경로가 설명되지 않는다.
+  다시 나타나면 하네스 launch 를 로그로 남겨 추적.
