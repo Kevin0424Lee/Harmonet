@@ -107,3 +107,13 @@ Part A 진행 중 확정된 사실과, 2주차 설계(`docs/week2_design_draft.m
 - **가격표 별칭 불일치**: API 응답 `model` 이 `claude-haiku-4-5-20251001` 이라 `claude-haiku-4-5` 항목과 안 맞아 프로브가 cost_usd=None 으로 돌았다
   (경고는 찍혔음). 날짜 접미사를 떼서 조회하도록 수정(90498eb). HumanEval 프로브 때는 토큰으로 손계산했었다.
 - **프로브 결과 85%** → [30,70] 밖 → unconfirmed. `evidence/week2/pool_probe.md` 프로브 3.
+
+## Week2-B2 / C0 (2026-09-14)
+- **파이프 교착**: 과제별 워커가 결과 JSON(최대 ~800KB)을 stdout 으로 내보내자 64KB 파이프가 차서 자식이 막히고 부모는 종료를 기다리다 30s 에 kill —
+  전 과제가 "시간 초과" 로 제외될 뻔했다. 결과·stderr 를 파일로 바꿔 해결. Windows venv 의 python.exe 는 런처라 실제 인터프리터가 자식 프로세스 →
+  RSS 감시·kill 은 psutil 트리 단위로.
+- **Mbpp/255** 는 이제 메모리 상한(2.49GB > 2GiB)으로 제외된다 — 이전 "repr 1.29GB" 와 같은 과제, 사유만 바뀜. 스펙 재생성 후 프로브·확인 ID 불변.
+- **BCB 공식 이미지**는 ENTRYPOINT 가 `bigcodebench.evaluate` 라 `--entrypoint python3` 로 덮어야 우리 하네스가 돈다. 15.1GB.
+- **BCB doctest 는 절반 이상이 예시용**(가상 경로·파일): 정적 스크린 통과 637 중 canonical 로 실제 통과하는 건 412. 정적 스크린은 "seed/random/Axes" 로
+  384개를 걸렀는데, 그중엔 `isinstance(result, float)` 처럼 결정적인 예제도 있었을 것 — 보수적으로 잃은 셈.
+- **B 상한 조건**: 사전 등록의 B ≤ 70% 를 sonnet-4-6 이 75% 로 넘겼다. A 는 창 안. 규칙대로 unconfirmed, 재검토 초안(`docs/week2_review_draft.md`)만.

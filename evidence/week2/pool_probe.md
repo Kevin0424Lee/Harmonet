@@ -126,3 +126,19 @@ LCB 날짜 완화 안 함. BCB 가 관문을 못 넘으면 데이터셋을 더 �
 - 비용 상한 $1 (두 모델 합). B2 1-3 사전 점검(모델 조회 → 보고 id 정규화 → 가격표) 통과 필수; 실행 중 미측정 발생 시 다음 호출 중단.
 - 보고: A/B 성공률과 Wilson 95% CI, outcome(pass/fail/error/timeout) 분포, 가시 테스트 통과율(참고), extraction, token_source, cost_usd(None 없어야 함).
 - 실패 시: 추가 데이터셋 없음. "연구 질문·실험 설정 재검토" 초안(프로브 4개 결과표 + 조건 + 무엇이 안 맞는지)만 쓰고 멈춤.
+
+## 결과 (2026-09-14 실행) — 파일 `pool_probe_bcb_{A,B}.{json,csv}`, 로그 `probe_bcb_{A,B}_run.txt`, trace `evidence/traces/pool_probe_bcb_{A,B}/`
+
+| arm | 모델 (응답 id) | 히든 통과 (공식 test, post_hoc) | Wilson 95% | 가시 doctest 통과 (참고) | outcome | 비용 | 토큰 (prompt/completion) |
+|---|---|---|---|---|---|---|---|
+| A | claude-haiku-4-5-20251001 | **38/60 = 63.3%** | [50.7, 74.4] | 48/60 = 80.0% | pass 38 / fail 22 / error 0 / timeout 0 | $0.184 | 22,596 / 32,274 |
+| B | claude-sonnet-4-6 | **45/60 = 75.0%** | [62.8, 84.2] | 54/60 = 90.0% | pass 45 / fail 15 / error 0 / timeout 0 | $0.387 | 22,656 / 21,237 |
+
+- extraction fenced 120/120, token_source measured 120/120, cost_usd None 0건(사전 점검 통과), trigger=eval:hidden 0건, score.trigger=post_hoc 120/120.
+- 합계 $0.570 (상한 $1). 가시→히든: A 는 가시 pass 인데 히든 fail 13, 가시 fail 인데 히든 pass 3; B 는 10 / 1 — 가시 doctest 는 약한 신호(참고용).
+- 과제별 교차: 둘 다 pass 36, A 만 2, B 만 9, 둘 다 fail 13.
+
+## 판정 (사전 등록 기준 적용)
+A 63.3% ∈ [30, 70] **충족**. B 75.0% > 70% **미충족** (CI 하단 62.8% 는 70% 아래이므로 표본 60 으로는 B 가 70% 를 넘는다고 단정할 수 없으나,
+사전 등록 규칙은 점추정치 기준이고 재프로브를 허용하지 않는다). → **unconfirmed.**
+사전 등록대로 확인 집합을 동결하지 않고, 데이터셋을 더 추가하지 않으며, 재검토 초안(`docs/week2_review_draft.md`)만 쓰고 멈춘다.

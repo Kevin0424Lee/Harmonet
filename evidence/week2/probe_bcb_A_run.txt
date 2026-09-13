@@ -1,0 +1,65 @@
+﻿[LLM] Anthropic 클라이언트 활성화 (claude-haiku-4-5) [HARMONET_LLM_BACKEND=anthropic]
+[single] 1/60 BigCodeBench/26 visible=pass hidden=fail 289/420tok $0.002389
+[single] 2/60 BigCodeBench/51 visible=fail hidden=fail 518/737tok $0.004203
+[single] 3/60 BigCodeBench/55 visible=pass hidden=fail 340/510tok $0.00289
+[single] 4/60 BigCodeBench/64 visible=fail hidden=fail 429/514tok $0.002999
+[single] 5/60 BigCodeBench/77 visible=pass hidden=fail 604/751tok $0.004359
+[single] 6/60 BigCodeBench/109 visible=pass hidden=fail 457/738tok $0.004147
+[single] 7/60 BigCodeBench/119 visible=pass hidden=pass 269/311tok $0.001824
+[single] 8/60 BigCodeBench/151 visible=pass hidden=pass 352/520tok $0.002952
+[single] 9/60 BigCodeBench/169 visible=pass hidden=pass 347/533tok $0.003012
+[single] 10/60 BigCodeBench/184 visible=pass hidden=pass 748/953tok $0.005513
+[single] 11/60 BigCodeBench/208 visible=fail hidden=fail 422/745tok $0.004147
+[single] 12/60 BigCodeBench/230 visible=pass hidden=fail 414/636tok $0.003594
+[single] 13/60 BigCodeBench/241 visible=pass hidden=fail 325/437tok $0.00251
+[single] 14/60 BigCodeBench/271 visible=fail hidden=fail 352/493tok $0.002817
+[single] 15/60 BigCodeBench/275 visible=pass hidden=pass 269/283tok $0.001684
+[single] 16/60 BigCodeBench/280 visible=pass hidden=pass 392/571tok $0.003247
+[single] 17/60 BigCodeBench/295 visible=pass hidden=pass 258/332tok $0.001918
+[single] 18/60 BigCodeBench/305 visible=fail hidden=fail 367/484tok $0.002787
+[single] 19/60 BigCodeBench/357 visible=pass hidden=pass 304/564tok $0.003124
+[single] 20/60 BigCodeBench/358 visible=pass hidden=pass 361/448tok $0.002601
+[single] 21/60 BigCodeBench/455 visible=pass hidden=pass 303/525tok $0.002928
+[single] 22/60 BigCodeBench/490 visible=pass hidden=pass 276/307tok $0.001811
+[single] 23/60 BigCodeBench/546 visible=pass hidden=pass 276/346tok $0.002006
+[single] 24/60 BigCodeBench/547 visible=pass hidden=pass 199/294tok $0.001669
+[single] 25/60 BigCodeBench/554 visible=pass hidden=pass 429/659tok $0.003724
+[single] 26/60 BigCodeBench/565 visible=pass hidden=fail 369/506tok $0.002899
+[single] 27/60 BigCodeBench/583 visible=pass hidden=fail 391/676tok $0.003771
+[single] 28/60 BigCodeBench/596 visible=pass hidden=pass 217/419tok $0.002312
+[single] 29/60 BigCodeBench/598 visible=pass hidden=pass 275/371tok $0.00213
+[single] 30/60 BigCodeBench/625 visible=pass hidden=pass 236/339tok $0.001931
+[single] 31/60 BigCodeBench/636 visible=pass hidden=fail 286/416tok $0.002366
+[single] 32/60 BigCodeBench/652 visible=pass hidden=pass 335/718tok $0.003925
+[single] 33/60 BigCodeBench/668 visible=fail hidden=fail 220/302tok $0.00173
+[single] 34/60 BigCodeBench/682 visible=fail hidden=fail 314/414tok $0.002384
+[single] 35/60 BigCodeBench/695 visible=pass hidden=pass 279/330tok $0.001929
+[single] 36/60 BigCodeBench/702 visible=pass hidden=pass 308/336tok $0.001988
+[single] 37/60 BigCodeBench/741 visible=pass hidden=pass 253/343tok $0.001968
+[single] 38/60 BigCodeBench/754 visible=fail hidden=pass 548/886tok $0.004978
+[single] 39/60 BigCodeBench/757 visible=pass hidden=pass 196/216tok $0.001276
+[single] 40/60 BigCodeBench/761 visible=pass hidden=pass 303/760tok $0.004103
+[single] 41/60 BigCodeBench/774 visible=pass hidden=pass 470/701tok $0.003975
+[single] 42/60 BigCodeBench/789 visible=fail hidden=pass 252/290tok $0.001702
+[single] 43/60 BigCodeBench/795 visible=pass hidden=pass 312/384tok $0.002232
+[single] 44/60 BigCodeBench/807 visible=pass hidden=pass 468/572tok $0.003328
+[single] 45/60 BigCodeBench/844 visible=pass hidden=pass 639/858tok $0.004929
+[single] 46/60 BigCodeBench/870 visible=pass hidden=pass 537/806tok $0.004567
+[single] 47/60 BigCodeBench/884 visible=pass hidden=pass 716/958tok $0.005506
+[single] 48/60 BigCodeBench/886 visible=fail hidden=pass 529/728tok $0.004169
+[single] 49/60 BigCodeBench/928 visible=pass hidden=fail 332/483tok $0.002747
+[single] 50/60 BigCodeBench/942 visible=fail hidden=fail 573/812tok $0.004633
+[single] 51/60 BigCodeBench/969 visible=pass hidden=pass 347/516tok $0.002927
+[single] 52/60 BigCodeBench/972 visible=fail hidden=fail 372/505tok $0.002897
+[single] 53/60 BigCodeBench/1002 visible=pass hidden=fail 361/532tok $0.003021
+[single] 54/60 BigCodeBench/1030 visible=pass hidden=fail 220/237tok $0.001405
+[single] 55/60 BigCodeBench/1036 visible=pass hidden=pass 415/622tok $0.003525
+[single] 56/60 BigCodeBench/1048 visible=pass hidden=pass 228/390tok $0.002178
+[single] 57/60 BigCodeBench/1078 visible=pass hidden=pass 383/509tok $0.002928
+[single] 58/60 BigCodeBench/1083 visible=pass hidden=pass 549/867tok $0.004884
+[single] 59/60 BigCodeBench/1100 visible=pass hidden=fail 582/762tok $0.004392
+[single] 60/60 BigCodeBench/1111 visible=pass hidden=pass 481/599tok $0.003476
+
+hidden_pass=63.3%  visible_pass=80.0%  cost=$0.183966  n_unpriced=0  outcomes={'fail': 22, 'pass': 38}
+Saved: evidence\week2\pool_probe_bcb_A.json / evidence\week2\pool_probe_bcb_A.csv
+EXIT=0
