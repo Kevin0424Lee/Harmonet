@@ -9,28 +9,28 @@
       "output": 5.0,
       "cache_read": 0.1,
       "cache_write": 1.25,
-      "source": "https://www.anthropic.com/pricing (checked 2026-09-13; cross-checked with claude-api skill model table cached 2026-06-24)"
+      "source": "https://www.anthropic.com/pricing — NOT fetched on 2026-09-13; values taken from the claude-api skill model table (cached 2026-06-24). Verify against the URL before any $ figure is published"
     },
     "claude-sonnet-4-6": {
       "input": 3.0,
       "output": 15.0,
       "cache_read": 0.3,
       "cache_write": 3.75,
-      "source": "https://www.anthropic.com/pricing (checked 2026-09-13; cross-checked with claude-api skill model table cached 2026-06-24)"
+      "source": "https://www.anthropic.com/pricing — NOT fetched on 2026-09-13; values taken from the claude-api skill model table (cached 2026-06-24). Verify against the URL before any $ figure is published"
     },
     "claude-sonnet-5": {
       "input": 2.0,
       "output": 10.0,
       "cache_read": 0.2,
       "cache_write": 2.5,
-      "source": "https://www.anthropic.com/pricing (checked 2026-09-13; cross-checked with claude-api skill model table cached 2026-06-24)"
+      "source": "https://www.anthropic.com/pricing — NOT fetched on 2026-09-13; values taken from the claude-api skill model table (cached 2026-06-24). Verify against the URL before any $ figure is published"
     },
     "claude-opus-5": {
       "input": 5.0,
       "output": 25.0,
       "cache_read": 0.5,
       "cache_write": 6.25,
-      "source": "https://www.anthropic.com/pricing (checked 2026-09-13; cross-checked with claude-api skill model table cached 2026-06-24)"
+      "source": "https://www.anthropic.com/pricing — NOT fetched on 2026-09-13; values taken from the claude-api skill model table (cached 2026-06-24). Verify against the URL before any $ figure is published"
     },
     "gpt-4o-mini": {
       "input": 0.15,
