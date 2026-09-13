@@ -24,3 +24,15 @@ def test_all_hidden_ok_and_public_metric_is_separate():
     exposed = [{"passed": "True", "hidden_exposed": "True"}, {"passed": "False", "hidden_exposed": "True"}]
     assert public_satisfaction_rate(exposed) == pytest.approx(0.5)
     assert public_satisfaction_rate(rows) == 0.0        # 노출 행이 없으면 0 — 히든 행을 공개 지표로 세지 않는다
+
+
+@pytest.mark.parametrize("bad", ["unknown", None, "0", "", 0, 1, "no"])
+def test_non_explicit_values_raise(bad):
+    row = {"passed": "True"} if bad is None else {"passed": "True", "hidden_exposed": bad}
+    with pytest.raises(HiddenExposedError):
+        hidden_pass_rate([row])
+
+
+@pytest.mark.parametrize("ok", [False, "False", "false"])
+def test_explicit_false_accepted(ok):
+    assert hidden_pass_rate([{"passed": "True", "hidden_exposed": ok}]) == 1.0

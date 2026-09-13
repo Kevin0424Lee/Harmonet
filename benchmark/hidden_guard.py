@@ -26,14 +26,19 @@ def _truthy(v: Any) -> bool:
     return str(v).strip().lower() in ("true", "1", "yes")
 
 
+def _explicit_false(v: Any) -> bool:
+    """히든으로 인정하는 값은 명시적 False 뿐: bool False, 문자열 "False"/"false" (CSV). 그 외는 전부 불명으로 취급 (A0c)."""
+    return v is False or (isinstance(v, str) and v in ("False", "false"))
+
+
 def require_hidden(rows: Iterable[Any], where: str = "") -> None:
     """모든 행이 hidden_exposed=False 임을 요구. 필드 누락 또는 True 가 하나라도 있으면 예외."""
     for i, r in enumerate(rows):
         v = _flag(r)
-        if v is None or v == "":
-            raise HiddenExposedError(f"{where or 'rows'}[{i}]: hidden_exposed 필드 없음 — 히든 여부를 알 수 없는 행은 히든 통과율에 넣을 수 없다 (옛 CSV?)")
         if _truthy(v):
             raise HiddenExposedError(f"{where or 'rows'}[{i}]: hidden_exposed=True — 채점 테스트가 프롬프트에 노출된 행 (MBPP 등). 공개 테스트 충족률로만 집계하라")
+        if not _explicit_false(v):
+            raise HiddenExposedError(f"{where or 'rows'}[{i}]: hidden_exposed={v!r} — 명시적 False 가 아니면 히든 여부 불명으로 취급한다 (누락·None·'unknown'·'0'·'' 전부 거부)")
 
 
 def _passed(row: Any) -> bool:
@@ -59,7 +64,10 @@ def split_by_exposure(rows: Sequence[Any]):
     hidden, exposed = [], []
     for i, r in enumerate(rows):
         v = _flag(r)
-        if v is None or v == "":
-            raise HiddenExposedError(f"rows[{i}]: hidden_exposed 필드 없음")
-        (exposed if _truthy(v) else hidden).append(r)
+        if _truthy(v):
+            exposed.append(r)
+        elif _explicit_false(v):
+            hidden.append(r)
+        else:
+            raise HiddenExposedError(f"rows[{i}]: hidden_exposed={v!r} — 명시적 True/False 가 아니면 분류하지 않는다")
     return hidden, exposed
