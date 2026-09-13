@@ -23,7 +23,11 @@ task_spec["kind"] = "code" | "patch" | "stdio".
      #   후보 프로세스에 노출되지 않는다(argv·env·후보 cwd 어디에도 없음: 하네스가 stdin 으로 받아 메모리에만 둔다).
      #   테스트당 타임아웃(기본 10s) 시 자식 프로세스 트리 전체 종료(Windows taskkill /T, POSIX 프로세스 그룹). stdout 상한 1MB(초과 = fail).
      #   메모리 상한: POSIX 는 RLIMIT_AS, Windows 는 미적용 — 결과의 mem_limit 에 "not_applied" 로 기록한다(조용히 생략하지 않음).
-     #   출력을 완성한 뒤 종료하지 않는 후보: 타임아웃 시점의 stdout 이 기대 출력과 일치하면 pass 로 판정하고 프로세스는 강제 종료한다.
+     #   판정(A0c, 사전 등록): 테스트마다 정상 종료(rc==0) ∧ 시간·출력 제한 준수 ∧ 기대 출력 일치 → pass. 하나라도 아니면
+     #   timeout / error(rc!=0) / fail. 정답을 출력하고도 남는 스레드·무한루프로 종료하지 않으면 timeout 이다.
+     #   함수형(code) 하네스의 "os._exit → aborted" 규칙은 여기 적용하지 않는다: 그쪽은 후보가 하네스와 같은 프로세스라 종료 코드를
+     #   판정 신호로 쓸 수 없고(후보가 죽으면 기록기도 죽음) 결과 파일 유무로만 판정하지만, stdio 는 후보가 별도 프로세스라
+     #   종료 코드가 판정의 일부다.
      #   비교 규칙은 LCB 공식 testing_util.grade_stdio 와 동일 (harmonet/stdio_compare.py).
      #   **별도 subprocess 는 보안 격리가 아니다** (같은 사용자 권한·파일 접근·자원 고갈 가능).
 
@@ -241,7 +245,7 @@ _dump, _open, _exit = json.dump, open, os._exit
 cfg = json.loads(sys.stdin.readline())
 nonce, out_path, tests, per_test_timeout, cap = cfg["nonce"], cfg["out_path"], cfg["tests"], cfg["timeout_s"], cfg["stdout_cap"]
 t0 = time.time()
-res = {"n_run": 0, "n_passed": 0, "n_failed": 0, "errors": [], "duration_ms": 0, "nonce": nonce, "mem_limit": "n/a", "notes": []}
+res = {"n_run": 0, "n_passed": 0, "n_failed": 0, "n_timeout": 0, "n_error": 0, "errors": [], "duration_ms": 0, "nonce": nonce, "mem_limit": "n/a", "notes": []}
 IS_WIN = os.name == "nt"
 def _write():
     res["duration_ms"] = int((time.time() - t0) * 1000)
@@ -306,16 +310,17 @@ for i, t in enumerate(tests):
     res["n_run"] += 1
     try:
         out, timed_out, overflow, rc = run_one(t["input"])
-        if overflow:
-            res["n_failed"] += 1; res["errors"].append("test_%d: stdout over cap" % i); continue
         ok, why = stdio_match(out, t["output"])
+        if overflow:
+            res["n_failed"] += 1; res["errors"].append("test_%d: fail: stdout over cap" % i); continue
+        if timed_out:                      # 정답을 출력했더라도 종료하지 않으면 timeout (A0c)
+            res["n_timeout"] += 1; res["errors"].append("test_%d: timeout%s" % (i, " (output matched)" if ok else "")); continue
+        if rc != 0:                        # 정답을 출력했더라도 비정상 종료면 error
+            res["n_error"] += 1; res["errors"].append("test_%d: error: rc=%s%s" % (i, rc, " (output matched)" if ok else "")); continue
         if ok:
             res["n_passed"] += 1
-            if timed_out:
-                res["notes"].append("test_%d: output complete but process did not exit; killed" % i)
         else:
-            res["n_failed"] += 1
-            res["errors"].append("test_%d: %s%s" % (i, "timeout; " if timed_out else "", why))
+            res["n_failed"] += 1; res["errors"].append("test_%d: fail: %s" % (i, why))
     except BaseException as e:  # noqa: BLE001
         res["n_failed"] += 1; res["errors"].append("test_%d: harness %s: %s" % (i, type(e).__name__, str(e)[:200]))
 _write()
@@ -373,13 +378,17 @@ def _run_stdio_harness(artifact: str, tests: List[Dict[str, str]], per_test_time
             outcome = "aborted"
         elif data.get("n_passed") == data.get("n_run"):
             outcome = "pass"
-        elif any("timeout" in e for e in data.get("errors", [])) and data.get("n_passed") == 0:
+        elif data.get("n_timeout", 0) > 0:       # 우선순위: timeout > error > fail
             outcome = "timeout"
+        elif data.get("n_error", 0) > 0:
+            outcome = "error"
         else:
             outcome = "fail"
         d = data or {}
         return {"outcome": outcome, "n_run": int(d.get("n_run", 0)), "n_passed": int(d.get("n_passed", 0)),
-                "n_failed": int(d.get("n_failed", 0)), "errors": list(d.get("errors", []))[:5], "notes": list(d.get("notes", []))[:5],
+                "n_failed": int(d.get("n_failed", 0)) + int(d.get("n_timeout", 0)) + int(d.get("n_error", 0)),
+                "n_timeout": int(d.get("n_timeout", 0)), "n_error": int(d.get("n_error", 0)),
+                "errors": list(d.get("errors", []))[:5], "notes": list(d.get("notes", []))[:5],
                 "mem_limit": d.get("mem_limit", "n/a"), "tail": tail, "wall_ms": wall_ms, "sandbox": mode}
     finally:
         shutil.rmtree(tmp, ignore_errors=True)

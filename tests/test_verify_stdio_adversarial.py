@@ -1,4 +1,5 @@
-"""Week2-A0: stdio 하네스 적대 테스트 (≥6). 후보 프로세스는 stdin 만 받고, 기대 출력·nonce·결과 경로를 볼 수 없다."""
+"""Week2-A0/A0c: stdio 하네스 적대 테스트. 후보 프로세스는 stdin 만 받고, 기대 출력·nonce·결과 경로를 볼 수 없다.
+A0c 판정 규칙: rc==0 ∧ 제한 준수 ∧ 출력 일치 → pass. 정답을 출력해도 비정상 종료면 error, 종료하지 않으면 timeout."""
 import time
 
 from harmonet.verify import verify_visible
@@ -8,9 +9,14 @@ SPEC = {"kind": "stdio", "per_test_timeout_s": 3.0,
 GOOD = "a,b=map(int,input().split())\nprint(a+b)\n"
 
 
-def test_os_exit_zero_is_fail_not_pass():
+def test_os_exit_zero_with_no_output_is_fail():
     r = verify_visible("import os\nos._exit(0)\n", SPEC)
     assert r["passed"] is False and r["outcome"] == "fail" and r["n_passed"] == 0, r
+
+
+def test_correct_output_then_os_exit_nonzero_is_error():
+    r = verify_visible(GOOD + "import os\nos._exit(3)\n", SPEC)
+    assert r["passed"] is False and r["outcome"] == "error", r
 
 
 def test_infinite_loop_times_out_and_child_tree_is_cleaned():
@@ -33,12 +39,21 @@ def test_exact_expected_output_passes():
     assert r["passed"] is True and r["outcome"] == "pass" and r["n_run"] == 2 == r["n_passed"], r
 
 
-def test_correct_output_then_lingering_thread_passes_and_is_killed():
+def test_correct_output_then_runtime_error_is_error():
+    r = verify_visible(GOOD + "raise RuntimeError('after output')\n", SPEC)
+    assert r["passed"] is False and r["outcome"] == "error" and "output matched" in r["evidence"], r
+
+
+def test_correct_output_then_infinite_loop_is_timeout():
+    r = verify_visible(GOOD + "while True:\n    pass\n", SPEC)
+    assert r["passed"] is False and r["outcome"] == "timeout" and "output matched" in r["evidence"], r
+
+
+def test_correct_output_then_non_daemon_thread_is_timeout():
     code = GOOD + "import threading, time\nthreading.Thread(target=lambda: time.sleep(60)).start()\n"
     t0 = time.perf_counter()
     r = verify_visible(code, SPEC)
-    assert r["passed"] is True and r["outcome"] == "pass", r
-    assert "did not exit; killed" in r["evidence"], r["evidence"]
+    assert r["passed"] is False and r["outcome"] == "timeout", r
     assert time.perf_counter() - t0 < 3.0 * 2 + 10
 
 
