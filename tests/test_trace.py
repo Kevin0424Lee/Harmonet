@@ -79,3 +79,11 @@ def test_actions_after_score_block_save(tmp_path, monkeypatch):
     st.record("self_revise", "builder", "m", NO_COST, "leaked")
     with pytest.raises(RuntimeError):
         st.save("bad")
+
+
+def test_pricing_resolves_dated_model_id_to_alias():
+    """API 응답 model 은 claude-haiku-4-5-20251001 처럼 날짜가 붙는다 — 별칭과 같은 가격이어야 cost_usd 가 None 이 되지 않는다."""
+    from harmonet.pricing import cost_usd
+    tok = {"prompt_tokens": 1000, "completion_tokens": 1000, "llm_calls": 1}
+    assert cost_usd("claude-haiku-4-5-20251001", tok) == cost_usd("claude-haiku-4-5", tok)
+    assert cost_usd("claude-haiku-4-5-20251001", tok)[2] is None

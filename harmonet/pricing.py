@@ -10,6 +10,7 @@ from __future__ import annotations
 import glob
 import json
 import os
+import re
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
 
@@ -37,6 +38,9 @@ def price_for(model: Optional[str]) -> Tuple[Optional[Dict[str, float]], str]:
     if not model or model == "none":
         return None, snap["snapshot_id"]
     entry = snap["models"].get(model)
+    if entry is None:
+        # API 응답의 model 은 날짜 붙은 id(claude-haiku-4-5-20251001) — 표의 별칭(claude-haiku-4-5)과 같은 가격 (Week2-B0 프로브에서 발견)
+        entry = snap["models"].get(re.sub(r"-\d{8}$", "", model))
     if entry is None:
         for prefix, rule in snap.get("prefix_rules", {}).items():
             if model.startswith(prefix):
@@ -69,6 +73,7 @@ def cost_usd(model: Optional[str], cost: Dict[str, Any]) -> Tuple[Optional[float
 if __name__ == "__main__":
     usd, sid, flag = cost_usd("claude-haiku-4-5", {"prompt_tokens": 1_000_000, "completion_tokens": 0, "llm_calls": 1})
     assert usd == 1.0 and flag is None, (usd, flag)
+    assert cost_usd("claude-haiku-4-5-20251001", {"prompt_tokens": 1_000_000, "completion_tokens": 0, "llm_calls": 1})[0] == 1.0
     usd, sid, flag = cost_usd("claude-haiku-4-5", {"prompt_tokens": 2000, "cache_read_tokens": 1000, "completion_tokens": 0, "llm_calls": 1})
     assert abs(usd - (1000 * 1.0 + 1000 * 0.1) / 1e6) < 1e-12, usd
     assert cost_usd("mock-a", {"prompt_tokens": 5, "llm_calls": 1})[0] == 0.0
