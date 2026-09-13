@@ -104,3 +104,25 @@ contest_date ≥ 2025-01-01 (stdin 112개):
 3. **LCB 2024-10+ stdin 217개** (프로브 2 후보 2): 확인용 157 (<200) 이고 컷오프 이전 문제라 오염 경고 필요.
 4. **MBPP+ ∪ LCB 2025+ 혼합 풀**: 표본은 되지만 두 벤치마크의 판정 규칙·난이도가 달라 층별 보고가 강제된다 — 권하지 않음.
 권장: 2 (BigCodeBench) 를 다음 프로브로, 그 전까지 MBPP+ 확인 집합은 보조로 유지.
+
+---
+
+# 프로브 4 사전 등록 — BigCodeBench Complete (2026-09-14, 실행 전 작성)
+
+결정(코덱스, 2026-09-14): 주 트랙 후보 = BCB Full 1,140 (Hard 148 은 표본 조건 미달). MBPP+ 는 채택하지 않고 보존(확인 285 봉인 유지).
+LCB 날짜 완화 안 함. BCB 가 관문을 못 넘으면 데이터셋을 더 추가하지 않고 교수님 재검토용 정리로 전환.
+
+## 풀 (Week2-C0, `bcb_source.md`)
+- 적격 집합 409 = 관문 1(가시 doctest, canonical 2회 pass) 412 ∧ 관문 2(공식 test, canonical 2회 pass) 410 − 개발용 ID.
+- 프로브 60 = `probe_ids_bcb.json` (seed 20260913, 커밋에 동결). 확인 집합 = 나머지 349 (≥200) — 프로브 통과 시 동결.
+- 제외: 개발용 BigCodeBench/0·1·2.
+
+## 조건
+- A = claude-haiku-4-5, B = claude-sonnet-4-6. 각 single 1회 (`benchmark/bcb_g1.py`), temperature 0.2, max_tokens 4096, 시스템 프롬프트 `_DEFAULT_SYSTEM`.
+- 프롬프트 = `complete_prompt` 그대로 (가시 예제는 docstring 에 이미 포함).
+- 루프 안 가시 검증 = doctest TestCases (공식 이미지, 공식 untrusted_check). 채점 = 공식 이미지에서 공식 `test` 모듈, post_hoc (trigger=eval:hidden 0건이어야 함).
+- **판정**: A 의 히든 통과율 ∈ [30%, 70%] ∧ B 의 히든 통과율 ≤ 70% → pass (풀 확정, 확인 349 동결, 프로브 60 은 탐색 후보). 아니면 unconfirmed.
+  공개 리더보드 수치는 예상치로 쓰지 않는다.
+- 비용 상한 $1 (두 모델 합). B2 1-3 사전 점검(모델 조회 → 보고 id 정규화 → 가격표) 통과 필수; 실행 중 미측정 발생 시 다음 호출 중단.
+- 보고: A/B 성공률과 Wilson 95% CI, outcome(pass/fail/error/timeout) 분포, 가시 테스트 통과율(참고), extraction, token_source, cost_usd(None 없어야 함).
+- 실패 시: 추가 데이터셋 없음. "연구 질문·실험 설정 재검토" 초안(프로브 4개 결과표 + 조건 + 무엇이 안 맞는지)만 쓰고 멈춤.
