@@ -462,14 +462,21 @@ def _p99(values: List[float]) -> float:
 
 
 def summarize(system: str, measurements: List[ExternalMeasurement]) -> Dict[str, Any]:
-    passed = [1.0 if m.passed else 0.0 for m in measurements]
+    """pass_rate = **히든** 통과율 (hidden_exposed=False 행만; 가드가 검사).
+    노출 행(MBPP)은 public_satisfaction_rate 로 따로 집계 — 두 지표를 합치지 않는다 (C3b)."""
+    from benchmark.hidden_guard import hidden_pass_rate, public_satisfaction_rate, split_by_exposure
+    hidden_rows, exposed_rows = split_by_exposure(measurements)
+    passed = [1.0 if m.passed else 0.0 for m in hidden_rows]
     tokens = [float(m.total_tokens) for m in measurements]
     latencies = [float(m.latency_seconds) for m in measurements]
     return {
         "system": system,
         "runs": len(measurements),
-        "pass_rate": round(_mean(passed), 4),
-        "pass_rate_ci95": round(_ci95(passed), 4),
+        "hidden_runs": len(hidden_rows),
+        "pass_rate": round(hidden_pass_rate(hidden_rows, system), 4) if hidden_rows else None,
+        "pass_rate_ci95": round(_ci95(passed), 4) if hidden_rows else None,
+        "exposed_runs": len(exposed_rows),
+        "public_satisfaction_rate": round(public_satisfaction_rate(exposed_rows), 4) if exposed_rows else None,
         "avg_total_tokens": round(_mean(tokens), 1),
         "avg_total_tokens_ci95": round(_ci95(tokens), 1),
         "avg_latency_s": round(_mean(latencies), 3),
@@ -490,17 +497,19 @@ def print_report(results: Dict[str, List[ExternalMeasurement]]) -> str:
 
     summaries = {name: summarize(name, ms) for name, ms in results.items()}
     for name, s in summaries.items():
+        pr = f"{s['pass_rate']*100:>6.1f}%+/-{s['pass_rate_ci95']*100:<4.1f}" if s["pass_rate"] is not None else f"{'n/a(hidden)':>12}"
+        ps = f" public={s['public_satisfaction_rate']*100:.1f}%({s['exposed_runs']})" if s["public_satisfaction_rate"] is not None else ""
         lines.append(
             f"{name:<58} "
-            f"{s['pass_rate']*100:>6.1f}%+/-{s['pass_rate_ci95']*100:<4.1f} "
+            f"{pr} "
             f"{s['avg_total_tokens']:>10.0f} "
             f"{s['avg_latency_s']:>9.2f} "
-            f"{s['p99_latency_s']:>8.2f}"
+            f"{s['p99_latency_s']:>8.2f}{ps}"
         )
 
     harmonet = next((s for n, s in summaries.items() if n == "harmonet"), None)
     langraph = next((s for n, s in summaries.items() if "langraph" in n), None)
-    if harmonet and langraph:
+    if harmonet and langraph and harmonet["pass_rate"] is not None and langraph["pass_rate"] is not None:
         tok_ratio = harmonet["avg_total_tokens"] / max(1, langraph["avg_total_tokens"])
         success_gap = harmonet["pass_rate"] - langraph["pass_rate"]
         g1_1 = tok_ratio <= 0.70
@@ -519,8 +528,10 @@ def print_report(results: Dict[str, List[ExternalMeasurement]]) -> str:
             subset = [m for m in ms if m.benchmark == bench]
             if subset:
                 s = summarize(name, subset)
+                metric = (f"hidden_pass={s['pass_rate']*100:5.1f}%" if s["pass_rate"] is not None
+                          else f"public_sat={s['public_satisfaction_rate']*100:5.1f}%")
                 lines.append(
-                    f"    {name:<54} pass={s['pass_rate']*100:5.1f}% "
+                    f"    {name:<54} {metric} "
                     f"tokens={s['avg_total_tokens']:7.0f} lat={s['avg_latency_s']:6.2f}s"
                 )
 

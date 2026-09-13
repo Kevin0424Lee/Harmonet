@@ -66,7 +66,7 @@ Part A 진행 중 확정된 사실과, 2주차 설계(`docs/week2_design_draft.m
 - EvalPlus 0.3.1 (`pip download` 로 휠만 확인, 미설치): 과제마다 `base_input`(원본 테스트 입력) 과 `plus_input`(추가 생성 입력) 이
   **분리**돼 있고 기대 출력은 저장돼 있지 않아 `canonical_solution` 실행으로 얻는다(evalplus 자체 평가기가 수행). 따라서 plus_input 은
   프롬프트에 없는 히든 테스트로 채택 가능. 비용: `pip install evalplus`(numpy·tqdm·wget 등), HumanEval+ v0.1.10 / MBPP+ v0.2.0 캐시 다운로드(수 MB),
-  기대 출력 생성용 canonical 실행 1회. **채택은 승인 후.**
+  기대 출력 생성용 canonical 실행 1회. **보류 사유: 이번 작업 범위를 좁히기 위해.** LCB 가 모든 층에서 부적격일 때의 예정된 대안. 채택은 승인 후.
 - 재채점 대조: 거짓 통과 0/360. v1 산출물은 120/120 `heuristic` 추출(코드 블록 없이 출력) — 채점엔 문제 없었으나 2주차 arm 에서는 fenced 를 요구할 것.
 
 ## 검토 오류 기록 (2026-09-13, 코덱스 지적으로 발견)

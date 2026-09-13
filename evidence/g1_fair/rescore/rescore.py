@@ -1,7 +1,7 @@
 """
 A7c 재채점 대조. 새 채점기(score_hidden, result.json+nonce)로 돌린 7B norepair 20x3 결과의 candidate_code 를
-구 채점기(종료 코드 0 = 통과)에 다시 넣어 같은 후보에 대한 두 판정을 비교한다 (표본 노이즈 없음).
-추가로 구 CSV(evidence/g1_fair/rerun/*.csv, 후보 미저장)와 과제별 통과 수를 대조한다 (표본 노이즈 포함).
+구 채점기(종료 코드 0 = 통과)에 다시 넣어 같은 후보에 대한 두 판정을 비교한다 (같은 후보이므로 표본 차이 없음).
+추가로 구 CSV(evidence/g1_fair/rerun/*.csv, 후보 미저장)와 과제별 통과 수를 대조한다 (별도 실행이라 원인 귀속 불가).
 
     python -X utf8 evidence/g1_fair/rescore/rescore.py
 """
@@ -49,8 +49,9 @@ def per_task(rows_):
     return c
 
 out = ["# 재채점 대조 (A7c) — 7B norepair 20×3, 2026-09-13", "",
-       "## 1. 같은 후보를 두 채점기로 (표본 노이즈 없음)", "",
-       "| system | n | 구 채점기(종료 코드) 통과 | 새 채점기(score_hidden) 통과 | 거짓 통과(구=통과·신=불통과) | 역전(구=불통과·신=통과) |", "|---|---|---|---|---|---|"]
+       "## 1. 같은 후보를 두 채점기로 (같은 후보이므로 표본 차이 없음)", "",
+       "**적용 범위:** 이 결과는 **이번에 저장한 후보 360개에 한한다.** 후보를 저장하지 않은 과거 실행(6월, 9월 11·12일 CSV)에는 소급 적용할 수 없다 — 그 실행들에서 종료 코드 위조가 없었다는 것은 확인되지 않았고, 확인할 방법도 없다.", "",
+       "| system | n | 구 채점기(종료 코드) 통과 (HumanEval 히든 + MBPP 공개 혼합, 대조 목적) | 새 채점기 통과 (동일 혼합) | 거짓 통과(구=통과·신=불통과) | 역전(구=불통과·신=통과) |", "|---|---|---|---|---|---|"]
 for s, c in by_sys.items():
     fp = sum(1 for f in flips if f[0] == s)
     rv = sum(1 for f in reverse if f[0] == s)
@@ -60,7 +61,7 @@ out += ["| system | task | repeat | 새 outcome | eval_error |", "|---|---|---|-
        [f"| {s} | {t} | {rp} | {o} | {e.replace('|', '/')} |" for s, t, rp, o, e in flips] if flips else ["(없음)"]
 if reverse:
     out += ["", "### 역전 행 (구=불통과, 신=통과)", "", "| system | task | repeat |", "|---|---|---|"] + [f"| {s} | {t} | {rp} |" for s, t, rp in reverse]
-out += ["", "## 2. 구 CSV(후보 미저장, 별도 실행) 와 과제별 통과 수 대조 — 표본 노이즈 포함, 참고용", ""]
+out += ["", "## 2. 구 CSV(후보 미저장, 별도 실행) 와 과제별 통과 수 대조 — 별도 실행이라 차이의 원인 귀속 불가, 참고용", ""]
 for s, path in OLD.items():
     if not path.exists():
         out.append(f"- {s}: 구 CSV 없음"); continue
