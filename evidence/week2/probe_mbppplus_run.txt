@@ -1,0 +1,66 @@
+[LLM] Anthropic 클라이언트 활성화 (claude-haiku-4-5) [HARMONET_LLM_BACKEND=anthropic]
+[pricing][WARN] 모델 'claude-haiku-4-5-20251001' 의 가격이 prices_2026-09 에 없습니다 → cost_usd=None (flag price_unknown)
+[single] 1/60 Mbpp/63 base=pass plus_only=pass 140/129tok $None
+[single] 2/60 Mbpp/68 base=pass plus_only=pass 128/177tok $None
+[single] 3/60 Mbpp/87 base=pass plus_only=pass 215/91tok $None
+[single] 4/60 Mbpp/90 base=pass plus_only=pass 120/29tok $None
+[single] 5/60 Mbpp/93 base=pass plus_only=pass 117/21tok $None
+[single] 6/60 Mbpp/96 base=pass plus_only=pass 114/76tok $None
+[single] 7/60 Mbpp/109 base=pass plus_only=fail 130/265tok $None
+[single] 8/60 Mbpp/113 base=pass plus_only=fail 113/38tok $None
+[single] 9/60 Mbpp/124 base=fail plus_only=fail 136/116tok $None
+[single] 10/60 Mbpp/141 base=pass plus_only=pass 137/256tok $None
+[single] 11/60 Mbpp/160 base=fail plus_only=fail 138/302tok $None
+[single] 12/60 Mbpp/165 base=pass plus_only=pass 140/333tok $None
+[single] 13/60 Mbpp/170 base=pass plus_only=pass 152/171tok $None
+[single] 14/60 Mbpp/227 base=pass plus_only=pass 116/32tok $None
+[single] 15/60 Mbpp/235 base=fail plus_only=fail 122/713tok $None
+[single] 16/60 Mbpp/250 base=pass plus_only=pass 161/28tok $None
+[single] 17/60 Mbpp/257 base=pass plus_only=pass 126/25tok $None
+[single] 18/60 Mbpp/268 base=pass plus_only=pass 116/71tok $None
+[single] 19/60 Mbpp/269 base=pass plus_only=pass 111/22tok $None
+[single] 20/60 Mbpp/271 base=pass plus_only=pass 134/145tok $None
+[single] 21/60 Mbpp/274 base=pass plus_only=pass 137/304tok $None
+[single] 22/60 Mbpp/282 base=pass plus_only=pass 128/39tok $None
+[single] 23/60 Mbpp/297 base=pass plus_only=pass 184/68tok $None
+[single] 24/60 Mbpp/299 base=pass plus_only=pass 164/170tok $None
+[single] 25/60 Mbpp/404 base=pass plus_only=pass 110/25tok $None
+[single] 26/60 Mbpp/409 base=pass plus_only=pass 145/100tok $None
+[single] 27/60 Mbpp/418 base=pass plus_only=pass 134/26tok $None
+[single] 28/60 Mbpp/421 base=pass plus_only=pass 137/36tok $None
+[single] 29/60 Mbpp/429 base=pass plus_only=pass 151/41tok $None
+[single] 30/60 Mbpp/430 base=fail plus_only=fail 123/264tok $None
+[single] 31/60 Mbpp/435 base=pass plus_only=pass 116/26tok $None
+[single] 32/60 Mbpp/441 base=pass plus_only=pass 118/79tok $None
+[single] 33/60 Mbpp/445 base=pass plus_only=pass 187/132tok $None
+[single] 34/60 Mbpp/454 base=pass plus_only=pass 119/42tok $None
+[single] 35/60 Mbpp/458 base=pass plus_only=pass 111/23tok $None
+[single] 36/60 Mbpp/460 base=pass plus_only=pass 142/28tok $None
+[single] 37/60 Mbpp/474 base=pass plus_only=pass 118/42tok $None
+[single] 38/60 Mbpp/475 base=pass plus_only=pass 141/37tok $None
+[single] 39/60 Mbpp/554 base=pass plus_only=pass 128/32tok $None
+[single] 40/60 Mbpp/564 base=pass plus_only=pass 136/133tok $None
+[single] 41/60 Mbpp/568 base=pass plus_only=pass 118/27tok $None
+[single] 42/60 Mbpp/578 base=pass plus_only=pass 226/65tok $None
+[single] 43/60 Mbpp/589 base=pass plus_only=fail 126/69tok $None
+[single] 44/60 Mbpp/591 base=pass plus_only=pass 140/53tok $None
+[single] 45/60 Mbpp/605 base=pass plus_only=pass 112/97tok $None
+[single] 46/60 Mbpp/611 base=pass plus_only=pass 154/33tok $None
+[single] 47/60 Mbpp/612 base=pass plus_only=pass 183/60tok $None
+[single] 48/60 Mbpp/616 base=pass plus_only=pass 153/41tok $None
+[single] 49/60 Mbpp/626 base=pass plus_only=pass 126/207tok $None
+[single] 50/60 Mbpp/628 base=pass plus_only=pass 133/26tok $None
+[single] 51/60 Mbpp/637 base=pass plus_only=pass 125/111tok $None
+[single] 52/60 Mbpp/639 base=pass plus_only=fail 148/91tok $None
+[single] 53/60 Mbpp/722 base=pass plus_only=pass 236/63tok $None
+[single] 54/60 Mbpp/736 base=pass plus_only=pass 124/108tok $None
+[single] 55/60 Mbpp/750 base=pass plus_only=pass 138/28tok $None
+[single] 56/60 Mbpp/764 base=pass plus_only=pass 119/34tok $None
+[single] 57/60 Mbpp/772 base=pass plus_only=pass 130/56tok $None
+[single] 58/60 Mbpp/773 base=fail plus_only=fail 141/118tok $None
+[single] 59/60 Mbpp/796 base=pass plus_only=pass 129/24tok $None
+[single] 60/60 Mbpp/807 base=pass plus_only=pass 121/42tok $None
+
+base_pass=91.7%  plus_only_pass=85.0%  both_pass=85.0%  cost=$0.000  outcomes={'fail': 9, 'pass': 51}
+Saved: evidence\week2\pool_probe_mbppplus.json / evidence\week2\pool_probe_mbppplus.csv
+EXIT=0

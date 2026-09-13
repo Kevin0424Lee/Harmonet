@@ -94,3 +94,15 @@ Part A 진행 중 확정된 사실과, 2주차 설계(`docs/week2_design_draft.m
 - 원인 불명 1회 관찰: Week2-A0 커밋 직후 콘솔에 `python.exe: can't open file '<repo>\candidate.py'` 가 한 줄 찍힘 (cwd=저장소 루트에서
   `python -I candidate.py` 가 실행된 흔적). 재실행·잔여 프로세스 확인으로 재현 안 됨. 하네스는 후보를 tmp/run 에서만 띄우므로 경로가 설명되지 않는다.
   다시 나타나면 하네스 launch 를 로그로 남겨 추적.
+
+## Week2-B0 MBPP+ 준비·프로브 (2026-09-14)
+- **정답 출력 크기 폭발**: Mbpp/255 의 canonical 출력 repr 이 1.29GB(조합 열거), Mbpp/630 이 11MB. JSON 스펙에 못 넣어 두 과제 제외(상한 1MB).
+  첫 탐색 스크립트가 이 출력을 eval 로 복원하다 18GB 를 먹어 프로세스를 강제 종료했다. 공식 evalplus 는 이걸 pickle 캐시로 메모리에 들고 있다.
+- **plus 입력 0개 과제**: Mbpp/793 은 plus_input 이 비어 있어 plus_only_pass 를 정의할 수 없다 — 풀에서 제외. 정답 전수 확인에서 드러남(375/376).
+- **repr 왕복**: 집합의 repr 순서·복소수 `-0-1j` 는 문자열은 달라도 값·타입이 같다. 왕복 검증을 문자열 비교에서 값+타입 비교로 바꿈.
+- **공식 채점기는 Windows 에서 안 돈다**: `time_limit` 이 SIGALRM, `reliability_guard` 가 resource 모듈. 동등성 오라클은 이 둘만 no-op.
+- **atol 상태 전이**: 공식 루프에서 `atol` 이 케이스 사이에 바뀐다(float 기대값 이후 1e-6 유지). 순서를 바꾸면 판정이 달라지는 케이스를
+  테스트로 고정(`atol_state_*`). 스펙 생성 시 케이스별 atol 을 미리 계산.
+- **가격표 별칭 불일치**: API 응답 `model` 이 `claude-haiku-4-5-20251001` 이라 `claude-haiku-4-5` 항목과 안 맞아 프로브가 cost_usd=None 으로 돌았다
+  (경고는 찍혔음). 날짜 접미사를 떼서 조회하도록 수정(90498eb). HumanEval 프로브 때는 토큰으로 손계산했었다.
+- **프로브 결과 85%** → [30,70] 밖 → unconfirmed. `evidence/week2/pool_probe.md` 프로브 3.

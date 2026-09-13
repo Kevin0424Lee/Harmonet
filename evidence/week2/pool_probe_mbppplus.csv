@@ -1,0 +1,506 @@
+task_id,entry_point,base_pass,plus_only_pass,both_pass,outcome,visible_outcome,n_base,n_plus_only,n_dup_removed,prompt_tokens,completion_tokens,token_source,cost_usd,wall_ms,extraction,hidden_exposed,trace_path,candidate_code
+Mbpp/63,max_difference,True,True,True,pass,pass,3,121,0,140,129,measured,,1673,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_63.json,"def max_difference(tuple_list):
+    """"""
+    Find the maximum difference between available pairs in the given tuple list.
+    
+    Args:
+        tuple_list: A list of tuples containing pairs of numbers
+        
+    Returns:
+        The maximum difference between any two numbers in any pair
+    """"""
+    max_diff = 0
+    for pair in tuple_list:
+        diff = abs(pair[0] - pair[1])
+        max_diff = max(max_diff, diff)
+    return max_diff"
+Mbpp/68,is_Monotonic,True,True,True,pass,pass,3,102,0,128,177,measured,,1426,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_68.json,"def is_Monotonic(arr):
+    """"""
+    Check whether the given array is monotonic or not.
+    An array is monotonic if it is either entirely non-increasing or non-decreasing.
+    """"""
+    if len(arr) <= 1:
+        return True
+    
+    # Check if array is non-decreasing
+    is_increasing = all(arr[i] <= arr[i + 1] for i in range(len(arr) - 1))
+    
+    # Check if array is non-increasing
+    is_decreasing = all(arr[i] >= arr[i + 1] for i in range(len(arr) - 1))
+    
+    return is_increasing or is_decreasing"
+Mbpp/87,merge_dictionaries_three,True,True,True,pass,pass,3,108,0,215,91,measured,,973,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_87.json,"def merge_dictionaries_three(dict1, dict2, dict3):
+    """"""
+    Merge three dictionaries into a single dictionary.
+    Later dictionaries override earlier ones for duplicate keys.
+    """"""
+    result = {}
+    result.update(dict1)
+    result.update(dict2)
+    result.update(dict3)
+    return result"
+Mbpp/90,len_log,True,True,True,pass,pass,3,103,0,120,29,measured,,755,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_90.json,"def len_log(words):
+    return max(len(word) for word in words)"
+Mbpp/93,power,True,True,True,pass,pass,3,108,2,117,21,measured,,688,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_93.json,"def power(a, b):
+    return a ** b"
+Mbpp/96,divisor,True,True,True,pass,pass,3,100,1,114,76,measured,,922,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_96.json,"def divisor(n):
+    count = 0
+    for i in range(1, int(n**0.5) + 1):
+        if n % i == 0:
+            count += 1
+            if i != n // i:
+                count += 1
+    return count"
+Mbpp/109,odd_Equivalent,True,False,False,fail,pass,3,102,0,130,265,measured,,2995,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_109.json,"def odd_Equivalent(s, n):
+    """"""
+    Find the number of numbers with an odd value when rotating a binary string n times.
+    
+    A binary string has an odd value if the least significant bit (rightmost bit) is 1.
+    We need to count how many rotations result in a binary number with odd value.
+    
+    Args:
+        s: A binary string
+        n: Number of rotations to check
+    
+    Returns:
+        Count of rotations that result in odd values
+    """"""
+    count = 0
+    length = len(s)
+    
+    # Check each rotation from 0 to n-1
+    for i in range(n):
+        # Rotate the string by i positions to the right
+        # Right rotation by i: take last i characters and move to front
+        rotated = s[-i:] + s[:-i] if i > 0 else s
+        
+        # A binary number is odd if its least significant bit (rightmost) is 1
+        if rotated[-1] == '1':
+            count += 1
+    
+    return count"
+Mbpp/113,check_integer,True,False,False,fail,pass,3,121,0,113,38,measured,,950,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_113.json,"def check_integer(s):
+    try:
+        int(s)
+        return True
+    except ValueError:
+        return False"
+Mbpp/124,angle_complex,False,False,False,fail,fail,3,111,5,136,116,measured,,1712,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_124.json,"import math
+import cmath
+
+def angle_complex(real, imag):
+    """"""
+    Get the angle of a complex number.
+    
+    Args:
+        real: The real part of the complex number
+        imag: The imaginary part of the complex number
+    
+    Returns:
+        The angle (argument) of the complex number in radians
+    """"""
+    complex_num = complex(real, imag)
+    return cmath.phase(complex_num)"
+Mbpp/141,pancake_sort,True,True,True,pass,pass,3,108,0,137,256,measured,,2843,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_141.json,"def pancake_sort(arr):
+    """"""
+    Sort a list using pancake sort algorithm.
+    Pancake sort works by repeatedly flipping the unsorted portion of the array.
+    """"""
+    def flip(arr, k):
+        """"""Flip the first k elements of the array""""""
+        arr[:k] = arr[:k][::-1]
+    
+    n = len(arr)
+    
+    # Start from the end and move towards the beginning
+    for i in range(n, 1, -1):
+        # Find the index of the maximum element in arr[0:i]
+        max_idx = arr[:i].index(max(arr[:i]))
+        
+        # If the maximum element is not already at the end of current subarray
+        if max_idx != i - 1:
+            # Flip to bring max element to the front
+            if max_idx != 0:
+                flip(arr, max_idx + 1)
+            # Flip to bring max element to its correct position
+            flip(arr, i)
+    
+    return arr"
+Mbpp/160,find_solution,False,False,False,fail,fail,3,103,0,138,302,measured,,2826,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_160.json,"def find_solution(a, b, n):
+    """"""
+    Find integers x and y such that ax + by = n.
+    Returns (x, y) as a tuple, or None if no solution exists.
+    """"""
+    from math import gcd
+    
+    # Check if solution exists using Bezout's identity
+    g = gcd(a, b)
+    if n % g != 0:
+        return None
+    
+    # Use extended Euclidean algorithm to find x0, y0 such that ax0 + by0 = gcd(a, b)
+    def extended_gcd(a, b):
+        if b == 0:
+            return a, 1, 0
+        else:
+            g, x1, y1 = extended_gcd(b, a % b)
+            x = y1
+            y = x1 - (a // b) * y1
+            return g, x, y
+    
+    g, x0, y0 = extended_gcd(a, b)
+    
+    # Scale the solution to satisfy ax + by = n
+    x = x0 * (n // g)
+    y = y0 * (n // g)
+    
+    return (x, y)"
+Mbpp/165,count_char_position,True,True,True,pass,pass,3,107,0,140,333,measured,,3138,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_165.json,"def count_char_position(s):
+    """"""
+    Count the number of characters in a string that occur at the same position 
+    in the string as in the English alphabet (case insensitive).
+    
+    For example, in ""xbcefg"":
+    - Position 0: 'x' (letter x is at position 23 in alphabet, not 0) - no match
+    - Position 1: 'b' (letter b is at position 1 in alphabet) - match
+    - Position 2: 'c' (letter c is at position 2 in alphabet) - match
+    - Position 3: 'e' (letter e is at position 4 in alphabet, not 3) - no match
+    - Position 4: 'f' (letter f is at position 5 in alphabet, not 4) - no match
+    - Position 5: 'g' (letter g is at position 6 in alphabet, not 5) - no match
+    Result: 2
+    """"""
+    count = 0
+    for i, char in enumerate(s):
+        if char.isalpha():
+            # Get position in alphabet (0-indexed)
+            alphabet_position = ord(char.lower()) - ord('a')
+            # Check if it matches the position in the string
+            if alphabet_position == i:
+                count += 1
+    return count"
+Mbpp/170,sum_range_list,True,True,True,pass,pass,3,107,0,152,171,measured,,2212,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_170.json,"def sum_range_list(lst, start_index, end_index):
+    """"""
+    Find the sum of numbers in a list within a range specified by two indices.
+    
+    Args:
+        lst: The input list
+        start_index: The starting index (inclusive)
+        end_index: The ending index (inclusive)
+    
+    Returns:
+        The sum of elements from start_index to end_index (inclusive)
+    """"""
+    return sum(lst[start_index:end_index + 1])
+
+
+# Test
+assert sum_range_list([2,1,5,6,8,3,4,9,10,11,8,12], 8, 10) == 29"
+Mbpp/227,min_of_three,True,True,True,pass,pass,3,105,0,116,32,measured,,806,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_227.json,"def min_of_three(a, b, c):
+    return min(a, b, c)"
+Mbpp/235,even_bit_set_number,False,False,False,fail,fail,3,101,1,122,713,measured,,7517,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_235.json,"def even_bit_set_number(n):
+    """"""
+    Set all even bits of a given number.
+    Even bits are at positions 0, 2, 4, 6, ... (0-indexed from right)
+    """"""
+    # Create a mask with all even bits set
+    # For a 32-bit number, even bits are at positions 0, 2, 4, ..., 30
+    # This creates the pattern: 0101010101...0101 in binary
+    mask = 0x55555555  # For 32-bit: 01010101010101010101010101010101
+    
+    # Set all even bits using bitwise OR
+    return n | mask"
+Mbpp/250,count_X,True,True,True,pass,pass,3,112,0,161,28,measured,,728,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_250.json,"def count_X(tup, element):
+    return tup.count(element)"
+Mbpp/257,swap_numbers,True,True,True,pass,pass,3,109,0,126,25,measured,,730,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_257.json,"def swap_numbers(a, b):
+    return (b, a)"
+Mbpp/268,find_star_num,True,True,True,pass,pass,3,103,0,116,71,measured,,1148,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_268.json,"def find_star_num(n):
+    """"""
+    Find the n'th star number.
+    Star numbers follow the formula: 6*n*(n-1) + 1
+    """"""
+    return 6 * n * (n - 1) + 1"
+Mbpp/269,ascii_value,True,True,True,pass,pass,3,79,3,111,22,measured,,714,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_269.json,"def ascii_value(char):
+    return ord(char)"
+Mbpp/271,even_Power_Sum,True,True,True,pass,pass,3,105,2,134,145,measured,,1280,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_271.json,"def even_Power_Sum(n):
+    """"""
+    Finds the sum of the first n even natural numbers raised to the fifth power.
+    
+    Args:
+        n: An integer representing how many even natural numbers to sum
+        
+    Returns:
+        The sum of (2^5 + 4^5 + 6^5 + ... + (2n)^5)
+    """"""
+    total = 0
+    for i in range(1, n + 1):
+        even_num = 2 * i
+        total += even_num ** 5
+    return total"
+Mbpp/274,even_binomial_Coeff_Sum,True,True,True,pass,pass,3,100,3,137,304,measured,,3077,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_274.json,"def even_binomial_Coeff_Sum(n):
+    """"""
+    Calculate the sum of binomial coefficients with even indices.
+    For a given n, this computes C(n,0) + C(n,2) + C(n,4) + ...
+    
+    Using the binomial theorem:
+    (1 + x)^n = C(n,0) + C(n,1)*x + C(n,2)*x^2 + ... + C(n,n)*x^n
+    
+    Setting x = 1: 2^n = C(n,0) + C(n,1) + C(n,2) + ... + C(n,n)
+    Setting x = -1: 0 = C(n,0) - C(n,1) + C(n,2) - ... + (-1)^n*C(n,n)
+    
+    Adding these two equations:
+    2^n + 0 = 2*(C(n,0) + C(n,2) + C(n,4) + ...)
+    
+    Therefore: sum of even index binomial coefficients = 2^(n-1)
+    """"""
+    return 2 ** (n - 1)"
+Mbpp/282,sub_list,True,True,True,pass,pass,3,104,0,128,39,measured,,961,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_282.json,"def sub_list(list1, list2):
+    return [a - b for a, b in zip(list1, list2)]"
+Mbpp/297,flatten_list,True,True,True,pass,pass,3,117,0,184,68,measured,,1086,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_297.json,"def flatten_list(nested_list):
+    result = []
+    for item in nested_list:
+        if isinstance(item, list):
+            result.extend(flatten_list(item))
+        else:
+            result.append(item)
+    return result"
+Mbpp/299,max_aggregate,True,True,True,pass,pass,3,105,0,164,170,measured,,1974,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_299.json,"def max_aggregate(tuples_list):
+    """"""
+    Calculate the maximum aggregate from the list of tuples.
+    
+    Args:
+        tuples_list: List of tuples where each tuple contains (name, value)
+    
+    Returns:
+        Tuple of (name, total_aggregate) with the maximum aggregate
+    """"""
+    aggregates = {}
+    
+    for name, value in tuples_list:
+        if name in aggregates:
+            aggregates[name] += value
+        else:
+            aggregates[name] = value
+    
+    max_name = max(aggregates, key=aggregates.get)
+    return (max_name, aggregates[max_name])"
+Mbpp/404,minimum,True,True,True,pass,pass,3,123,0,110,25,measured,,763,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_404.json,"def minimum(a, b):
+    return a if a < b else b"
+Mbpp/409,min_product_tuple,True,True,True,pass,pass,3,111,0,145,100,measured,,1193,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_409.json,"def min_product_tuple(tuples_list):
+    """"""
+    Find the minimum product from the pairs of tuples within a given list.
+    
+    Args:
+        tuples_list: A list of tuples, each containing two numbers
+        
+    Returns:
+        The minimum product of elements within any tuple
+    """"""
+    return min(a * b for a, b in tuples_list)"
+Mbpp/418,Find_Max,True,True,True,pass,pass,3,110,0,134,26,measured,,857,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_418.json,"def Find_Max(lst):
+    return max(lst, key=len)"
+Mbpp/421,concatenate_tuple,True,True,True,pass,pass,3,112,0,137,36,measured,,962,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_421.json,"def concatenate_tuple(t, delimiter='-'):
+    return delimiter.join(str(element) for element in t)"
+Mbpp/429,and_tuples,True,True,True,pass,pass,3,113,0,151,41,measured,,1082,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_429.json,"def and_tuples(tuple1, tuple2):
+    return tuple(a & b for a, b in zip(tuple1, tuple2))"
+Mbpp/430,parabola_directrix,False,False,False,fail,fail,3,102,0,123,264,measured,,2636,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_430.json,"def parabola_directrix(a, b, c):
+    """"""
+    Find the directrix of a parabola given coefficients a, b, c
+    where the parabola is y = ax^2 + bx + c
+    
+    The vertex form of a parabola is y = a(x - h)^2 + k
+    where (h, k) is the vertex.
+    
+    For a parabola y = ax^2 + bx + c:
+    - h = -b / (2a)
+    - k = c - b^2 / (4a)
+    
+    The directrix is a horizontal line y = k - 1/(4a)
+    where the focus is at (h, k + 1/(4a))
+    
+    The directrix value is: c - b^2/(4a) - 1/(4a) = c - (b^2 + 1)/(4a)
+    """"""
+    directrix = c - (b * b + 1) / (4 * a)
+    return int(directrix)"
+Mbpp/435,last_Digit,True,True,True,pass,pass,3,102,1,116,26,measured,,789,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_435.json,"def last_Digit(n):
+    return abs(n) % 10"
+Mbpp/441,surfacearea_cube,True,True,True,pass,pass,3,121,0,118,79,measured,,914,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_441.json,"def surfacearea_cube(size):
+    """"""
+    Find the surface area of a cube given its side length.
+    
+    A cube has 6 faces, each with area size^2.
+    Total surface area = 6 * size^2
+    """"""
+    return 6 * size * size"
+Mbpp/445,index_multiplication,True,True,True,pass,pass,3,107,0,187,132,measured,,1871,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_445.json,"def index_multiplication(tuple1, tuple2):
+    """"""
+    Perform index wise multiplication of tuple elements in the given two tuples.
+    
+    Args:
+        tuple1: A tuple of tuples
+        tuple2: A tuple of tuples
+    
+    Returns:
+        A tuple of tuples with element-wise multiplication
+    """"""
+    return tuple(
+        tuple(a * b for a, b in zip(t1, t2))
+        for t1, t2 in zip(tuple1, tuple2)
+    )"
+Mbpp/454,text_match_wordz,True,True,True,pass,pass,3,103,0,119,42,measured,,1018,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_454.json,"def text_match_wordz(text):
+    import re
+    return bool(re.search(r'\w*z\w*', text))"
+Mbpp/458,rectangle_area,True,True,True,pass,pass,3,103,0,111,23,measured,,838,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_458.json,"def rectangle_area(length, width):
+    return length * width"
+Mbpp/460,Extract,True,True,True,pass,pass,3,120,0,142,28,measured,,761,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_460.json,"def Extract(lst):
+    return [sublist[0] for sublist in lst]"
+Mbpp/474,replace_char,True,True,True,pass,pass,3,104,0,118,42,measured,,1079,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_474.json,"def replace_char(string, char_to_replace, replacement_char):
+    return string.replace(char_to_replace, replacement_char)"
+Mbpp/475,sort_counter,True,True,True,pass,pass,3,111,0,141,37,measured,,756,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_475.json,"def sort_counter(d):
+    return sorted(d.items(), key=lambda x: x[1], reverse=True)"
+Mbpp/554,Split,True,True,True,pass,pass,3,104,0,128,32,measured,,702,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_554.json,"def Split(numbers):
+    return [num for num in numbers if num % 2 != 0]"
+Mbpp/564,count_Pairs,True,True,True,pass,pass,3,109,0,136,133,measured,,1754,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_564.json,"def count_Pairs(arr, n):
+    """"""
+    Count the number of unordered pairs where both elements are unequal.
+    
+    Args:
+        arr: list of integers
+        n: length of the list
+    
+    Returns:
+        Number of unordered pairs with unequal elements
+    """"""
+    count = 0
+    for i in range(n):
+        for j in range(i + 1, n):
+            if arr[i] != arr[j]:
+                count += 1
+    return count"
+Mbpp/568,empty_list,True,True,True,pass,pass,3,98,3,118,27,measured,,659,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_568.json,"def empty_list(n):
+    return [{} for _ in range(n)]"
+Mbpp/578,interleave_lists,True,True,True,pass,pass,3,110,0,226,65,measured,,1165,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_578.json,"def interleave_lists(list1, list2, list3):
+    result = []
+    for a, b, c in zip(list1, list2, list3):
+        result.extend([a, b, c])
+    return result"
+Mbpp/589,perfect_squares,True,False,False,fail,pass,3,103,0,126,69,measured,,936,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_589.json,"def perfect_squares(start, end):
+    result = []
+    i = 1
+    while i * i <= end:
+        square = i * i
+        if square >= start:
+            result.append(square)
+        i += 1
+    return result"
+Mbpp/591,swap_List,True,True,True,pass,pass,3,105,0,140,53,measured,,1102,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_591.json,"def swap_List(lst):
+    if len(lst) <= 1:
+        return lst
+    lst[0], lst[-1] = lst[-1], lst[0]
+    return lst"
+Mbpp/605,prime_num,True,True,True,pass,pass,3,105,0,112,97,measured,,1387,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_605.json,"def prime_num(n):
+    if n < 2:
+        return False
+    if n == 2:
+        return True
+    if n % 2 == 0:
+        return False
+    for i in range(3, int(n**0.5) + 1, 2):
+        if n % i == 0:
+            return False
+    return True"
+Mbpp/611,max_of_nth,True,True,True,pass,pass,3,101,0,154,33,measured,,1072,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_611.json,"def max_of_nth(matrix, n):
+    return max(row[n] for row in matrix)"
+Mbpp/612,merge,True,True,True,pass,pass,3,104,0,183,60,measured,,1095,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_612.json,"def merge(list_of_lists):
+    return [
+        [sublist[0] for sublist in list_of_lists],
+        [sublist[1] for sublist in list_of_lists]
+    ]"
+Mbpp/616,tuple_modulo,True,True,True,pass,pass,3,105,0,153,41,measured,,966,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_616.json,"def tuple_modulo(tuple1, tuple2):
+    return tuple(a % b for a, b in zip(tuple1, tuple2))"
+Mbpp/626,triangle_area,True,True,True,pass,pass,3,103,2,126,207,measured,,2181,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_626.json,"def triangle_area(radius):
+    """"""
+    Find the area of the largest triangle that can be inscribed in a semicircle.
+    
+    The largest triangle inscribed in a semicircle has its base as the diameter
+    and its height as the radius. This forms a right triangle with base = 2*radius
+    and height = radius.
+    
+    Area = (1/2) * base * height = (1/2) * 2*radius * radius = radius^2
+    """"""
+    if radius < 0:
+        return None
+    
+    # The largest triangle inscribed in a semicircle has:
+    # - Base = diameter = 2 * radius
+    # - Height = radius
+    # Area = (1/2) * base * height = (1/2) * 2*radius * radius = radius^2
+    return radius * radius"
+Mbpp/628,replace_spaces,True,True,True,pass,pass,3,117,0,133,26,measured,,853,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_628.json,"def replace_spaces(s):
+    return s.replace(' ', '%20')"
+Mbpp/637,noprofit_noloss,True,True,True,pass,pass,3,103,0,125,111,measured,,1486,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_637.json,"def noprofit_noloss(cost_price, selling_price):
+    """"""
+    Check whether the given amount has no profit and no loss.
+    
+    Args:
+        cost_price: The cost price of the item
+        selling_price: The selling price of the item
+    
+    Returns:
+        True if cost_price equals selling_price (no profit, no loss), False otherwise
+    """"""
+    return cost_price == selling_price"
+Mbpp/639,sample_nam,True,False,False,fail,pass,3,111,0,148,91,measured,,1385,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_639.json,"def sample_nam(names):
+    """"""
+    Sum the length of names that start with an uppercase letter.
+    
+    Args:
+        names: A list of names
+        
+    Returns:
+        The sum of lengths of names starting with uppercase letters
+    """"""
+    return sum(len(name) for name in names if name and name[0].isupper())"
+Mbpp/722,filter_data,True,True,True,pass,pass,3,109,0,236,63,measured,,1153,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_722.json,"def filter_data(students, min_height, min_weight):
+    return {name: (height, weight) for name, (height, weight) in students.items() 
+            if height >= min_height and weight >= min_weight}"
+Mbpp/736,left_insertion,True,True,True,pass,pass,3,104,0,124,108,measured,,1176,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_736.json,"import bisect
+
+def left_insertion(sorted_list, value):
+    """"""
+    Locate the left insertion point for a specified value in sorted order.
+    
+    Args:
+        sorted_list: A sorted list
+        value: The value to find the insertion point for
+    
+    Returns:
+        The index where value should be inserted to maintain sorted order
+    """"""
+    return bisect.bisect_left(sorted_list, value)"
+Mbpp/750,add_tuple,True,True,True,pass,pass,3,102,0,138,28,measured,,798,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_750.json,"def add_tuple(lst, tpl):
+    return lst + list(tpl)"
+Mbpp/764,number_ctr,True,True,True,pass,pass,4,104,1,119,34,measured,,886,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_764.json,"def number_ctr(s):
+    return sum(1 for c in s if c.isdigit())"
+Mbpp/772,remove_length,True,True,True,pass,pass,3,106,0,130,56,measured,,824,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_772.json,"def remove_length(string, k):
+    words = string.split()
+    filtered_words = [word for word in words if len(word) != k]
+    return ' '.join(filtered_words)"
+Mbpp/773,occurance_substring,False,False,False,fail,fail,4,101,0,141,118,measured,,1483,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_773.json,"def occurance_substring(string, substring):
+    """"""
+    Find the occurrence and position of the substrings within a string.
+    Returns a tuple of (substring, first_position, last_position) or None if no match.
+    """"""
+    if substring not in string:
+        return None
+    
+    first_pos = string.find(substring)
+    last_pos = string.rfind(substring)
+    
+    return (substring, first_pos, last_pos)"
+Mbpp/796,return_sum,True,True,True,pass,pass,3,103,0,129,24,measured,,729,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_796.json,"def return_sum(d):
+    return sum(d.values())"
+Mbpp/807,first_odd,True,True,True,pass,pass,3,105,0,121,42,measured,,841,fenced,False,evidence\traces\pool_probe_mbppplus\single\Mbpp_807.json,"def first_odd(numbers):
+    for num in numbers:
+        if num % 2 != 0:
+            return num
+    return None"

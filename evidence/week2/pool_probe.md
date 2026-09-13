@@ -83,3 +83,24 @@ contest_date ≥ 2025-01-01 (stdin 112개):
 - 판정 규칙: plus_only_pass ∈ [30%, 70%] → 이 풀 채택(pass). 밖 → 채택 안 함(unconfirmed) — 다음 사전 등록만 쓰고 멈춤 (재프로브 실행 금지).
 - 비용 상한 $1 (HumanEval 164개가 $0.13 였으므로 60개 ≈ $0.05 예상). 초과 시 중단.
 - 보고 항목: pass/fail/error/timeout 분포, base_pass·plus_only_pass·both_pass, 비용, extraction 종류, token_source (measured 여야 함), trigger=eval:hidden 0건.
+
+## 결과 (2026-09-14 실행) — 파일 `pool_probe_mbppplus.{json,csv}`, 로그 `probe_mbppplus_run.txt`, trace `evidence/traces/pool_probe_mbppplus/`
+- `claude-haiku-4-5-20251001` single, MBPP+ 프로브 60: **plus_only_pass 51/60 = 85.0%** (Wilson 95% [73.9, 91.9]).
+  base_pass 55/60 = 91.7% [81.9, 96.4], both_pass 51/60 = 85.0%. outcome pass 51 / fail 9 / error 0 / timeout 0.
+- 실패 9: base 통과·plus 만 실패 4 (109, 113, 589, 639 — 히든 102~121개 중 4~39개 실패), base 도 실패 5 (124, 160, 235, 430, 773). 430 은 ZeroDivisionError.
+- 추출 fenced 60/60, token_source measured 60/60, trace 60개 중 trigger=eval:hidden **0건**, score.trigger=post_hoc 60/60.
+- 비용: prompt 8,277 / completion 6,040 토큰 = **$0.039** (상한 $1). 실행 중 `cost_usd=None`(price_unknown) — API 응답 model id 에 날짜가 붙어
+  가격표 별칭과 안 맞았다. 실행 후 pricing 을 고쳐(90498eb) 같은 토큰으로 사후 계산해 `cost_usd_posthoc` 로 기록. trace 파일은 손대지 않았다.
+
+## 판정 (사전 등록 기준 적용)
+**85.0% > 70% → unconfirmed.** 상한 CI 하단 73.9% 도 70% 를 넘는다. MBPP+ 는 이 모델·이 프롬프트에서 천장 구간이다. 사전 등록대로
+**재프로브를 실행하지 않고** 아래 다음 후보만 적는다. 확인 집합(`confirm_ids_mbppplus.json` 285)은 그대로 동결 — 채택 여부는 사용자 결정.
+
+## 다음 사전 등록 후보 (승인 필요 — 어느 것도 실행하지 않음)
+1. **MBPP+ 를 천장 경고와 함께 채택**: 나머지 arm 이 올릴 수 있는 폭이 ≤15pp 라 Δ=10pp 검정은 가능하나 "A 단독이 거의 다 푼다" 는 해석 한계를 명시해야 한다.
+   [30, 70] 규칙을 바꾸는 것이므로 사용자 결정 사항. 비용 0 (프로브 재실행 없음).
+2. **BigCodeBench (Full 1,140 / Hard 148)**: 라이브러리 호출·긴 사양 과제로 haiku 급 모델의 공개 pass@1 이 40~50% 대. 확인용 ≥200 확보 가능(Full).
+   비용: 로더 + 공식 하네스(의존 패키지 수십 개, Docker 권장) 전사 필요 — MBPP+ 때와 같은 동등성 테스트·정답 전수 확인 절차. 프로브 60 ≈ $0.2.
+3. **LCB 2024-10+ stdin 217개** (프로브 2 후보 2): 확인용 157 (<200) 이고 컷오프 이전 문제라 오염 경고 필요.
+4. **MBPP+ ∪ LCB 2025+ 혼합 풀**: 표본은 되지만 두 벤치마크의 판정 규칙·난이도가 달라 층별 보고가 강제된다 — 권하지 않음.
+권장: 2 (BigCodeBench) 를 다음 프로브로, 그 전까지 MBPP+ 확인 집합은 보조로 유지.
