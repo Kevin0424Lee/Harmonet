@@ -1,0 +1,19 @@
+
+================================================================================
+External Standard G1: HumanEval / MBPP
+================================================================================
+system                                                         pass     tokens    lat(s)      p99
+--------------------------------------------------------------------------------
+harmonet                                                     93.3%+/-4.5         311      2.72     5.14
+single                                                       95.0%+/-3.9         245      1.06     2.62
+harmonet_v2                                                  95.0%+/-3.9         257      1.20     2.43
+
+By benchmark
+  humaneval:
+    harmonet                                               pass= 93.3% tokens=    316 lat=  2.82s
+    single                                                 pass= 95.0% tokens=    291 lat=  1.56s
+    harmonet_v2                                            pass= 95.0% tokens=    297 lat=  1.62s
+  mbpp:
+    harmonet                                               pass= 93.3% tokens=    305 lat=  2.62s
+    single                                                 pass= 95.0% tokens=    199 lat=  0.56s
+    harmonet_v2                                            pass= 95.0% tokens=    216 lat=  0.78s

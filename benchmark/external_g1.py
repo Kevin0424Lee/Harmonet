@@ -125,6 +125,10 @@ class ExternalMeasurement:
     extracted_chars: int
     metadata: Dict[str, Any]
     token_source: str = "unknown"
+    candidate_code: str = ""        # 채점된 산출물 전문 (A7c: 저장하지 않으면 증거가 아니다)
+    extraction: str = ""            # fenced | heuristic | raw | prefix — 산출물을 어떻게 뽑았는지
+    outcome: str = ""               # verify.score_hidden outcome
+    hidden_exposed: bool = False    # 채점 테스트가 프롬프트에 노출된 벤치마크(MBPP) 면 True
 
 
 def _download(url: str, path: Path) -> None:
@@ -230,22 +234,31 @@ def load_tasks(benchmarks: List[str], limit_per_benchmark: Optional[int]) -> Lis
 
 
 def _extract_code(output: str, task: ExternalTask) -> str:
+    return _extract_code_with_label(output, task)[0]
+
+
+def _extract_code_with_label(output: str, task: ExternalTask) -> tuple[str, str]:
+    """(채점용 코드, 추출 방식). 추출 방식은 결과 행에 남긴다 — raw 는 산출물이 아니라 출력 전체가 채점됐다는 뜻."""
     blocks = re.findall(r"```(?:python|py)?\s*(.*?)```", output, flags=re.I | re.S)
     if blocks:
         preferred = [b for b in blocks if f"def {task.entry_point}" in b]
         code = max(preferred or blocks, key=len).strip()
+        extraction = "fenced"
     else:
         marker = f"def {task.entry_point}"
         if marker in output:
             code = output[output.index(marker) :].strip()
+            extraction = "heuristic"
         else:
             match = re.search(r"(^|\n)(from\s+\S+\s+import\s+|import\s+|def\s+)", output)
             code = output[match.start() :].strip() if match else output.strip()
+            extraction = "heuristic" if match else "raw"
 
     code = code.replace("\r\n", "\n")
     if f"def {task.entry_point}" not in code and task.humaneval_prefix:
         code = f"{task.humaneval_prefix.rstrip()}\n{code}"
-    return f"{COMMON_PREAMBLE}\n\n{code}\n"
+        extraction += "+prefix"     # HumanEval 프롬프트의 함수 머리를 앞에 붙여 완성한 경우
+    return f"{COMMON_PREAMBLE}\n\n{code}\n", extraction
 
 
 def _safety_error(code: str) -> str:
@@ -272,7 +285,47 @@ def _safety_error(code: str) -> str:
     return ""
 
 
-def evaluate_code(code: str, task: ExternalTask, timeout_s: float) -> tuple[bool, str]:
+def _visible_tests(task: ExternalTask) -> List[str]:
+    """루프 안(validator)이 볼 수 있는 공개 테스트.
+    HumanEval: docstring 의 >>> 예제를 doctest 로 뽑아 assert 로 변환. MBPP: 프롬프트에 노출된 test_list (공개)."""
+    if task.benchmark == "humaneval":
+        import doctest
+        out = []
+        for ex in doctest.DocTestParser().get_examples(task.humaneval_prefix or ""):
+            src, want = ex.source.strip(), ex.want.strip()
+            if not want or "\n" in src:
+                continue                       # 출력 없는 예제(설정 문장)나 여러 줄 소스는 건너뜀
+            out.append(f"_r = ({src})\nassert repr(_r) == {want!r}, ('expected', {want!r}, 'got', repr(_r))")
+        return out
+    return [t for t in task.tests.splitlines() if t.strip()]
+
+
+def _hidden_tests(task: ExternalTask) -> List[str]:
+    """사후 채점 테스트. HumanEval: check(entry_point) 호출까지 포함한 프로그램 1건.
+    MBPP: 채점 테스트가 곧 공개 test_list — 히든이 아니다 (hidden_exposed=True 로 표시, EvalPlus 승인 전까지 공개 검증용)."""
+    if task.benchmark == "humaneval":
+        return [f"{task.test_setup}\n\n{task.tests}\n\ncheck({task.entry_point})\n"]
+    return [f"{task.test_setup}\n\n{t}" if task.test_setup else t for t in task.tests.splitlines() if t.strip()]
+
+
+def _task_spec(task: ExternalTask) -> Dict[str, Any]:
+    return {"kind": "code", "entry_point": task.entry_point, "tests": _visible_tests(task),
+            "hidden_tests": _hidden_tests(task), "hidden_exposed": task.benchmark != "humaneval"}
+
+
+def evaluate_code(code: str, task: ExternalTask, timeout_s: float) -> tuple[bool, str, Dict[str, Any]]:
+    """사후 채점 = verify.score_hidden (하네스 result.json + nonce). 종료 코드는 보지 않는다 (A7c)."""
+    from harmonet.verify import score_hidden
+    safety = _safety_error(code)
+    if safety:
+        return False, safety, {"outcome": "error", "level": "static", "passed": False, "evidence": safety}
+    r = score_hidden(code, _task_spec(task), timeout_s=timeout_s)
+    err = "" if r["passed"] else f"{r['outcome']}: {r['evidence'][-600:]}"
+    return r["passed"], err, r
+
+
+def evaluate_code_exitcode_legacy(code: str, task: ExternalTask, timeout_s: float) -> tuple[bool, str]:
+    """구 채점기 (2026-09-13 이전): 종료 코드 0 = 통과. **대조용으로만 보존** (RESCORE.md). 새 코드는 쓰지 않는다."""
     safety = _safety_error(code)
     if safety:
         return False, safety
@@ -312,8 +365,8 @@ def _to_benchmark_task(task: ExternalTask) -> BenchmarkTask:
         prompt=task.prompt,
         expected_keywords=[task.entry_point],
         complexity=2,
-        # validator 기계 검증 명세. tests 는 채점용 히든 테스트이므로 넣지 않는다 (누출 방지) → AST + 진입점 검사만.
-        spec={"kind": "code", "entry_point": task.entry_point, "tests": None},
+        # validator 기계 검증 명세: 공개 테스트(HumanEval doctest / MBPP 공개 test_list)만. hidden_tests 는 넘기지 않는다.
+        spec={"kind": "code", "entry_point": task.entry_point, "tests": _visible_tests(task)},
     )
 
 
@@ -324,6 +377,7 @@ def _run_one(adapter: Any, task: ExternalTask, repeat: int, timeout_s: float) ->
     metadata: Dict[str, Any] = {}
     eval_error = ""
     passed = False
+    code, extraction, score = "", "", {}
 
     try:
         if os.getenv("BENCHMARK_VERBOSE_FRAMEWORK_LOGS", "0") == "1":
@@ -338,8 +392,8 @@ def _run_one(adapter: Any, task: ExternalTask, repeat: int, timeout_s: float) ->
         completion_tokens = int(result.get("completion_tokens", 0))
         total_tokens = prompt_tokens + completion_tokens
         metadata = dict(result.get("metadata", {}))
-        code = _extract_code(output, task)
-        passed, eval_error = evaluate_code(code, task, timeout_s)
+        code, extraction = _extract_code_with_label(output, task)
+        passed, eval_error, score = evaluate_code(code, task, timeout_s)
         # eval-repair 는 채점기의 실패 출력을 생성 프롬프트에 넣는다 (히든 테스트 누출). 기본 차단.
         # 켜려면 G1_DISABLE_EVAL_REPAIR=0 을 명시 — 그 실행의 trace 는 leak_risk=true 로 라벨된다.
         if (
@@ -350,8 +404,8 @@ def _run_one(adapter: Any, task: ExternalTask, repeat: int, timeout_s: float) ->
             repair_started = time.perf_counter()
             repair = adapter.repair_after_eval(_to_benchmark_task(task), output, eval_error)
             repaired_output = str(repair.get("output", ""))
-            repaired_code = _extract_code(repaired_output, task)
-            repaired_passed, repaired_error = evaluate_code(repaired_code, task, timeout_s)
+            repaired_code, repaired_extraction = _extract_code_with_label(repaired_output, task)
+            repaired_passed, repaired_error, repaired_score = evaluate_code(repaired_code, task, timeout_s)
             prompt_tokens += int(repair.get("prompt_tokens", 0) or 0)
             completion_tokens += int(repair.get("completion_tokens", 0) or 0)
             total_tokens = prompt_tokens + completion_tokens
@@ -359,6 +413,7 @@ def _run_one(adapter: Any, task: ExternalTask, repeat: int, timeout_s: float) ->
             metadata["eval_repair"]["latency_s"] = round(time.perf_counter() - repair_started, 4)
             if repaired_passed:
                 output = repaired_output
+                code, extraction, score = repaired_code, repaired_extraction, repaired_score
                 passed = True
                 eval_error = ""
             else:
@@ -380,8 +435,12 @@ def _run_one(adapter: Any, task: ExternalTask, repeat: int, timeout_s: float) ->
         latency_seconds=round(latency, 4),
         eval_error=eval_error,
         output_chars=len(output),
-        extracted_chars=len(_extract_code(output, task)) if output else 0,
+        extracted_chars=len(code),
         metadata=metadata,
+        candidate_code=code,
+        extraction=extraction,
+        outcome=str(score.get("outcome", "")),
+        hidden_exposed=task.benchmark != "humaneval",
     )
 
 
@@ -513,6 +572,10 @@ def save_artifacts(
             "total_tokens",
             "latency_seconds",
             "eval_error",
+            "outcome",
+            "extraction",
+            "hidden_exposed",
+            "candidate_code",
         ])
         for ms in results.values():
             for m in ms:
@@ -528,6 +591,10 @@ def save_artifacts(
                     m.total_tokens,
                     m.latency_seconds,
                     m.eval_error,
+                    m.outcome,
+                    m.extraction,
+                    m.hidden_exposed,
+                    m.candidate_code,
                 ])
 
     report_path = output_path.with_name(output_path.stem + "_report.txt")

@@ -13,6 +13,13 @@
 > 8. **validator는 실제 검증을 수행하지 않는다.** `agent.py:155` `decode_seed`가 `rule_description`만 반환해 builder 출력이 validator에 전달되지 않으며, validator는 자기 출력과 무관하게 "passed" 씨앗을 만든다(`:759-772`). G1의 "LLM 검증 기여 없음"은 **"validator가 실제 검증을 수행하지 않음"**으로 읽어야 한다.
 > 9. **G3 "Redis 장애 복구 PASS"는 무효.** 컨테이너는 health 서버만 실행하고 store는 기동되지 않았으며, store가 읽는 `HARMONET_REDIS_HOST`(기본 127.0.0.1)와 Compose의 `REDIS_HOST=redis`가 달라 연결될 수도 없었다. `/readyz`는 `ready=True` 하드코딩이라 Redis 유무와 무관하게 200이다.
 >
+> **채점기 교체 (2026-09-13, Week1-A7c).** 이 문서의 모든 HumanEval/MBPP 통과율은 **옛 채점기**로 나왔다: 후보+테스트를 한 파일로 실행하고
+> **종료 코드 0 = 통과**로 판정했으며 **후보 코드를 저장하지 않았다**. 종료 코드는 `sys.exit(0)` 등으로 위조 가능하다(`tests/test_verify_adversarial.py`).
+> 새 채점기(`verify.score_hidden`: 하네스가 테스트를 개별 실행하고 nonce 가 든 result.json 으로만 판정, 후보 코드·추출 방식을 CSV 에 저장)로
+> 7B norepair 20×3 을 재실행하고 **같은 후보 360개**를 두 채점기에 넣어 대조한 결과, **거짓 통과 0건**(single 114/114, v2 114/114, v1 112/112),
+> 옛 CSV 와의 과제별 차이는 표본 노이즈 수준(single 0/40, v2 1/40, v1 2/40 과제). 즉 취약점은 실재했지만 7B 결과에서는 발동하지 않았고,
+> 이 문서의 수치는 유지된다. 상세: `RESCORE.md`. 단, MBPP 는 채점 테스트가 프롬프트에 노출돼 있어(`hidden_exposed`) 히든 점수가 아니다.
+>
 > 아래 본문에서 정정된 문장은 ~~취소선~~ 뒤에 정정문을 붙였다.
 
 ## 결론 먼저

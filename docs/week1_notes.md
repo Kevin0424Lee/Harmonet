@@ -58,3 +58,13 @@ Part A 진행 중 확정된 사실과, 2주차 설계(`docs/week2_design_draft.m
   argv/env 를 읽어 nonce 를 위조하는 고의적 후보는 범위 밖. `HARMONET_SANDBOX=docker` 는 python:3.11-slim,
   `--network none`; Docker 없으면 RuntimeError. Docker 모드는 아직 실측 실행하지 않음(이미지 pull 필요).
 - v2 의 정적 검사(`_cheap_validate`)도 level=static 이라 passed=False. v2 가 "accepted" 로 삼는 기준은 outcome 뿐.
+
+## A7c 공개/히든 분리 · EvalPlus 확인
+- HumanEval: 공개 = docstring `>>>` doctest → `spec["tests"]` (첫 20개 과제 모두 1~3개 존재), 히든 = `check(entry_point)` 프로그램 1건.
+- MBPP: `test_list` 가 프롬프트에 노출 → **히든 없음**. 러너는 대조·기록을 위해 같은 test_list 로 채점하되 `hidden_exposed=True` 로 표시.
+  히든 점수로 인용 금지. 공개 검증용으로만.
+- EvalPlus 0.3.1 (`pip download` 로 휠만 확인, 미설치): 과제마다 `base_input`(원본 테스트 입력) 과 `plus_input`(추가 생성 입력) 이
+  **분리**돼 있고 기대 출력은 저장돼 있지 않아 `canonical_solution` 실행으로 얻는다(evalplus 자체 평가기가 수행). 따라서 plus_input 은
+  프롬프트에 없는 히든 테스트로 채택 가능. 비용: `pip install evalplus`(numpy·tqdm·wget 등), HumanEval+ v0.1.10 / MBPP+ v0.2.0 캐시 다운로드(수 MB),
+  기대 출력 생성용 canonical 실행 1회. **채택은 승인 후.**
+- 재채점 대조: 거짓 통과 0/360. v1 산출물은 120/120 `heuristic` 추출(코드 블록 없이 출력) — 채점엔 문제 없었으나 2주차 arm 에서는 fenced 를 요구할 것.

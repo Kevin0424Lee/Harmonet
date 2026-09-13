@@ -1,0 +1,818 @@
+﻿python : C:\Users\User\AppData\Local\Programs\Python\Python310\lib\site-packages\torchvision\io\image.py:13: UserWarnin
+g: Failed to load image Python extension: 'Could not load this library: C:\Users\User\AppData\Local\Programs\Python\Pyt
+hon310\Lib\site-packages\torchvision\image.pyd'If you don't plan on using image functionality from `torchvision.io`, yo
+u can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `
+libpng` installed before building `torchvision` from source?
+위치 C:\Users\User\Documents\antigravity\harmonet\evidence\g1_fair\rescore\run_rescore.ps1:11 문자:1
++ python -X utf8 -m benchmark.external_g1 --benchmarks humaneval,mbpp - ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (C:\Users\User\A...n` from source?:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  warn(
+[Embedding] 濡쒕뱶 以? all-MiniLM-L6-v2...
+No device provided, using cpu
+HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/modules.json "HTTP/1.1 307 Temporary Redirect"
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and
+ faster downloads.
+HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/modules.json?%2Fsentence-transformers%2Fall-MiniLM-L6-v2%2Fresolve%2Fmain%2Fmodules.json=&etag=%22952a9b81c0bfd99800fabf352f69c7ccd46c5e43%22 "HTTP/1.1 200 OK"
+HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/config_sentence_transformers.json "HTTP/1.1 307 Temporary Redirect"
+HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/config_sentence_transformers.json?%2Fsentence-transformers%2Fall-MiniLM-L6-v2%2Fresolve%2Fmain%2Fconfig_sentence_transformers.json=&etag=%22fd1b291129c607e5d49799f87cb219b27f98acdf%22 "HTTP/1.1 200 OK"
+Loading SentenceTransformer model from sentence-transformers/all-MiniLM-L6-v2.
+HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/config_sentence_transformers.json "HTTP/1.1 307 Temporary Redirect"
+HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/config_sentence_transformers.json?%2Fsentence-transformers%2Fall-MiniLM-L6-v2%2Fresolve%2Fmain%2Fconfig_sentence_transformers.json=&etag=%22fd1b291129c607e5d49799f87cb219b27f98acdf%22 "HTTP/1.1 200 OK"
+HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/README.md "HTTP/1.1 307 Temporary Redirect"
+HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/README.md?%2Fsentence-transformers%2Fall-MiniLM-L6-v2%2Fresolve%2Fmain%2FREADME.md=&etag=%2244af2e3b0fa3a0b6239e48422972bf755f28fde0%22 "HTTP/1.1 200 OK"
+HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/modules.json "HTTP/1.1 307 Temporary Redirect"
+HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/modules.json?%2Fsentence-transformers%2Fall-MiniLM-L6-v2%2Fresolve%2Fmain%2Fmodules.json=&etag=%22952a9b81c0bfd99800fabf352f69c7ccd46c5e43%22 "HTTP/1.1 200 OK"
+HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/sentence_bert_config.json "HTTP/1.1 307 Temporary Redirect"
+HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/sentence_bert_config.json?%2Fsentence-transformers%2Fall-MiniLM-L6-v2%2Fresolve%2Fmain%2Fsentence_bert_config.json=&etag=%2259d594003bf59880a884c574bf88ef7555bb0202%22 "HTTP/1.1 200 OK"
+HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/adapter_config.json "HTTP/1.1 404 Not Found"
+HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/config.json?%2Fsentence-transformers%2Fall-MiniLM-L6-v2%2Fresolve%2Fmain%2Fconfig.json=&etag=%2272b987fd805cfa2b58c4c8c952b274a11bfd5a00%22 "HTTP/1.1 200 OK"
+
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]
+Loading weights: 100%|?댿뻽?댿뻽?댿뻽?댿뻽?댿뻽| 103/103 [00:00<00:00, 11444.97it/s]
+[1mBertModel LOAD REPORT[0m from: sentence-transformers/all-MiniLM-L6-v2
+Key                     | Status     |  | 
+------------------------+------------+--+-
+embeddings.position_ids | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
+HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/preprocessor_config.json "HTTP/1.1 404 Not Found"
+HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/video_preprocessor_config.json "HTTP/1.1 404 Not Found"
+HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/preprocessor_config.json "HTTP/1.1 404 Not Found"
+HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/tokenizer_config.json?%2Fsentence-transformers%2Fall-MiniLM-L6-v2%2Fresolve%2Fmain%2Ftokenizer_config.json=&etag=%22c79f2b6a0cea6f4b564fed1938984bace9d30ff0%22 "HTTP/1.1 200 OK"
+HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/config.json?%2Fsentence-transformers%2Fall-MiniLM-L6-v2%2Fresolve%2Fmain%2Fconfig.json=&etag=%2272b987fd805cfa2b58c4c8c952b274a11bfd5a00%22 "HTTP/1.1 200 OK"
+HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/config.json?%2Fsentence-transformers%2Fall-MiniLM-L6-v2%2Fresolve%2Fmain%2Fconfig.json=&etag=%2272b987fd805cfa2b58c4c8c952b274a11bfd5a00%22 "HTTP/1.1 200 OK"
+HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/tokenizer_config.json?%2Fsentence-transformers%2Fall-MiniLM-L6-v2%2Fresolve%2Fmain%2Ftokenizer_config.json=&etag=%22c79f2b6a0cea6f4b564fed1938984bace9d30ff0%22 "HTTP/1.1 200 OK"
+HTTP Request: GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+HTTP Request: GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/1_Pooling/config.json "HTTP/1.1 307 Temporary Redirect"
+HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/1_Pooling%2Fconfig.json?%2Fsentence-transformers%2Fall-MiniLM-L6-v2%2Fresolve%2Fmain%2F1_Pooling%2Fconfig.json=&etag=%22d1514c3162bbe87b343f565fadc62e6c06f04f03%22 "HTTP/1.1 200 OK"
+HTTP Request: GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2 "HTTP/1.1 200 OK"
+[Embedding] all-MiniLM-L6-v2 濡쒕뱶 ?꾨즺.
+[Embedding] 嫄댁쟾??OK (gap=0.636)
+External G1 tasks=40 benchmarks=['humaneval', 'mbpp'] repeats=3 adapters=['harmonet', 'single', 'harmonet_v2']
+
+--- harmonet ---
+[harmonet] 1/40 HumanEval/0 r1 ... Loading faiss with AVX2 support.
+Could not load library with AVX2 support due to:
+ModuleNotFoundError("No module named 'faiss.swigfaiss_avx2'")
+Loading faiss.
+Successfully loaded faiss.
+HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 462tok 11.4s
+[harmonet] 1/40 HumanEval/0 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 377tok 3.1s
+[harmonet] 1/40 HumanEval/0 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 449tok 3.8s
+[harmonet] 2/40 HumanEval/1 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 398tok 3.5s
+[harmonet] 2/40 HumanEval/1 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 398tok 3.5s
+[harmonet] 2/40 HumanEval/1 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 398tok 3.4s
+[harmonet] 3/40 HumanEval/2 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 264tok 2.3s
+[harmonet] 3/40 HumanEval/2 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 264tok 2.3s
+[harmonet] 3/40 HumanEval/2 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 264tok 2.3s
+[harmonet] 4/40 HumanEval/3 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 346tok 2.9s
+[harmonet] 4/40 HumanEval/3 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 343tok 2.8s
+[harmonet] 4/40 HumanEval/3 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 261tok 1.9s
+[harmonet] 5/40 HumanEval/4 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 353tok 3.0s
+[harmonet] 5/40 HumanEval/4 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 353tok 2.8s
+[harmonet] 5/40 HumanEval/4 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 353tok 2.9s
+[harmonet] 6/40 HumanEval/5 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 345tok 3.1s
+[harmonet] 6/40 HumanEval/5 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 262tok 2.2s
+[harmonet] 6/40 HumanEval/5 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 262tok 2.2s
+[harmonet] 7/40 HumanEval/6 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 390tok 3.4s
+[harmonet] 7/40 HumanEval/6 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 390tok 3.4s
+[harmonet] 7/40 HumanEval/6 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 390tok 3.3s
+[harmonet] 8/40 HumanEval/7 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 286tok 2.5s
+[harmonet] 8/40 HumanEval/7 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 238tok 1.9s
+[harmonet] 8/40 HumanEval/7 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 238tok 1.9s
+[harmonet] 9/40 HumanEval/8 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 360tok 3.1s
+[harmonet] 9/40 HumanEval/8 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 360tok 3.0s
+[harmonet] 9/40 HumanEval/8 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+FAIL 331tok 2.8s
+[harmonet] 10/40 HumanEval/9 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 331tok 2.9s
+[harmonet] 10/40 HumanEval/9 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 331tok 2.8s
+[harmonet] 10/40 HumanEval/9 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 331tok 2.9s
+[harmonet] 11/40 HumanEval/10 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+FAIL 385tok 3.1s
+[harmonet] 11/40 HumanEval/10 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+FAIL 385tok 3.0s
+[harmonet] 11/40 HumanEval/10 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+FAIL 385tok 3.0s
+[harmonet] 12/40 HumanEval/11 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 276tok 2.5s
+[harmonet] 12/40 HumanEval/11 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 276tok 2.5s
+[harmonet] 12/40 HumanEval/11 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 276tok 2.4s
+[harmonet] 13/40 HumanEval/12 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 271tok 2.2s
+[harmonet] 13/40 HumanEval/12 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 271tok 2.1s
+[harmonet] 13/40 HumanEval/12 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 271tok 2.2s
+[harmonet] 14/40 HumanEval/13 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 250tok 2.4s
+[harmonet] 14/40 HumanEval/13 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 250tok 2.2s
+[harmonet] 14/40 HumanEval/13 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 250tok 2.3s
+[harmonet] 15/40 HumanEval/14 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 226tok 2.2s
+[harmonet] 15/40 HumanEval/14 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 226tok 2.2s
+[harmonet] 15/40 HumanEval/14 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 226tok 2.2s
+[harmonet] 16/40 HumanEval/15 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 240tok 2.3s
+[harmonet] 16/40 HumanEval/15 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 240tok 2.2s
+[harmonet] 16/40 HumanEval/15 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 240tok 2.2s
+[harmonet] 17/40 HumanEval/16 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 234tok 2.2s
+[harmonet] 17/40 HumanEval/16 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 234tok 2.1s
+[harmonet] 17/40 HumanEval/16 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 234tok 2.1s
+[harmonet] 18/40 HumanEval/17 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 389tok 2.8s
+[harmonet] 18/40 HumanEval/17 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 345tok 2.2s
+[harmonet] 18/40 HumanEval/17 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 389tok 2.7s
+[harmonet] 19/40 HumanEval/18 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 271tok 2.4s
+[harmonet] 19/40 HumanEval/18 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 315tok 2.8s
+[harmonet] 19/40 HumanEval/18 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 315tok 2.8s
+[harmonet] 20/40 HumanEval/19 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 390tok 3.5s
+[harmonet] 20/40 HumanEval/19 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 390tok 3.4s
+[harmonet] 20/40 HumanEval/19 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 390tok 3.5s
+[harmonet] 21/40 mbpp_2 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 326tok 2.3s
+[harmonet] 21/40 mbpp_2 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 330tok 2.4s
+[harmonet] 21/40 mbpp_2 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 336tok 2.4s
+[harmonet] 22/40 mbpp_3 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 288tok 2.9s
+[harmonet] 22/40 mbpp_3 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 293tok 2.9s
+[harmonet] 22/40 mbpp_3 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 298tok 2.9s
+[harmonet] 23/40 mbpp_4 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 402tok 2.5s
+[harmonet] 23/40 mbpp_4 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 399tok 2.4s
+[harmonet] 23/40 mbpp_4 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 406tok 2.6s
+[harmonet] 24/40 mbpp_6 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 354tok 3.3s
+[harmonet] 24/40 mbpp_6 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 358tok 3.3s
+[harmonet] 24/40 mbpp_6 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 327tok 3.0s
+[harmonet] 25/40 mbpp_7 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 232tok 1.7s
+[harmonet] 25/40 mbpp_7 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 232tok 1.6s
+[harmonet] 25/40 mbpp_7 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 264tok 1.9s
+[harmonet] 26/40 mbpp_8 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 253tok 1.6s
+[harmonet] 26/40 mbpp_8 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 253tok 1.5s
+[harmonet] 26/40 mbpp_8 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 253tok 1.5s
+[harmonet] 27/40 mbpp_9 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 332tok 3.2s
+[harmonet] 27/40 mbpp_9 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 285tok 2.6s
+[harmonet] 27/40 mbpp_9 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 345tok 3.3s
+[harmonet] 28/40 mbpp_11 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 315tok 3.0s
+[harmonet] 28/40 mbpp_11 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 401tok 3.9s
+[harmonet] 28/40 mbpp_11 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 353tok 3.4s
+[harmonet] 29/40 mbpp_12 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 317tok 1.7s
+[harmonet] 29/40 mbpp_12 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 320tok 1.6s
+[harmonet] 29/40 mbpp_12 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 320tok 1.6s
+[harmonet] 30/40 mbpp_14 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 223tok 2.0s
+[harmonet] 30/40 mbpp_14 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 223tok 2.0s
+[harmonet] 30/40 mbpp_14 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 223tok 2.0s
+[harmonet] 31/40 mbpp_16 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 388tok 3.8s
+[harmonet] 31/40 mbpp_16 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 332tok 3.1s
+[harmonet] 31/40 mbpp_16 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 329tok 3.1s
+[harmonet] 32/40 mbpp_17 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 170tok 1.6s
+[harmonet] 32/40 mbpp_17 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 170tok 1.5s
+[harmonet] 32/40 mbpp_17 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 212tok 2.0s
+[harmonet] 33/40 mbpp_18 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 311tok 2.8s
+[harmonet] 33/40 mbpp_18 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 327tok 2.9s
+[harmonet] 33/40 mbpp_18 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 331tok 3.0s
+[harmonet] 34/40 mbpp_19 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 301tok 2.7s
+[harmonet] 34/40 mbpp_19 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 294tok 2.5s
+[harmonet] 34/40 mbpp_19 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 343tok 3.1s
+[harmonet] 35/40 mbpp_20 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+FAIL 368tok 3.6s
+[harmonet] 35/40 mbpp_20 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+FAIL 370tok 3.7s
+[harmonet] 35/40 mbpp_20 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+FAIL 382tok 3.8s
+[harmonet] 36/40 mbpp_56 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 222tok 2.2s
+[harmonet] 36/40 mbpp_56 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 178tok 1.6s
+[harmonet] 36/40 mbpp_56 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 178tok 1.7s
+[harmonet] 37/40 mbpp_57 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 289tok 2.5s
+[harmonet] 37/40 mbpp_57 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 304tok 2.7s
+[harmonet] 37/40 mbpp_57 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 310tok 2.7s
+[harmonet] 38/40 mbpp_58 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 323tok 3.0s
+[harmonet] 38/40 mbpp_58 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 281tok 2.5s
+[harmonet] 38/40 mbpp_58 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 288tok 2.7s
+[harmonet] 39/40 mbpp_59 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 232tok 2.2s
+[harmonet] 39/40 mbpp_59 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 256tok 2.4s
+[harmonet] 39/40 mbpp_59 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 194tok 1.7s
+[harmonet] 40/40 mbpp_61 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 431tok 4.2s
+[harmonet] 40/40 mbpp_61 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+FAIL 517tok 5.1s
+[harmonet] 40/40 mbpp_61 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 423tok 4.1s
+
+--- single ---
+[single] 1/40 HumanEval/0 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 351tok 4.2s
+[single] 1/40 HumanEval/0 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 351tok 1.9s
+[single] 1/40 HumanEval/0 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 351tok 1.9s
+[single] 2/40 HumanEval/1 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 372tok 2.3s
+[single] 2/40 HumanEval/1 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 289tok 1.4s
+[single] 2/40 HumanEval/1 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 289tok 1.4s
+[single] 3/40 HumanEval/2 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 238tok 1.1s
+[single] 3/40 HumanEval/2 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 238tok 1.1s
+[single] 3/40 HumanEval/2 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 238tok 1.1s
+[single] 4/40 HumanEval/3 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 235tok 0.7s
+[single] 4/40 HumanEval/3 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 235tok 0.7s
+[single] 4/40 HumanEval/3 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 235tok 0.7s
+[single] 5/40 HumanEval/4 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 339tok 1.9s
+[single] 5/40 HumanEval/4 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 327tok 1.8s
+[single] 5/40 HumanEval/4 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 327tok 1.7s
+[single] 6/40 HumanEval/5 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 282tok 1.6s
+[single] 6/40 HumanEval/5 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 282tok 1.5s
+[single] 6/40 HumanEval/5 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 279tok 1.5s
+[single] 7/40 HumanEval/6 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 364tok 2.2s
+[single] 7/40 HumanEval/6 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 364tok 2.2s
+[single] 7/40 HumanEval/6 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 364tok 2.2s
+[single] 8/40 HumanEval/7 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 260tok 1.3s
+[single] 8/40 HumanEval/7 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 260tok 1.3s
+[single] 8/40 HumanEval/7 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 260tok 1.3s
+[single] 9/40 HumanEval/8 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 333tok 1.9s
+[single] 9/40 HumanEval/8 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 333tok 1.8s
+[single] 9/40 HumanEval/8 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 334tok 1.9s
+[single] 10/40 HumanEval/9 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 312tok 1.8s
+[single] 10/40 HumanEval/9 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 312tok 1.8s
+[single] 10/40 HumanEval/9 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 310tok 1.7s
+[single] 11/40 HumanEval/10 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+FAIL 359tok 1.8s
+[single] 11/40 HumanEval/10 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+FAIL 365tok 1.9s
+[single] 11/40 HumanEval/10 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+FAIL 359tok 1.8s
+[single] 12/40 HumanEval/11 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 250tok 1.3s
+[single] 12/40 HumanEval/11 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 250tok 1.3s
+[single] 12/40 HumanEval/11 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 250tok 1.3s
+[single] 13/40 HumanEval/12 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 282tok 1.4s
+[single] 13/40 HumanEval/12 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 282tok 1.4s
+[single] 13/40 HumanEval/12 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 282tok 1.4s
+[single] 14/40 HumanEval/13 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 224tok 1.1s
+[single] 14/40 HumanEval/13 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 224tok 1.1s
+[single] 14/40 HumanEval/13 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 224tok 1.1s
+[single] 15/40 HumanEval/14 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 200tok 1.0s
+[single] 15/40 HumanEval/14 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 200tok 1.0s
+[single] 15/40 HumanEval/14 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 200tok 1.0s
+[single] 16/40 HumanEval/15 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 214tok 1.0s
+[single] 16/40 HumanEval/15 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 213tok 1.0s
+[single] 16/40 HumanEval/15 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 214tok 1.0s
+[single] 17/40 HumanEval/16 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 208tok 1.0s
+[single] 17/40 HumanEval/16 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 208tok 0.9s
+[single] 17/40 HumanEval/16 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 208tok 0.9s
+[single] 18/40 HumanEval/17 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 443tok 2.4s
+[single] 18/40 HumanEval/17 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 466tok 2.6s
+[single] 18/40 HumanEval/17 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 443tok 2.4s
+[single] 19/40 HumanEval/18 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 230tok 1.0s
+[single] 19/40 HumanEval/18 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 230tok 1.0s
+[single] 19/40 HumanEval/18 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 297tok 1.7s
+[single] 20/40 HumanEval/19 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 364tok 2.3s
+[single] 20/40 HumanEval/19 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 364tok 2.3s
+[single] 20/40 HumanEval/19 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 364tok 2.3s
+[single] 21/40 mbpp_2 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 238tok 0.5s
+[single] 21/40 mbpp_2 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 238tok 0.4s
+[single] 21/40 mbpp_2 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 234tok 0.4s
+[single] 22/40 mbpp_3 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 176tok 0.8s
+[single] 22/40 mbpp_3 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 176tok 0.7s
+[single] 22/40 mbpp_3 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 177tok 0.8s
+[single] 23/40 mbpp_4 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 332tok 0.8s
+[single] 23/40 mbpp_4 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 338tok 0.9s
+[single] 23/40 mbpp_4 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 332tok 0.8s
+[single] 24/40 mbpp_6 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 175tok 0.5s
+[single] 24/40 mbpp_6 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 176tok 0.4s
+[single] 24/40 mbpp_6 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 176tok 0.4s
+[single] 25/40 mbpp_7 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 207tok 0.5s
+[single] 25/40 mbpp_7 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 207tok 0.4s
+[single] 25/40 mbpp_7 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 207tok 0.4s
+[single] 26/40 mbpp_8 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 228tok 0.4s
+[single] 26/40 mbpp_8 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 227tok 0.3s
+[single] 26/40 mbpp_8 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 228tok 0.4s
+[single] 27/40 mbpp_9 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 185tok 0.7s
+[single] 27/40 mbpp_9 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 185tok 0.6s
+[single] 27/40 mbpp_9 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 185tok 0.6s
+[single] 28/40 mbpp_11 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 216tok 1.0s
+[single] 28/40 mbpp_11 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 215tok 1.0s
+[single] 28/40 mbpp_11 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 218tok 1.0s
+[single] 29/40 mbpp_12 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 280tok 0.4s
+[single] 29/40 mbpp_12 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 280tok 0.3s
+[single] 29/40 mbpp_12 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 280tok 0.3s
+[single] 30/40 mbpp_14 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 164tok 0.4s
+[single] 30/40 mbpp_14 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 164tok 0.4s
+[single] 30/40 mbpp_14 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 165tok 0.4s
+[single] 31/40 mbpp_16 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 181tok 0.6s
+[single] 31/40 mbpp_16 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 181tok 0.5s
+[single] 31/40 mbpp_16 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 175tok 0.5s
+[single] 32/40 mbpp_17 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 143tok 0.3s
+[single] 32/40 mbpp_17 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 143tok 0.3s
+[single] 32/40 mbpp_17 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 143tok 0.3s
+[single] 33/40 mbpp_18 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 183tok 0.5s
+[single] 33/40 mbpp_18 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 184tok 0.5s
+[single] 33/40 mbpp_18 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 184tok 0.5s
+[single] 34/40 mbpp_19 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 170tok 0.4s
+[single] 34/40 mbpp_19 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 170tok 0.3s
+[single] 34/40 mbpp_19 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 170tok 0.3s
+[single] 35/40 mbpp_20 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+FAIL 212tok 1.0s
+[single] 35/40 mbpp_20 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+FAIL 237tok 1.3s
+[single] 35/40 mbpp_20 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+FAIL 223tok 1.1s
+[single] 36/40 mbpp_56 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 152tok 0.5s
+[single] 36/40 mbpp_56 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 146tok 0.4s
+[single] 36/40 mbpp_56 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 152tok 0.5s
+[single] 37/40 mbpp_57 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 187tok 0.5s
+[single] 37/40 mbpp_57 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 181tok 0.4s
+[single] 37/40 mbpp_57 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 187tok 0.5s
+[single] 38/40 mbpp_58 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 161tok 0.4s
+[single] 38/40 mbpp_58 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 161tok 0.4s
+[single] 38/40 mbpp_58 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 161tok 0.4s
+[single] 39/40 mbpp_59 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 150tok 0.4s
+[single] 39/40 mbpp_59 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 149tok 0.3s
+[single] 39/40 mbpp_59 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 149tok 0.4s
+[single] 40/40 mbpp_61 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 214tok 0.9s
+[single] 40/40 mbpp_61 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 255tok 1.3s
+[single] 40/40 mbpp_61 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 245tok 1.2s
+
+--- harmonet_v2 ---
+[harmonet_v2] 1/40 HumanEval/0 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 348tok 1.9s
+[harmonet_v2] 1/40 HumanEval/0 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 348tok 1.9s
+[harmonet_v2] 1/40 HumanEval/0 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 346tok 1.9s
+[harmonet_v2] 2/40 HumanEval/1 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 378tok 2.3s
+[harmonet_v2] 2/40 HumanEval/1 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 371tok 2.2s
+[harmonet_v2] 2/40 HumanEval/1 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 378tok 2.3s
+[harmonet_v2] 3/40 HumanEval/2 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 234tok 1.1s
+[harmonet_v2] 3/40 HumanEval/2 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 234tok 1.1s
+[harmonet_v2] 3/40 HumanEval/2 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 234tok 1.1s
+[harmonet_v2] 4/40 HumanEval/3 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 326tok 1.8s
+[harmonet_v2] 4/40 HumanEval/3 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 231tok 0.7s
+[harmonet_v2] 4/40 HumanEval/3 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 326tok 1.7s
+[harmonet_v2] 5/40 HumanEval/4 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 325tok 1.8s
+[harmonet_v2] 5/40 HumanEval/4 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 325tok 1.7s
+[harmonet_v2] 5/40 HumanEval/4 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 325tok 1.7s
+[harmonet_v2] 6/40 HumanEval/5 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 275tok 1.5s
+[harmonet_v2] 6/40 HumanEval/5 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 288tok 1.6s
+[harmonet_v2] 6/40 HumanEval/5 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 288tok 1.6s
+[harmonet_v2] 7/40 HumanEval/6 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 363tok 2.2s
+[harmonet_v2] 7/40 HumanEval/6 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 363tok 2.2s
+[harmonet_v2] 7/40 HumanEval/6 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 363tok 2.2s
+[harmonet_v2] 8/40 HumanEval/7 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 258tok 1.3s
+[harmonet_v2] 8/40 HumanEval/7 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 258tok 1.3s
+[harmonet_v2] 8/40 HumanEval/7 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 258tok 1.3s
+[harmonet_v2] 9/40 HumanEval/8 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 330tok 1.9s
+[harmonet_v2] 9/40 HumanEval/8 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 330tok 1.9s
+[harmonet_v2] 9/40 HumanEval/8 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 330tok 1.9s
+[harmonet_v2] 10/40 HumanEval/9 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 304tok 1.7s
+[harmonet_v2] 10/40 HumanEval/9 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 308tok 1.7s
+[harmonet_v2] 10/40 HumanEval/9 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 306tok 1.7s
+[harmonet_v2] 11/40 HumanEval/10 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+FAIL 363tok 1.9s
+[harmonet_v2] 11/40 HumanEval/10 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+FAIL 362tok 1.9s
+[harmonet_v2] 11/40 HumanEval/10 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+FAIL 366tok 1.9s
+[harmonet_v2] 12/40 HumanEval/11 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 246tok 1.3s
+[harmonet_v2] 12/40 HumanEval/11 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 246tok 1.3s
+[harmonet_v2] 12/40 HumanEval/11 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 246tok 1.3s
+[harmonet_v2] 13/40 HumanEval/12 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 278tok 1.4s
+[harmonet_v2] 13/40 HumanEval/12 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 278tok 1.4s
+[harmonet_v2] 13/40 HumanEval/12 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 285tok 1.5s
+[harmonet_v2] 14/40 HumanEval/13 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 226tok 1.2s
+[harmonet_v2] 14/40 HumanEval/13 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 223tok 1.1s
+[harmonet_v2] 14/40 HumanEval/13 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 223tok 1.1s
+[harmonet_v2] 15/40 HumanEval/14 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 197tok 1.0s
+[harmonet_v2] 15/40 HumanEval/14 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 197tok 1.0s
+[harmonet_v2] 15/40 HumanEval/14 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 197tok 1.0s
+[harmonet_v2] 16/40 HumanEval/15 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 210tok 1.1s
+[harmonet_v2] 16/40 HumanEval/15 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 210tok 1.0s
+[harmonet_v2] 16/40 HumanEval/15 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 210tok 1.0s
+[harmonet_v2] 17/40 HumanEval/16 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 206tok 1.0s
+[harmonet_v2] 17/40 HumanEval/16 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 206tok 0.9s
+[harmonet_v2] 17/40 HumanEval/16 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 206tok 0.9s
+[harmonet_v2] 18/40 HumanEval/17 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 439tok 2.4s
+[harmonet_v2] 18/40 HumanEval/17 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 439tok 2.4s
+[harmonet_v2] 18/40 HumanEval/17 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 439tok 2.4s
+[harmonet_v2] 19/40 HumanEval/18 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 286tok 1.7s
+[harmonet_v2] 19/40 HumanEval/18 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 294tok 1.7s
+[harmonet_v2] 19/40 HumanEval/18 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 286tok 1.6s
+[harmonet_v2] 20/40 HumanEval/19 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 412tok 2.9s
+[harmonet_v2] 20/40 HumanEval/19 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 360tok 2.3s
+[harmonet_v2] 20/40 HumanEval/19 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 360tok 2.3s
+[harmonet_v2] 21/40 mbpp_2 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 240tok 0.5s
+[harmonet_v2] 21/40 mbpp_2 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 240tok 0.5s
+[harmonet_v2] 21/40 mbpp_2 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 240tok 0.5s
+[harmonet_v2] 22/40 mbpp_3 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 174tok 0.8s
+[harmonet_v2] 22/40 mbpp_3 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 174tok 0.8s
+[harmonet_v2] 22/40 mbpp_3 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 174tok 0.8s
+[harmonet_v2] 23/40 mbpp_4 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 323tok 0.8s
+[harmonet_v2] 23/40 mbpp_4 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 323tok 0.7s
+[harmonet_v2] 23/40 mbpp_4 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 323tok 0.7s
+[harmonet_v2] 24/40 mbpp_6 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 222tok 1.0s
+[harmonet_v2] 24/40 mbpp_6 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 217tok 0.9s
+[harmonet_v2] 24/40 mbpp_6 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 207tok 0.8s
+[harmonet_v2] 25/40 mbpp_7 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 236tok 0.8s
+[harmonet_v2] 25/40 mbpp_7 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 236tok 0.8s
+[harmonet_v2] 25/40 mbpp_7 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 236tok 0.8s
+[harmonet_v2] 26/40 mbpp_8 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 224tok 0.4s
+[harmonet_v2] 26/40 mbpp_8 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 224tok 0.4s
+[harmonet_v2] 26/40 mbpp_8 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 224tok 0.4s
+[harmonet_v2] 27/40 mbpp_9 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 184tok 0.7s
+[harmonet_v2] 27/40 mbpp_9 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 184tok 0.7s
+[harmonet_v2] 27/40 mbpp_9 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 184tok 0.7s
+[harmonet_v2] 28/40 mbpp_11 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 257tok 1.5s
+[harmonet_v2] 28/40 mbpp_11 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 251tok 1.4s
+[harmonet_v2] 28/40 mbpp_11 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 251tok 1.4s
+[harmonet_v2] 29/40 mbpp_12 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 291tok 0.5s
+[harmonet_v2] 29/40 mbpp_12 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 291tok 0.5s
+[harmonet_v2] 29/40 mbpp_12 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 291tok 0.5s
+[harmonet_v2] 30/40 mbpp_14 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 194tok 0.8s
+[harmonet_v2] 30/40 mbpp_14 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 194tok 0.8s
+[harmonet_v2] 30/40 mbpp_14 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 194tok 0.8s
+[harmonet_v2] 31/40 mbpp_16 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 193tok 0.7s
+[harmonet_v2] 31/40 mbpp_16 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 198tok 0.7s
+[harmonet_v2] 31/40 mbpp_16 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 198tok 0.7s
+[harmonet_v2] 32/40 mbpp_17 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 150tok 0.5s
+[harmonet_v2] 32/40 mbpp_17 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 150tok 0.4s
+[harmonet_v2] 32/40 mbpp_17 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 150tok 0.4s
+[harmonet_v2] 33/40 mbpp_18 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 220tok 0.9s
+[harmonet_v2] 33/40 mbpp_18 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 220tok 0.9s
+[harmonet_v2] 33/40 mbpp_18 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 220tok 0.9s
+[harmonet_v2] 34/40 mbpp_19 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 256tok 1.3s
+[harmonet_v2] 34/40 mbpp_19 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 252tok 1.3s
+[harmonet_v2] 34/40 mbpp_19 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 240tok 1.1s
+[harmonet_v2] 35/40 mbpp_20 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+FAIL 216tok 1.1s
+[harmonet_v2] 35/40 mbpp_20 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+FAIL 225tok 1.2s
+[harmonet_v2] 35/40 mbpp_20 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+FAIL 265tok 1.6s
+[harmonet_v2] 36/40 mbpp_56 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 167tok 0.7s
+[harmonet_v2] 36/40 mbpp_56 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 167tok 0.7s
+[harmonet_v2] 36/40 mbpp_56 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 167tok 0.7s
+[harmonet_v2] 37/40 mbpp_57 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 206tok 0.7s
+[harmonet_v2] 37/40 mbpp_57 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 207tok 0.7s
+[harmonet_v2] 37/40 mbpp_57 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 206tok 0.7s
+[harmonet_v2] 38/40 mbpp_58 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 173tok 0.6s
+[harmonet_v2] 38/40 mbpp_58 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 173tok 0.5s
+[harmonet_v2] 38/40 mbpp_58 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 173tok 0.5s
+[harmonet_v2] 39/40 mbpp_59 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 165tok 0.6s
+[harmonet_v2] 39/40 mbpp_59 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 170tok 0.6s
+[harmonet_v2] 39/40 mbpp_59 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 165tok 0.6s
+[harmonet_v2] 40/40 mbpp_61 r1 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 217tok 1.0s
+[harmonet_v2] 40/40 mbpp_61 r2 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 235tok 1.1s
+[harmonet_v2] 40/40 mbpp_61 r3 ... HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+PASS 217tok 0.9s
+
+================================================================================
+External Standard G1: HumanEval / MBPP
+================================================================================
+system                                                         pass     tokens    lat(s)      p99
+--------------------------------------------------------------------------------
+harmonet                                                     93.3%+/-4.5         311      2.72     5.14
+single                                                       95.0%+/-3.9         245      1.06     2.62
+harmonet_v2                                                  95.0%+/-3.9         257      1.20     2.43
+
+By benchmark
+  humaneval:
+    harmonet                                               pass= 93.3% tokens=    316 lat=  2.82s
+    single                                                 pass= 95.0% tokens=    291 lat=  1.56s
+    harmonet_v2                                            pass= 95.0% tokens=    297 lat=  1.62s
+  mbpp:
+    harmonet                                               pass= 93.3% tokens=    305 lat=  2.62s
+    single                                                 pass= 95.0% tokens=    199 lat=  0.56s
+    harmonet_v2                                            pass= 95.0% tokens=    216 lat=  0.78s
+
+Saved: evidence\g1_fair\rescore\g1_rescore_7b_norepair_20x3.json
+Saved: evidence\g1_fair\rescore\g1_rescore_7b_norepair_20x3.csv
+Saved: evidence\g1_fair\rescore\g1_rescore_7b_norepair_20x3_report.txt
+EXIT=0
