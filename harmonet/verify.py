@@ -17,7 +17,10 @@ harmonet/verify.py — 기계적 검증 (LLM 호출 0회)  [WEEK1 A1 → A7 재�
      "evidence": str, "cost_tokens": 0,
      "wall_ms": int, "exec_count": int, "sandbox": "subprocess"|"docker"}
 
-task_spec["kind"] = "code" | "patch" | "stdio" | "mbppplus".
+task_spec["kind"] = "code" | "patch" | "stdio" | "mbppplus" | "bcb".
+     # bcb (Week2-C0, BigCodeBench): tests / hidden_tests = [unittest 모듈 소스, ...] (가시 = doctest 를 TestCases 로 감싼 것, 히든 = 공식 test).
+     #   **공식 Docker 이미지 안에서만** 판정한다 (HARMONET_BCB_IMAGE, digest 고정; --network none --memory --cpus). Windows 전사 금지 —
+     #   docker 가 없으면 RuntimeError. 판정 함수는 공식 bigcodebench.eval.untrusted_check 그대로 (harmonet/bcb_harness.py).
      # mbppplus (Week2-B0): tests / hidden_tests = [{"input": repr, "expected": repr, "atol": float, "time_limit": s}, ...]
      #   함수형(code) 하네스를 그대로 쓰되 프렐류드(harmonet/mbppplus_compare.py 소스)를 후보 exec **뒤에** 네임스페이스에 넣고,
      #   케이스마다 entry_point(*input) 을 호출해 공식 evalplus 비교(집합 비교·특수 판정·float atol·np.allclose)로 판정한다.
@@ -410,6 +413,70 @@ def _run_stdio_harness(artifact: str, tests: List[Dict[str, str]], per_test_time
         shutil.rmtree(tmp, ignore_errors=True)
 
 
+# ── BigCodeBench (Week2-C0): 공식 이미지 안에서 공식 untrusted_check 로 판정 ─────────────────────
+BCB_IMAGE_DEFAULT = "bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405"  # v0.2.4, 2025-02-23
+BCB_LIMITS = {"max_as_limit": 30 * 1024, "max_data_limit": 30 * 1024, "max_stack_limit": 10, "min_time_limit": 1.0, "gt_time_limit": 1.0}
+#   ↑ 공식 evaluate 기본값(MB 단위 rlimit, min_time_limit 1s). 과제 타임아웃은 공식 max(240, gt)+1 = 241s.
+BCB_TASK_TIMEOUT_S = 241.0
+
+
+def bcb_docker_cmd(mount_dir: str, script: str) -> List[str]:
+    """공식 이미지에서 script 를 python -I 로 실행하는 docker 명령. ENTRYPOINT(bigcodebench.evaluate) 를 덮는다."""
+    if not shutil.which("docker"):
+        raise RuntimeError("BigCodeBench 판정은 공식 Docker 이미지 안에서만 한다 — docker 실행 파일이 없습니다 (Windows 전사 금지)")
+    image = os.getenv("HARMONET_BCB_IMAGE", BCB_IMAGE_DEFAULT)
+    return ["docker", "run", "-i", "--rm", "--network", "none", "--memory", os.getenv("HARMONET_BCB_MEMORY", "8g"),
+            "--cpus", os.getenv("HARMONET_BCB_CPUS", "2"), "-v", f"{mount_dir}:/w", "-w", "/w", "--entrypoint", "python3", image, "-I", script]
+
+
+def _run_bcb_harness(artifact: str, entry: str, tests: List[str]) -> Dict[str, Any]:
+    from pathlib import Path
+    nonce = secrets.token_hex(16)
+    tmp = tempfile.mkdtemp(prefix="harmonet_bcb_")
+    try:
+        with open(os.path.join(tmp, "candidate.py"), "w", encoding="utf-8") as f:
+            f.write(artifact + "\n")
+        shutil.copy(Path(__file__).parent / "bcb_harness.py", os.path.join(tmp, "harness.py"))
+        out_name = f"result_{nonce[:8]}.json"
+        cfg = json.dumps({"nonce": nonce, "out_path": out_name, "entry_point": entry, "tests": tests, "limits": BCB_LIMITS})
+        total_timeout = BCB_TASK_TIMEOUT_S * len(tests) + 90
+        t0 = time.perf_counter()
+        timed_out = False
+        try:
+            proc = subprocess.run(bcb_docker_cmd(tmp, "harness.py"), env=_min_env(), input=cfg + "\n", capture_output=True, text=True,
+                                  timeout=total_timeout)
+            tail = (proc.stderr or proc.stdout)[-300:]
+        except subprocess.TimeoutExpired:
+            timed_out, tail = True, "docker harness timeout"
+        wall_ms = int((time.perf_counter() - t0) * 1000)
+        out_path = os.path.join(tmp, out_name)
+        data = None
+        if os.path.exists(out_path):
+            try:
+                with open(out_path, encoding="utf-8") as f:
+                    data = json.load(f)
+            except Exception as exc:
+                tail = f"result.json unreadable: {exc}"
+        if timed_out:
+            outcome = "timeout"
+        elif data is None or data.get("nonce") != nonce:
+            outcome = "aborted"
+        elif any(e.startswith("setup:") for e in data.get("errors", [])) or data.get("n_run") != len(tests):
+            outcome = "error"
+        elif data.get("n_passed") == data.get("n_run"):
+            outcome = "pass"
+        elif "timeout" in data.get("stats", []):
+            outcome = "timeout"
+        else:
+            outcome = "fail"
+        d = data or {}
+        return {"outcome": outcome, "n_run": int(d.get("n_run", 0)), "n_passed": int(d.get("n_passed", 0)), "n_failed": int(d.get("n_failed", 0)),
+                "errors": list(d.get("errors", []))[:5], "stats": list(d.get("stats", [])), "official": d.get("official"), "tail": tail,
+                "wall_ms": wall_ms, "sandbox": "docker:" + os.getenv("HARMONET_BCB_IMAGE", BCB_IMAGE_DEFAULT)}
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
 # ── MBPP+ (Week2-B0): 케이스 → 테스트 스니펫. 입력은 공식과 같이 복사 없이 그대로 넘긴다(untrusted_check 도 fn(*inp)).
 _MBPP_TIMEOUT_PER_TASK = 60.0   # evalplus EVALPLUS_TIMEOUT_PER_TASK 기본값
 
@@ -479,6 +546,30 @@ def _verify(artifact: str, spec: Optional[Dict[str, Any]], tests_key: str, timeo
                         + (f" tail={h['tail']!r}" if h["outcome"] in ("timeout", "aborted") and h["tail"] else ""))
         return _result("functional", h["outcome"], evidence, method, flags=flags, n_run=h["n_run"], n_passed=h["n_passed"],
                        n_failed=h["n_failed"], wall_ms=h["wall_ms"], exec_count=h["n_run"], sandbox=h["sandbox"], mem_limit=h["mem_limit"])
+
+    if kind == "bcb":
+        method.append("ast")
+        try:
+            tree = ast.parse(artifact)
+        except SyntaxError as e:
+            evidence.append(f"ast=syntax_error line {e.lineno}: {e.msg}")
+            return _result("static", "error", evidence, method)
+        flags = _exit_flags(tree)
+        defs = {n.name for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))}
+        entry = spec.get("entry_point")
+        if entry and entry not in defs:
+            evidence.append(f"entry_point={entry} missing")
+            return _result("static", "error", evidence, method, flags=flags)
+        tests = [t for t in (spec.get(tests_key) or []) if str(t).strip()]
+        if not tests:
+            return _result("static", "no_tests", evidence, method, flags=flags)
+        method.append("bcb_official_untrusted_check")
+        h = _run_bcb_harness(artifact, entry or "task_func", tests)
+        evidence.append(f"harness={h['outcome']} n_run={h['n_run']} n_passed={h['n_passed']} stats={h['stats']} official={h['official']}"
+                        + (" errors=" + " | ".join(h["errors"]) if h["errors"] else "")
+                        + (f" tail={h['tail']!r}" if h["outcome"] in ("timeout", "aborted", "error") and h["tail"] else ""))
+        return _result("functional", h["outcome"], evidence, method, flags=flags, n_run=h["n_run"], n_passed=h["n_passed"],
+                       n_failed=h["n_failed"], wall_ms=h["wall_ms"], exec_count=h["n_run"], sandbox=h["sandbox"])
 
     if kind == "patch":
         from benchmark.swebench_g1 import _check_patch_applies  # git worktree + apply --check (러너와 동일 판정)

@@ -1,0 +1,2042 @@
+{
+ "source": {
+  "repo": "bigcode/bigcodebench",
+  "revision": "b74c0d0bf70d2c0bc459be537895cca163007f1a",
+  "file": "data/v0.1.4-00000-of-00001.parquet",
+  "sha256": "d9a4965821c9507ebdfb551c288656b2d5fe553234f5183044333ca8a4018267",
+  "image": "bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405",
+  "date": "2026-09-14"
+ },
+ "n_total": 1140,
+ "n_doctest_with_output": 1021,
+ "n_static_clean": 637,
+ "n_checked": 637,
+ "gate1_visible_ge1": 412,
+ "gate1_min": 260,
+ "gate1_pass": true,
+ "gate2_canonical_stable": 410,
+ "dev_ids": [
+  "BigCodeBench/0",
+  "BigCodeBench/1",
+  "BigCodeBench/2"
+ ],
+ "n_eligible": 409,
+ "eligible_ids": [
+  "BigCodeBench/3",
+  "BigCodeBench/4",
+  "BigCodeBench/9",
+  "BigCodeBench/23",
+  "BigCodeBench/24",
+  "BigCodeBench/25",
+  "BigCodeBench/26",
+  "BigCodeBench/27",
+  "BigCodeBench/29",
+  "BigCodeBench/33",
+  "BigCodeBench/37",
+  "BigCodeBench/38",
+  "BigCodeBench/39",
+  "BigCodeBench/40",
+  "BigCodeBench/41",
+  "BigCodeBench/43",
+  "BigCodeBench/44",
+  "BigCodeBench/45",
+  "BigCodeBench/47",
+  "BigCodeBench/50",
+  "BigCodeBench/51",
+  "BigCodeBench/52",
+  "BigCodeBench/54",
+  "BigCodeBench/55",
+  "BigCodeBench/61",
+  "BigCodeBench/63",
+  "BigCodeBench/64",
+  "BigCodeBench/65",
+  "BigCodeBench/66",
+  "BigCodeBench/77",
+  "BigCodeBench/78",
+  "BigCodeBench/80",
+  "BigCodeBench/82",
+  "BigCodeBench/83",
+  "BigCodeBench/84",
+  "BigCodeBench/86",
+  "BigCodeBench/87",
+  "BigCodeBench/89",
+  "BigCodeBench/95",
+  "BigCodeBench/97",
+  "BigCodeBench/98",
+  "BigCodeBench/100",
+  "BigCodeBench/109",
+  "BigCodeBench/112",
+  "BigCodeBench/113",
+  "BigCodeBench/114",
+  "BigCodeBench/115",
+  "BigCodeBench/116",
+  "BigCodeBench/119",
+  "BigCodeBench/124",
+  "BigCodeBench/125",
+  "BigCodeBench/126",
+  "BigCodeBench/130",
+  "BigCodeBench/131",
+  "BigCodeBench/141",
+  "BigCodeBench/143",
+  "BigCodeBench/144",
+  "BigCodeBench/145",
+  "BigCodeBench/147",
+  "BigCodeBench/148",
+  "BigCodeBench/149",
+  "BigCodeBench/150",
+  "BigCodeBench/151",
+  "BigCodeBench/153",
+  "BigCodeBench/155",
+  "BigCodeBench/156",
+  "BigCodeBench/160",
+  "BigCodeBench/166",
+  "BigCodeBench/169",
+  "BigCodeBench/171",
+  "BigCodeBench/172",
+  "BigCodeBench/178",
+  "BigCodeBench/184",
+  "BigCodeBench/186",
+  "BigCodeBench/191",
+  "BigCodeBench/192",
+  "BigCodeBench/193",
+  "BigCodeBench/194",
+  "BigCodeBench/198",
+  "BigCodeBench/200",
+  "BigCodeBench/202",
+  "BigCodeBench/203",
+  "BigCodeBench/204",
+  "BigCodeBench/208",
+  "BigCodeBench/219",
+  "BigCodeBench/222",
+  "BigCodeBench/223",
+  "BigCodeBench/224",
+  "BigCodeBench/225",
+  "BigCodeBench/226",
+  "BigCodeBench/228",
+  "BigCodeBench/229",
+  "BigCodeBench/230",
+  "BigCodeBench/232",
+  "BigCodeBench/236",
+  "BigCodeBench/238",
+  "BigCodeBench/239",
+  "BigCodeBench/241",
+  "BigCodeBench/244",
+  "BigCodeBench/246",
+  "BigCodeBench/254",
+  "BigCodeBench/260",
+  "BigCodeBench/262",
+  "BigCodeBench/264",
+  "BigCodeBench/269",
+  "BigCodeBench/270",
+  "BigCodeBench/271",
+  "BigCodeBench/275",
+  "BigCodeBench/278",
+  "BigCodeBench/280",
+  "BigCodeBench/292",
+  "BigCodeBench/294",
+  "BigCodeBench/295",
+  "BigCodeBench/297",
+  "BigCodeBench/299",
+  "BigCodeBench/301",
+  "BigCodeBench/302",
+  "BigCodeBench/303",
+  "BigCodeBench/304",
+  "BigCodeBench/305",
+  "BigCodeBench/309",
+  "BigCodeBench/311",
+  "BigCodeBench/317",
+  "BigCodeBench/325",
+  "BigCodeBench/338",
+  "BigCodeBench/339",
+  "BigCodeBench/340",
+  "BigCodeBench/342",
+  "BigCodeBench/347",
+  "BigCodeBench/355",
+  "BigCodeBench/357",
+  "BigCodeBench/358",
+  "BigCodeBench/371",
+  "BigCodeBench/373",
+  "BigCodeBench/377",
+  "BigCodeBench/384",
+  "BigCodeBench/385",
+  "BigCodeBench/388",
+  "BigCodeBench/401",
+  "BigCodeBench/413",
+  "BigCodeBench/415",
+  "BigCodeBench/420",
+  "BigCodeBench/422",
+  "BigCodeBench/428",
+  "BigCodeBench/433",
+  "BigCodeBench/434",
+  "BigCodeBench/444",
+  "BigCodeBench/451",
+  "BigCodeBench/452",
+  "BigCodeBench/453",
+  "BigCodeBench/455",
+  "BigCodeBench/456",
+  "BigCodeBench/458",
+  "BigCodeBench/462",
+  "BigCodeBench/466",
+  "BigCodeBench/471",
+  "BigCodeBench/475",
+  "BigCodeBench/479",
+  "BigCodeBench/484",
+  "BigCodeBench/490",
+  "BigCodeBench/495",
+  "BigCodeBench/505",
+  "BigCodeBench/516",
+  "BigCodeBench/517",
+  "BigCodeBench/518",
+  "BigCodeBench/533",
+  "BigCodeBench/535",
+  "BigCodeBench/542",
+  "BigCodeBench/543",
+  "BigCodeBench/546",
+  "BigCodeBench/547",
+  "BigCodeBench/549",
+  "BigCodeBench/550",
+  "BigCodeBench/554",
+  "BigCodeBench/556",
+  "BigCodeBench/559",
+  "BigCodeBench/561",
+  "BigCodeBench/563",
+  "BigCodeBench/565",
+  "BigCodeBench/566",
+  "BigCodeBench/568",
+  "BigCodeBench/569",
+  "BigCodeBench/570",
+  "BigCodeBench/575",
+  "BigCodeBench/576",
+  "BigCodeBench/580",
+  "BigCodeBench/583",
+  "BigCodeBench/588",
+  "BigCodeBench/591",
+  "BigCodeBench/595",
+  "BigCodeBench/596",
+  "BigCodeBench/597",
+  "BigCodeBench/598",
+  "BigCodeBench/600",
+  "BigCodeBench/603",
+  "BigCodeBench/606",
+  "BigCodeBench/613",
+  "BigCodeBench/614",
+  "BigCodeBench/617",
+  "BigCodeBench/619",
+  "BigCodeBench/620",
+  "BigCodeBench/624",
+  "BigCodeBench/625",
+  "BigCodeBench/626",
+  "BigCodeBench/627",
+  "BigCodeBench/630",
+  "BigCodeBench/631",
+  "BigCodeBench/636",
+  "BigCodeBench/637",
+  "BigCodeBench/638",
+  "BigCodeBench/640",
+  "BigCodeBench/642",
+  "BigCodeBench/643",
+  "BigCodeBench/649",
+  "BigCodeBench/650",
+  "BigCodeBench/652",
+  "BigCodeBench/654",
+  "BigCodeBench/666",
+  "BigCodeBench/667",
+  "BigCodeBench/668",
+  "BigCodeBench/669",
+  "BigCodeBench/670",
+  "BigCodeBench/672",
+  "BigCodeBench/674",
+  "BigCodeBench/679",
+  "BigCodeBench/682",
+  "BigCodeBench/685",
+  "BigCodeBench/686",
+  "BigCodeBench/687",
+  "BigCodeBench/688",
+  "BigCodeBench/692",
+  "BigCodeBench/693",
+  "BigCodeBench/695",
+  "BigCodeBench/700",
+  "BigCodeBench/702",
+  "BigCodeBench/704",
+  "BigCodeBench/708",
+  "BigCodeBench/718",
+  "BigCodeBench/721",
+  "BigCodeBench/727",
+  "BigCodeBench/732",
+  "BigCodeBench/733",
+  "BigCodeBench/735",
+  "BigCodeBench/736",
+  "BigCodeBench/737",
+  "BigCodeBench/738",
+  "BigCodeBench/741",
+  "BigCodeBench/742",
+  "BigCodeBench/744",
+  "BigCodeBench/747",
+  "BigCodeBench/749",
+  "BigCodeBench/754",
+  "BigCodeBench/757",
+  "BigCodeBench/758",
+  "BigCodeBench/760",
+  "BigCodeBench/761",
+  "BigCodeBench/762",
+  "BigCodeBench/764",
+  "BigCodeBench/766",
+  "BigCodeBench/769",
+  "BigCodeBench/770",
+  "BigCodeBench/772",
+  "BigCodeBench/774",
+  "BigCodeBench/775",
+  "BigCodeBench/778",
+  "BigCodeBench/782",
+  "BigCodeBench/784",
+  "BigCodeBench/786",
+  "BigCodeBench/787",
+  "BigCodeBench/789",
+  "BigCodeBench/794",
+  "BigCodeBench/795",
+  "BigCodeBench/797",
+  "BigCodeBench/799",
+  "BigCodeBench/800",
+  "BigCodeBench/802",
+  "BigCodeBench/804",
+  "BigCodeBench/807",
+  "BigCodeBench/810",
+  "BigCodeBench/811",
+  "BigCodeBench/813",
+  "BigCodeBench/817",
+  "BigCodeBench/818",
+  "BigCodeBench/820",
+  "BigCodeBench/822",
+  "BigCodeBench/824",
+  "BigCodeBench/825",
+  "BigCodeBench/827",
+  "BigCodeBench/829",
+  "BigCodeBench/830",
+  "BigCodeBench/831",
+  "BigCodeBench/832",
+  "BigCodeBench/833",
+  "BigCodeBench/834",
+  "BigCodeBench/835",
+  "BigCodeBench/837",
+  "BigCodeBench/839",
+  "BigCodeBench/840",
+  "BigCodeBench/841",
+  "BigCodeBench/844",
+  "BigCodeBench/845",
+  "BigCodeBench/846",
+  "BigCodeBench/854",
+  "BigCodeBench/859",
+  "BigCodeBench/861",
+  "BigCodeBench/863",
+  "BigCodeBench/864",
+  "BigCodeBench/865",
+  "BigCodeBench/867",
+  "BigCodeBench/868",
+  "BigCodeBench/869",
+  "BigCodeBench/870",
+  "BigCodeBench/872",
+  "BigCodeBench/874",
+  "BigCodeBench/878",
+  "BigCodeBench/879",
+  "BigCodeBench/883",
+  "BigCodeBench/884",
+  "BigCodeBench/886",
+  "BigCodeBench/892",
+  "BigCodeBench/900",
+  "BigCodeBench/901",
+  "BigCodeBench/902",
+  "BigCodeBench/903",
+  "BigCodeBench/906",
+  "BigCodeBench/912",
+  "BigCodeBench/913",
+  "BigCodeBench/914",
+  "BigCodeBench/916",
+  "BigCodeBench/918",
+  "BigCodeBench/921",
+  "BigCodeBench/922",
+  "BigCodeBench/928",
+  "BigCodeBench/929",
+  "BigCodeBench/931",
+  "BigCodeBench/932",
+  "BigCodeBench/933",
+  "BigCodeBench/934",
+  "BigCodeBench/935",
+  "BigCodeBench/937",
+  "BigCodeBench/938",
+  "BigCodeBench/941",
+  "BigCodeBench/942",
+  "BigCodeBench/943",
+  "BigCodeBench/946",
+  "BigCodeBench/948",
+  "BigCodeBench/951",
+  "BigCodeBench/953",
+  "BigCodeBench/956",
+  "BigCodeBench/957",
+  "BigCodeBench/958",
+  "BigCodeBench/959",
+  "BigCodeBench/969",
+  "BigCodeBench/970",
+  "BigCodeBench/972",
+  "BigCodeBench/975",
+  "BigCodeBench/976",
+  "BigCodeBench/979",
+  "BigCodeBench/981",
+  "BigCodeBench/983",
+  "BigCodeBench/985",
+  "BigCodeBench/990",
+  "BigCodeBench/1002",
+  "BigCodeBench/1021",
+  "BigCodeBench/1024",
+  "BigCodeBench/1025",
+  "BigCodeBench/1026",
+  "BigCodeBench/1027",
+  "BigCodeBench/1030",
+  "BigCodeBench/1031",
+  "BigCodeBench/1032",
+  "BigCodeBench/1033",
+  "BigCodeBench/1036",
+  "BigCodeBench/1043",
+  "BigCodeBench/1046",
+  "BigCodeBench/1048",
+  "BigCodeBench/1049",
+  "BigCodeBench/1050",
+  "BigCodeBench/1051",
+  "BigCodeBench/1055",
+  "BigCodeBench/1056",
+  "BigCodeBench/1057",
+  "BigCodeBench/1058",
+  "BigCodeBench/1060",
+  "BigCodeBench/1063",
+  "BigCodeBench/1064",
+  "BigCodeBench/1069",
+  "BigCodeBench/1074",
+  "BigCodeBench/1076",
+  "BigCodeBench/1077",
+  "BigCodeBench/1078",
+  "BigCodeBench/1079",
+  "BigCodeBench/1080",
+  "BigCodeBench/1081",
+  "BigCodeBench/1082",
+  "BigCodeBench/1083",
+  "BigCodeBench/1089",
+  "BigCodeBench/1094",
+  "BigCodeBench/1097",
+  "BigCodeBench/1098",
+  "BigCodeBench/1099",
+  "BigCodeBench/1100",
+  "BigCodeBench/1107",
+  "BigCodeBench/1110",
+  "BigCodeBench/1111",
+  "BigCodeBench/1126",
+  "BigCodeBench/1132",
+  "BigCodeBench/1138",
+  "BigCodeBench/1139"
+ ],
+ "excluded": {
+  "BigCodeBench/6": "doctest ['fail', 'fail']",
+  "BigCodeBench/7": "doctest ['fail', 'fail']",
+  "BigCodeBench/12": "doctest ['fail', 'fail']",
+  "BigCodeBench/13": "doctest ['fail', 'fail']",
+  "BigCodeBench/14": "doctest ['fail', 'fail']",
+  "BigCodeBench/15": "doctest ['fail', 'fail']",
+  "BigCodeBench/16": "doctest ['fail', 'fail']",
+  "BigCodeBench/17": "doctest ['fail', 'fail']",
+  "BigCodeBench/18": "doctest ['fail', 'fail']",
+  "BigCodeBench/19": "doctest ['fail', 'fail']",
+  "BigCodeBench/20": "doctest ['fail', 'fail']",
+  "BigCodeBench/21": "doctest ['fail', 'fail']",
+  "BigCodeBench/30": "doctest ['fail', 'fail']",
+  "BigCodeBench/32": "doctest ['fail', 'fail']",
+  "BigCodeBench/42": "doctest ['fail', 'fail']",
+  "BigCodeBench/49": "doctest ['fail', 'fail']",
+  "BigCodeBench/53": "doctest ['fail', 'fail']",
+  "BigCodeBench/56": "doctest ['fail', 'fail']",
+  "BigCodeBench/74": "doctest ['fail', 'fail']",
+  "BigCodeBench/81": "doctest ['fail', 'fail']",
+  "BigCodeBench/90": "doctest ['fail', 'fail']",
+  "BigCodeBench/118": "doctest ['fail', 'fail']",
+  "BigCodeBench/123": "doctest ['fail', 'fail']",
+  "BigCodeBench/127": "doctest ['fail', 'fail']",
+  "BigCodeBench/129": "doctest ['fail', 'fail']",
+  "BigCodeBench/146": "doctest ['fail', 'fail']",
+  "BigCodeBench/154": "doctest ['fail', 'fail']",
+  "BigCodeBench/157": "doctest ['fail', 'fail']",
+  "BigCodeBench/159": "doctest ['fail', 'fail']",
+  "BigCodeBench/161": "doctest ['fail', 'fail']",
+  "BigCodeBench/176": "doctest ['fail', 'fail']",
+  "BigCodeBench/177": "doctest ['fail', 'fail']",
+  "BigCodeBench/182": "doctest ['fail', 'fail']",
+  "BigCodeBench/183": "doctest ['fail', 'fail']",
+  "BigCodeBench/188": "doctest ['fail', 'fail']",
+  "BigCodeBench/190": "doctest ['fail', 'fail']",
+  "BigCodeBench/195": "doctest ['fail', 'fail']",
+  "BigCodeBench/205": "doctest ['fail', 'fail']",
+  "BigCodeBench/207": "doctest ['fail', 'fail']",
+  "BigCodeBench/211": "doctest ['fail', 'fail']",
+  "BigCodeBench/215": "doctest ['fail', 'fail']",
+  "BigCodeBench/220": "doctest ['fail', 'fail']",
+  "BigCodeBench/221": "doctest ['fail', 'fail']",
+  "BigCodeBench/227": "doctest ['fail', 'fail']",
+  "BigCodeBench/263": "doctest ['fail', 'fail']",
+  "BigCodeBench/284": "doctest ['fail', 'fail']",
+  "BigCodeBench/285": "doctest ['fail', 'fail']",
+  "BigCodeBench/286": "doctest ['fail', 'fail']",
+  "BigCodeBench/287": "doctest ['fail', 'fail']",
+  "BigCodeBench/290": "doctest ['fail', 'fail']",
+  "BigCodeBench/306": "doctest ['fail', 'fail']",
+  "BigCodeBench/314": "doctest ['fail', 'fail']",
+  "BigCodeBench/315": "doctest ['fail', 'fail']",
+  "BigCodeBench/322": "doctest ['fail', 'fail']",
+  "BigCodeBench/323": "doctest ['fail', 'fail']",
+  "BigCodeBench/324": "doctest ['fail', 'fail']",
+  "BigCodeBench/326": "doctest ['fail', 'fail']",
+  "BigCodeBench/332": "doctest ['fail', 'fail']",
+  "BigCodeBench/334": "doctest ['fail', 'fail']",
+  "BigCodeBench/348": "doctest ['fail', 'fail']",
+  "BigCodeBench/363": "doctest ['fail', 'fail']",
+  "BigCodeBench/376": "doctest ['fail', 'fail']",
+  "BigCodeBench/378": "doctest ['fail', 'fail']",
+  "BigCodeBench/395": "doctest ['fail', 'fail']",
+  "BigCodeBench/402": "doctest ['fail', 'fail']",
+  "BigCodeBench/407": "doctest ['fail', 'fail']",
+  "BigCodeBench/408": "doctest ['fail', 'fail']",
+  "BigCodeBench/418": "doctest ['fail', 'fail']",
+  "BigCodeBench/459": "doctest ['fail', 'fail']",
+  "BigCodeBench/461": "doctest ['fail', 'fail']",
+  "BigCodeBench/483": "doctest ['fail', 'fail']",
+  "BigCodeBench/487": "doctest ['fail', 'fail']",
+  "BigCodeBench/489": "doctest ['fail', 'fail']",
+  "BigCodeBench/492": "doctest ['fail', 'fail']",
+  "BigCodeBench/497": "doctest ['fail', 'fail']",
+  "BigCodeBench/498": "doctest ['fail', 'fail']",
+  "BigCodeBench/503": "doctest ['fail', 'fail']",
+  "BigCodeBench/504": "doctest ['fail', 'fail']",
+  "BigCodeBench/508": "doctest ['fail', 'fail']",
+  "BigCodeBench/510": "doctest ['fail', 'fail']",
+  "BigCodeBench/520": "doctest ['fail', 'fail']",
+  "BigCodeBench/526": "doctest ['fail', 'fail']",
+  "BigCodeBench/531": "doctest ['fail', 'fail']",
+  "BigCodeBench/534": "doctest ['fail', 'fail']",
+  "BigCodeBench/536": "doctest ['fail', 'fail']",
+  "BigCodeBench/539": "doctest ['fail', 'fail']",
+  "BigCodeBench/544": "doctest ['fail', 'fail']",
+  "BigCodeBench/562": "doctest ['fail', 'fail']",
+  "BigCodeBench/564": "doctest ['fail', 'fail']",
+  "BigCodeBench/577": "doctest ['fail', 'fail']",
+  "BigCodeBench/578": "doctest ['fail', 'fail']",
+  "BigCodeBench/584": "doctest ['fail', 'fail']",
+  "BigCodeBench/585": "doctest ['fail', 'fail']",
+  "BigCodeBench/586": "doctest ['fail', 'fail']",
+  "BigCodeBench/587": "doctest ['fail', 'fail']",
+  "BigCodeBench/589": "doctest ['fail', 'fail']",
+  "BigCodeBench/594": "doctest ['fail', 'fail']",
+  "BigCodeBench/632": "doctest ['fail', 'fail']",
+  "BigCodeBench/633": "doctest ['fail', 'fail']",
+  "BigCodeBench/634": "doctest ['fail', 'fail']",
+  "BigCodeBench/644": "doctest ['fail', 'fail']",
+  "BigCodeBench/647": "doctest ['fail', 'fail']",
+  "BigCodeBench/655": "doctest ['fail', 'fail']",
+  "BigCodeBench/656": "doctest ['fail', 'fail']",
+  "BigCodeBench/671": "doctest ['fail', 'fail']",
+  "BigCodeBench/675": "doctest ['fail', 'fail']",
+  "BigCodeBench/703": "doctest ['fail', 'fail']",
+  "BigCodeBench/707": "doctest ['fail', 'fail']",
+  "BigCodeBench/709": "doctest ['fail', 'fail']",
+  "BigCodeBench/711": "doctest ['fail', 'fail']",
+  "BigCodeBench/712": "doctest ['fail', 'fail']",
+  "BigCodeBench/713": "doctest ['fail', 'fail']",
+  "BigCodeBench/714": "doctest ['fail', 'fail']",
+  "BigCodeBench/715": "doctest ['fail', 'fail']",
+  "BigCodeBench/716": "doctest ['fail', 'fail']",
+  "BigCodeBench/717": "doctest ['fail', 'fail']",
+  "BigCodeBench/719": "doctest ['fail', 'fail']",
+  "BigCodeBench/724": "doctest ['fail', 'fail']",
+  "BigCodeBench/728": "doctest ['fail', 'fail']",
+  "BigCodeBench/734": "doctest ['fail', 'fail']",
+  "BigCodeBench/743": "doctest ['fail', 'fail']",
+  "BigCodeBench/755": "doctest ['fail', 'fail']",
+  "BigCodeBench/756": "doctest ['fail', 'fail']",
+  "BigCodeBench/759": "doctest ['fail', 'fail']",
+  "BigCodeBench/768": "doctest ['fail', 'fail']",
+  "BigCodeBench/771": "doctest ['fail', 'fail']",
+  "BigCodeBench/777": "doctest ['fail', 'fail']",
+  "BigCodeBench/779": "doctest ['fail', 'fail']",
+  "BigCodeBench/781": "doctest ['fail', 'fail']",
+  "BigCodeBench/788": "doctest ['fail', 'fail']",
+  "BigCodeBench/790": "doctest ['fail', 'fail']",
+  "BigCodeBench/792": "doctest ['fail', 'fail']",
+  "BigCodeBench/796": "doctest ['fail', 'fail']",
+  "BigCodeBench/798": "doctest ['fail', 'fail']",
+  "BigCodeBench/801": "doctest ['fail', 'fail']",
+  "BigCodeBench/803": "doctest ['fail', 'fail']",
+  "BigCodeBench/806": "doctest ['fail', 'fail']",
+  "BigCodeBench/808": "doctest ['fail', 'fail']",
+  "BigCodeBench/809": "doctest ['fail', 'fail']",
+  "BigCodeBench/814": "doctest ['fail', 'fail']",
+  "BigCodeBench/821": "test ['fail', 'pass']",
+  "BigCodeBench/823": "test ['fail', 'pass']",
+  "BigCodeBench/826": "doctest ['fail', 'fail']",
+  "BigCodeBench/828": "doctest ['fail', 'fail']",
+  "BigCodeBench/836": "doctest ['fail', 'fail']",
+  "BigCodeBench/838": "doctest ['fail', 'fail']",
+  "BigCodeBench/842": "doctest ['pass', 'fail']",
+  "BigCodeBench/847": "doctest ['fail', 'fail']",
+  "BigCodeBench/849": "doctest ['fail', 'fail']",
+  "BigCodeBench/851": "doctest ['fail', 'fail']",
+  "BigCodeBench/853": "doctest ['fail', 'fail']",
+  "BigCodeBench/857": "doctest ['fail', 'fail']",
+  "BigCodeBench/866": "doctest ['fail', 'fail']",
+  "BigCodeBench/871": "doctest ['fail', 'fail']",
+  "BigCodeBench/873": "doctest ['fail', 'fail']",
+  "BigCodeBench/876": "doctest ['fail', 'fail']",
+  "BigCodeBench/877": "doctest ['fail', 'fail']",
+  "BigCodeBench/882": "doctest ['fail', 'fail']",
+  "BigCodeBench/888": "doctest ['fail', 'fail']",
+  "BigCodeBench/889": "doctest ['fail', 'fail']",
+  "BigCodeBench/890": "doctest ['fail', 'fail']",
+  "BigCodeBench/891": "doctest ['fail', 'fail']",
+  "BigCodeBench/905": "doctest ['fail', 'fail']",
+  "BigCodeBench/907": "doctest ['fail', 'fail']",
+  "BigCodeBench/908": "doctest ['fail', 'fail']",
+  "BigCodeBench/911": "doctest ['fail', 'fail']",
+  "BigCodeBench/917": "doctest ['fail', 'fail']",
+  "BigCodeBench/924": "doctest ['fail', 'fail']",
+  "BigCodeBench/926": "doctest ['fail', 'fail']",
+  "BigCodeBench/939": "doctest ['fail', 'fail']",
+  "BigCodeBench/940": "doctest ['fail', 'fail']",
+  "BigCodeBench/961": "doctest ['fail', 'fail']",
+  "BigCodeBench/962": "doctest ['fail', 'fail']",
+  "BigCodeBench/963": "doctest ['fail', 'fail']",
+  "BigCodeBench/964": "doctest ['fail', 'fail']",
+  "BigCodeBench/971": "doctest ['fail', 'fail']",
+  "BigCodeBench/973": "doctest ['fail', 'fail']",
+  "BigCodeBench/974": "doctest ['fail', 'fail']",
+  "BigCodeBench/988": "doctest ['fail', 'fail']",
+  "BigCodeBench/992": "doctest ['fail', 'fail']",
+  "BigCodeBench/994": "doctest ['fail', 'fail']",
+  "BigCodeBench/995": "doctest ['fail', 'fail']",
+  "BigCodeBench/1001": "doctest ['fail', 'fail']",
+  "BigCodeBench/1006": "doctest ['fail', 'fail']",
+  "BigCodeBench/1007": "doctest ['fail', 'fail']",
+  "BigCodeBench/1008": "doctest ['fail', 'fail']",
+  "BigCodeBench/1009": "doctest ['fail', 'fail']",
+  "BigCodeBench/1010": "doctest ['fail', 'fail']",
+  "BigCodeBench/1011": "doctest ['fail', 'fail']",
+  "BigCodeBench/1013": "doctest ['fail', 'fail']",
+  "BigCodeBench/1017": "doctest ['fail', 'fail']",
+  "BigCodeBench/1019": "doctest ['fail', 'fail']",
+  "BigCodeBench/1022": "doctest ['fail', 'fail']",
+  "BigCodeBench/1028": "doctest ['fail', 'fail']",
+  "BigCodeBench/1040": "doctest ['fail', 'fail']",
+  "BigCodeBench/1041": "doctest ['fail', 'fail']",
+  "BigCodeBench/1045": "doctest ['fail', 'fail']",
+  "BigCodeBench/1054": "doctest ['fail', 'fail']",
+  "BigCodeBench/1062": "doctest ['fail', 'fail']",
+  "BigCodeBench/1065": "doctest ['fail', 'fail']",
+  "BigCodeBench/1068": "doctest ['fail', 'fail']",
+  "BigCodeBench/1085": "doctest ['fail', 'fail']",
+  "BigCodeBench/1090": "doctest ['fail', 'fail']",
+  "BigCodeBench/1091": "doctest ['fail', 'fail']",
+  "BigCodeBench/1092": "doctest ['fail', 'fail']",
+  "BigCodeBench/1093": "doctest ['fail', 'fail']",
+  "BigCodeBench/1095": "doctest ['fail', 'fail']",
+  "BigCodeBench/1096": "doctest ['fail', 'fail']",
+  "BigCodeBench/1101": "doctest ['fail', 'fail']",
+  "BigCodeBench/1102": "doctest ['fail', 'fail']",
+  "BigCodeBench/1103": "doctest ['fail', 'fail']",
+  "BigCodeBench/1104": "doctest ['fail', 'fail']",
+  "BigCodeBench/1105": "doctest ['fail', 'fail']",
+  "BigCodeBench/1106": "doctest ['fail', 'fail']",
+  "BigCodeBench/1109": "doctest ['fail', 'fail']",
+  "BigCodeBench/1112": "doctest ['fail', 'fail']",
+  "BigCodeBench/1113": "doctest ['fail', 'fail']",
+  "BigCodeBench/1118": "doctest ['fail', 'fail']",
+  "BigCodeBench/1123": "doctest ['fail', 'fail']",
+  "BigCodeBench/1124": "doctest ['fail', 'fail']",
+  "BigCodeBench/1125": "doctest ['fail', 'fail']",
+  "BigCodeBench/1127": "doctest ['fail', 'fail']",
+  "BigCodeBench/1131": "doctest ['fail', 'fail']",
+  "BigCodeBench/1133": "doctest ['fail', 'fail']",
+  "BigCodeBench/1134": "doctest ['fail', 'fail']",
+  "BigCodeBench/1135": "doctest ['fail', 'fail']",
+  "BigCodeBench/1137": "doctest ['fail', 'fail']"
+ },
+ "static_screen_hits": {
+  "BigCodeBench/1": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/2": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/5": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/8": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/10": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/11": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/22": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/28": [
+   "http"
+  ],
+  "BigCodeBench/31": [
+   "Axes"
+  ],
+  "BigCodeBench/34": [
+   "http"
+  ],
+  "BigCodeBench/35": [
+   "Axes",
+   "randint",
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/36": [
+   "randint",
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/48": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/69": [
+   "Axes"
+  ],
+  "BigCodeBench/75": [
+   "seed"
+  ],
+  "BigCodeBench/76": [
+   "http"
+  ],
+  "BigCodeBench/79": [
+   "http"
+  ],
+  "BigCodeBench/85": [
+   "datetime",
+   "os.remove",
+   "savefig"
+  ],
+  "BigCodeBench/88": [
+   "datetime"
+  ],
+  "BigCodeBench/92": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/94": [
+   "Figure"
+  ],
+  "BigCodeBench/96": [
+   "open("
+  ],
+  "BigCodeBench/99": [
+   "Figure"
+  ],
+  "BigCodeBench/101": [
+   "Axes"
+  ],
+  "BigCodeBench/102": [
+   "Figure",
+   "plt"
+  ],
+  "BigCodeBench/103": [
+   "Axes",
+   "randint",
+   "random"
+  ],
+  "BigCodeBench/110": [
+   "randint",
+   "random"
+  ],
+  "BigCodeBench/111": [
+   "randint",
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/117": [
+   "seed"
+  ],
+  "BigCodeBench/120": [
+   "seed"
+  ],
+  "BigCodeBench/121": [
+   "seed"
+  ],
+  "BigCodeBench/122": [
+   "random"
+  ],
+  "BigCodeBench/128": [
+   "Figure",
+   "random"
+  ],
+  "BigCodeBench/132": [
+   "plt"
+  ],
+  "BigCodeBench/135": [
+   "randint",
+   "random"
+  ],
+  "BigCodeBench/140": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/152": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/158": [
+   "http"
+  ],
+  "BigCodeBench/162": [
+   "Axes"
+  ],
+  "BigCodeBench/163": [
+   "Axes"
+  ],
+  "BigCodeBench/165": [
+   "Figure"
+  ],
+  "BigCodeBench/167": [
+   "Figure",
+   "plt"
+  ],
+  "BigCodeBench/168": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/170": [
+   "http"
+  ],
+  "BigCodeBench/173": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/174": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/175": [
+   "Axes"
+  ],
+  "BigCodeBench/179": [
+   "Axes"
+  ],
+  "BigCodeBench/180": [
+   "os.remove",
+   "randint",
+   "random"
+  ],
+  "BigCodeBench/181": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/189": [
+   "requests"
+  ],
+  "BigCodeBench/196": [
+   "Axes",
+   "plt",
+   "pyplot",
+   "random"
+  ],
+  "BigCodeBench/197": [
+   "Axes"
+  ],
+  "BigCodeBench/199": [
+   "datetime"
+  ],
+  "BigCodeBench/206": [
+   "open(",
+   "tempfile"
+  ],
+  "BigCodeBench/209": [
+   "Axes"
+  ],
+  "BigCodeBench/210": [
+   "Axes"
+  ],
+  "BigCodeBench/212": [
+   "Axes"
+  ],
+  "BigCodeBench/213": [
+   "Axes"
+  ],
+  "BigCodeBench/216": [
+   "Figure",
+   "open(",
+   "tempfile"
+  ],
+  "BigCodeBench/217": [
+   "Axes"
+  ],
+  "BigCodeBench/218": [
+   "Axes",
+   "plt"
+  ],
+  "BigCodeBench/231": [
+   "Axes",
+   "seed"
+  ],
+  "BigCodeBench/233": [
+   "Axes"
+  ],
+  "BigCodeBench/234": [
+   "plt"
+  ],
+  "BigCodeBench/235": [
+   "Axes"
+  ],
+  "BigCodeBench/237": [
+   "tempfile"
+  ],
+  "BigCodeBench/240": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/242": [
+   "os.remove",
+   "randint",
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/243": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/245": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/247": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/248": [
+   "Axes"
+  ],
+  "BigCodeBench/249": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/250": [
+   "tempfile"
+  ],
+  "BigCodeBench/251": [
+   "Figure",
+   "plt"
+  ],
+  "BigCodeBench/252": [
+   "Axes"
+  ],
+  "BigCodeBench/253": [
+   "plt",
+   "pyplot",
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/255": [
+   "plt",
+   "pyplot"
+  ],
+  "BigCodeBench/257": [
+   "plt",
+   "pyplot"
+  ],
+  "BigCodeBench/258": [
+   "datetime"
+  ],
+  "BigCodeBench/259": [
+   "plt",
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/261": [
+   "plt",
+   "pyplot"
+  ],
+  "BigCodeBench/265": [
+   "tempfile"
+  ],
+  "BigCodeBench/268": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/273": [
+   "http"
+  ],
+  "BigCodeBench/274": [
+   "http"
+  ],
+  "BigCodeBench/276": [
+   "Axes"
+  ],
+  "BigCodeBench/277": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/279": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/281": [
+   "tempfile"
+  ],
+  "BigCodeBench/282": [
+   "os.remove",
+   "randint",
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/288": [
+   "open(",
+   "tempfile"
+  ],
+  "BigCodeBench/289": [
+   "randint",
+   "random"
+  ],
+  "BigCodeBench/291": [
+   "Axes"
+  ],
+  "BigCodeBench/293": [
+   "Axes"
+  ],
+  "BigCodeBench/296": [
+   "plt"
+  ],
+  "BigCodeBench/298": [
+   "plt"
+  ],
+  "BigCodeBench/300": [
+   "plt"
+  ],
+  "BigCodeBench/307": [
+   "Axes"
+  ],
+  "BigCodeBench/308": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/310": [
+   "os.path",
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/312": [
+   "plt",
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/313": [
+   "tempfile"
+  ],
+  "BigCodeBench/316": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/318": [
+   "plt",
+   "pyplot",
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/319": [
+   "Axes"
+  ],
+  "BigCodeBench/320": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/321": [
+   "Axes"
+  ],
+  "BigCodeBench/327": [
+   "open(",
+   "os.path",
+   "tempfile"
+  ],
+  "BigCodeBench/328": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/329": [
+   "open(",
+   "os.path",
+   "tempfile"
+  ],
+  "BigCodeBench/330": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/331": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/333": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/335": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/336": [
+   "open(",
+   "os.path",
+   "tempfile"
+  ],
+  "BigCodeBench/337": [
+   "plt",
+   "pyplot"
+  ],
+  "BigCodeBench/341": [
+   "Figure",
+   "plt"
+  ],
+  "BigCodeBench/343": [
+   "plt"
+  ],
+  "BigCodeBench/344": [
+   "open(",
+   "os.path",
+   "tempfile"
+  ],
+  "BigCodeBench/345": [
+   "plt",
+   "pyplot"
+  ],
+  "BigCodeBench/346": [
+   "open(",
+   "tempfile"
+  ],
+  "BigCodeBench/349": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/350": [
+   "open(",
+   "os.path",
+   "tempfile"
+  ],
+  "BigCodeBench/351": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/352": [
+   "Axes"
+  ],
+  "BigCodeBench/353": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/354": [
+   "Axes"
+  ],
+  "BigCodeBench/356": [
+   "Axes",
+   "plt"
+  ],
+  "BigCodeBench/359": [
+   "Axes",
+   "plt"
+  ],
+  "BigCodeBench/360": [
+   "os.remove"
+  ],
+  "BigCodeBench/361": [
+   "os.remove"
+  ],
+  "BigCodeBench/364": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/365": [
+   "tempfile"
+  ],
+  "BigCodeBench/366": [
+   "plt",
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/367": [
+   "Axes",
+   "datetime"
+  ],
+  "BigCodeBench/368": [
+   "open(",
+   "os.path",
+   "seed",
+   "tempfile"
+  ],
+  "BigCodeBench/369": [
+   "plt"
+  ],
+  "BigCodeBench/370": [
+   "open(",
+   "tempfile"
+  ],
+  "BigCodeBench/372": [
+   "tempfile"
+  ],
+  "BigCodeBench/374": [
+   "tempfile"
+  ],
+  "BigCodeBench/375": [
+   "plt"
+  ],
+  "BigCodeBench/379": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/380": [
+   "open(",
+   "os.listdir",
+   "tempfile"
+  ],
+  "BigCodeBench/382": [
+   "plt",
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/383": [
+   "Axes"
+  ],
+  "BigCodeBench/386": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/389": [
+   "open(",
+   "os.path",
+   "tempfile"
+  ],
+  "BigCodeBench/390": [
+   "http"
+  ],
+  "BigCodeBench/391": [
+   "open(",
+   "os.path",
+   "tempfile"
+  ],
+  "BigCodeBench/392": [
+   "plt"
+  ],
+  "BigCodeBench/393": [
+   "Figure"
+  ],
+  "BigCodeBench/394": [
+   "seed"
+  ],
+  "BigCodeBench/396": [
+   "Axes"
+  ],
+  "BigCodeBench/397": [
+   "urllib"
+  ],
+  "BigCodeBench/398": [
+   "open(",
+   "os.path",
+   "tempfile"
+  ],
+  "BigCodeBench/399": [
+   "Axes",
+   "Figure"
+  ],
+  "BigCodeBench/400": [
+   "open(",
+   "tempfile"
+  ],
+  "BigCodeBench/405": [
+   "Axes",
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/409": [
+   "os.remove"
+  ],
+  "BigCodeBench/410": [
+   "os.remove"
+  ],
+  "BigCodeBench/411": [
+   "open("
+  ],
+  "BigCodeBench/414": [
+   "Axes"
+  ],
+  "BigCodeBench/416": [
+   "Axes"
+  ],
+  "BigCodeBench/417": [
+   "Axes",
+   "plt"
+  ],
+  "BigCodeBench/419": [
+   "Axes",
+   "plt"
+  ],
+  "BigCodeBench/423": [
+   "os.remove"
+  ],
+  "BigCodeBench/424": [
+   "os.remove"
+  ],
+  "BigCodeBench/425": [
+   "os.remove"
+  ],
+  "BigCodeBench/426": [
+   "os.remove"
+  ],
+  "BigCodeBench/427": [
+   "Axes"
+  ],
+  "BigCodeBench/429": [
+   "Axes"
+  ],
+  "BigCodeBench/430": [
+   "Axes"
+  ],
+  "BigCodeBench/431": [
+   "os.remove",
+   "randint",
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/432": [
+   "Axes"
+  ],
+  "BigCodeBench/435": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/436": [
+   "Axes"
+  ],
+  "BigCodeBench/437": [
+   "randint",
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/438": [
+   "Figure",
+   "random"
+  ],
+  "BigCodeBench/439": [
+   "Axes",
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/440": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/441": [
+   "random"
+  ],
+  "BigCodeBench/442": [
+   "Axes"
+  ],
+  "BigCodeBench/443": [
+   "Axes",
+   "random"
+  ],
+  "BigCodeBench/445": [
+   "Axes"
+  ],
+  "BigCodeBench/446": [
+   "Axes"
+  ],
+  "BigCodeBench/447": [
+   "Axes",
+   "random"
+  ],
+  "BigCodeBench/448": [
+   "Axes"
+  ],
+  "BigCodeBench/449": [
+   "Axes"
+  ],
+  "BigCodeBench/450": [
+   "Axes"
+  ],
+  "BigCodeBench/454": [
+   "os.listdir",
+   "os.makedirs",
+   "os.path"
+  ],
+  "BigCodeBench/457": [
+   "Axes"
+  ],
+  "BigCodeBench/460": [
+   "Axes"
+  ],
+  "BigCodeBench/463": [
+   "Axes"
+  ],
+  "BigCodeBench/464": [
+   "datetime"
+  ],
+  "BigCodeBench/465": [
+   "datetime"
+  ],
+  "BigCodeBench/467": [
+   "Axes",
+   "Figure"
+  ],
+  "BigCodeBench/468": [
+   "<matplotlib.axes._axes.Axes object at 0x"
+  ],
+  "BigCodeBench/469": [
+   "Axes"
+  ],
+  "BigCodeBench/470": [
+   "Axes"
+  ],
+  "BigCodeBench/472": [
+   "Axes"
+  ],
+  "BigCodeBench/473": [
+   "Axes",
+   "seed"
+  ],
+  "BigCodeBench/474": [
+   "Axes"
+  ],
+  "BigCodeBench/476": [
+   "Axes",
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/477": [
+   "Axes"
+  ],
+  "BigCodeBench/478": [
+   "seed"
+  ],
+  "BigCodeBench/480": [
+   "seed"
+  ],
+  "BigCodeBench/481": [
+   "seed"
+  ],
+  "BigCodeBench/482": [
+   "seed"
+  ],
+  "BigCodeBench/485": [
+   "Axes"
+  ],
+  "BigCodeBench/486": [
+   "Axes"
+  ],
+  "BigCodeBench/488": [
+   "Axes"
+  ],
+  "BigCodeBench/491": [
+   "Axes",
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/493": [
+   "Figure"
+  ],
+  "BigCodeBench/494": [
+   "datetime",
+   "seed"
+  ],
+  "BigCodeBench/496": [
+   "Axes"
+  ],
+  "BigCodeBench/499": [
+   "os.path"
+  ],
+  "BigCodeBench/500": [
+   "os.path"
+  ],
+  "BigCodeBench/501": [
+   "os.remove"
+  ],
+  "BigCodeBench/502": [
+   "Axes"
+  ],
+  "BigCodeBench/506": [
+   "datetime"
+  ],
+  "BigCodeBench/507": [
+   "datetime"
+  ],
+  "BigCodeBench/509": [
+   "os.remove"
+  ],
+  "BigCodeBench/511": [
+   "Axes"
+  ],
+  "BigCodeBench/512": [
+   "Axes"
+  ],
+  "BigCodeBench/513": [
+   "Axes",
+   "datetime"
+  ],
+  "BigCodeBench/514": [
+   "Axes"
+  ],
+  "BigCodeBench/515": [
+   "Axes"
+  ],
+  "BigCodeBench/519": [
+   "Axes"
+  ],
+  "BigCodeBench/521": [
+   "Axes"
+  ],
+  "BigCodeBench/522": [
+   "Axes"
+  ],
+  "BigCodeBench/523": [
+   "Axes"
+  ],
+  "BigCodeBench/524": [
+   "Axes"
+  ],
+  "BigCodeBench/525": [
+   "Axes"
+  ],
+  "BigCodeBench/527": [
+   "Axes"
+  ],
+  "BigCodeBench/528": [
+   "Axes"
+  ],
+  "BigCodeBench/529": [
+   "Axes"
+  ],
+  "BigCodeBench/530": [
+   "Axes"
+  ],
+  "BigCodeBench/532": [
+   "Axes"
+  ],
+  "BigCodeBench/537": [
+   "Axes"
+  ],
+  "BigCodeBench/538": [
+   "Axes"
+  ],
+  "BigCodeBench/540": [
+   "Axes"
+  ],
+  "BigCodeBench/545": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/548": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/551": [
+   "Axes"
+  ],
+  "BigCodeBench/552": [
+   "Axes"
+  ],
+  "BigCodeBench/555": [
+   "Axes"
+  ],
+  "BigCodeBench/557": [
+   "os.remove"
+  ],
+  "BigCodeBench/558": [
+   "Axes"
+  ],
+  "BigCodeBench/579": [
+   "Axes",
+   "os.remove"
+  ],
+  "BigCodeBench/581": [
+   "Axes"
+  ],
+  "BigCodeBench/582": [
+   "Figure"
+  ],
+  "BigCodeBench/592": [
+   "os.path"
+  ],
+  "BigCodeBench/593": [
+   "Axes"
+  ],
+  "BigCodeBench/604": [
+   "os.path"
+  ],
+  "BigCodeBench/615": [
+   "seed"
+  ],
+  "BigCodeBench/616": [
+   "seed"
+  ],
+  "BigCodeBench/635": [
+   "Axes"
+  ],
+  "BigCodeBench/645": [
+   "os.path"
+  ],
+  "BigCodeBench/646": [
+   "os.path"
+  ],
+  "BigCodeBench/648": [
+   "datetime"
+  ],
+  "BigCodeBench/673": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/678": [
+   "shutil"
+  ],
+  "BigCodeBench/680": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/684": [
+   "randint",
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/689": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/690": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/691": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/694": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/696": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/697": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/698": [
+   "randint",
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/701": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/705": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/706": [
+   "randint",
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/722": [
+   "http"
+  ],
+  "BigCodeBench/723": [
+   "http"
+  ],
+  "BigCodeBench/726": [
+   "random"
+  ],
+  "BigCodeBench/739": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/740": [
+   "randint",
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/746": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/751": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/752": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/753": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/767": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/780": [
+   "datetime"
+  ],
+  "BigCodeBench/791": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/793": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/805": [
+   "seed"
+  ],
+  "BigCodeBench/815": [
+   "randint",
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/816": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/819": [
+   "seed"
+  ],
+  "BigCodeBench/843": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/848": [
+   "randint",
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/850": [
+   "seed"
+  ],
+  "BigCodeBench/852": [
+   "seed"
+  ],
+  "BigCodeBench/855": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/856": [
+   "seed"
+  ],
+  "BigCodeBench/858": [
+   "seed"
+  ],
+  "BigCodeBench/860": [
+   "seed"
+  ],
+  "BigCodeBench/862": [
+   "seed"
+  ],
+  "BigCodeBench/875": [
+   "seed"
+  ],
+  "BigCodeBench/880": [
+   "randint",
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/881": [
+   "seed"
+  ],
+  "BigCodeBench/885": [
+   "randint",
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/887": [
+   "seed"
+  ],
+  "BigCodeBench/893": [
+   "datetime"
+  ],
+  "BigCodeBench/894": [
+   "plt",
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/895": [
+   "plt",
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/896": [
+   "seed"
+  ],
+  "BigCodeBench/897": [
+   "plt",
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/898": [
+   "seed"
+  ],
+  "BigCodeBench/899": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/904": [
+   "Axes"
+  ],
+  "BigCodeBench/909": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/910": [
+   "Axes"
+  ],
+  "BigCodeBench/920": [
+   "Axes"
+  ],
+  "BigCodeBench/923": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/925": [
+   "seed"
+  ],
+  "BigCodeBench/930": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/944": [
+   "seed"
+  ],
+  "BigCodeBench/945": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/947": [
+   "datetime"
+  ],
+  "BigCodeBench/949": [
+   "seed"
+  ],
+  "BigCodeBench/950": [
+   "seed"
+  ],
+  "BigCodeBench/952": [
+   "seed"
+  ],
+  "BigCodeBench/954": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/955": [
+   "Axes"
+  ],
+  "BigCodeBench/960": [
+   "seed"
+  ],
+  "BigCodeBench/965": [
+   "os.listdir"
+  ],
+  "BigCodeBench/966": [
+   "Axes",
+   "Figure"
+  ],
+  "BigCodeBench/967": [
+   "Axes"
+  ],
+  "BigCodeBench/977": [
+   "Axes",
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/978": [
+   "seed"
+  ],
+  "BigCodeBench/980": [
+   "Figure"
+  ],
+  "BigCodeBench/982": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/984": [
+   "Axes"
+  ],
+  "BigCodeBench/986": [
+   "Figure",
+   "plt"
+  ],
+  "BigCodeBench/987": [
+   "Axes"
+  ],
+  "BigCodeBench/989": [
+   "seed"
+  ],
+  "BigCodeBench/991": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/993": [
+   "Axes"
+  ],
+  "BigCodeBench/996": [
+   "http"
+  ],
+  "BigCodeBench/997": [
+   "http"
+  ],
+  "BigCodeBench/998": [
+   "http"
+  ],
+  "BigCodeBench/999": [
+   "http"
+  ],
+  "BigCodeBench/1000": [
+   "http"
+  ],
+  "BigCodeBench/1003": [
+   "http"
+  ],
+  "BigCodeBench/1004": [
+   "http"
+  ],
+  "BigCodeBench/1005": [
+   "http"
+  ],
+  "BigCodeBench/1012": [
+   "http"
+  ],
+  "BigCodeBench/1015": [
+   "http"
+  ],
+  "BigCodeBench/1016": [
+   "Axes"
+  ],
+  "BigCodeBench/1020": [
+   "http"
+  ],
+  "BigCodeBench/1023": [
+   "Axes",
+   "random"
+  ],
+  "BigCodeBench/1029": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/1034": [
+   "randint",
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/1035": [
+   "randint",
+   "random"
+  ],
+  "BigCodeBench/1037": [
+   "random"
+  ],
+  "BigCodeBench/1044": [
+   "datetime"
+  ],
+  "BigCodeBench/1047": [
+   "Axes"
+  ],
+  "BigCodeBench/1052": [
+   "Axes"
+  ],
+  "BigCodeBench/1053": [
+   "Axes"
+  ],
+  "BigCodeBench/1059": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/1061": [
+   "Axes"
+  ],
+  "BigCodeBench/1066": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/1067": [
+   "requests"
+  ],
+  "BigCodeBench/1070": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/1071": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/1072": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/1086": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/1087": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/1088": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/1108": [
+   "http"
+  ],
+  "BigCodeBench/1114": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/1115": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/1116": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/1117": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/1119": [
+   "random",
+   "seed"
+  ],
+  "BigCodeBench/1120": [
+   "http"
+  ],
+  "BigCodeBench/1121": [
+   "http"
+  ],
+  "BigCodeBench/1122": [
+   "http"
+  ],
+  "BigCodeBench/1136": [
+   "http"
+  ]
+ }
+}

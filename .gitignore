@@ -41,3 +41,5 @@ benchmark_data/
 
 # EvalPlus (MBPP+) 전용 venv (requirements-evalplus.txt 로 재생성)
 .venv-evalplus/
+# BCB 적격성 배치 작업 디렉터리 (canonical·test 포함, 재생성 가능)
+benchmark_data/bcb/work/
