@@ -1,0 +1,10 @@
+spec sha256 pinned; excluded: {'Mbpp/255': 'repr size 1294369422 > cap 1000000', 'Mbpp/630': 'repr size 11383632 > cap 1000000'}
+50/376 22s
+100/376 45s
+150/376 70s
+200/376 96s
+250/376 117s
+300/376 165s
+350/376 186s
+FAIL ('Mbpp/793', 'pass', 'no_tests', "artifact_chars=180 artifact_sha=952aa62282c7; ast=ok defs=['last']")
+canonical pass base&hidden: 375/376  failures=[('Mbpp/793', 'pass', 'no_tests', "artifact_chars=180 artifact_sha=952aa62282c7; ast=ok defs=['last']")]  198s

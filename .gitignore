@@ -38,3 +38,6 @@ evidence/traces/
 
 # LiveCodeBench raw files (~700MB, pinned revision, re-downloadable)
 benchmark_data/
+
+# EvalPlus (MBPP+) 전용 venv (requirements-evalplus.txt 로 재생성)
+.venv-evalplus/

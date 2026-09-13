@@ -17,7 +17,13 @@ harmonet/verify.py — 기계적 검증 (LLM 호출 0회)  [WEEK1 A1 → A7 재�
      "evidence": str, "cost_tokens": 0,
      "wall_ms": int, "exec_count": int, "sandbox": "subprocess"|"docker"}
 
-task_spec["kind"] = "code" | "patch" | "stdio".
+task_spec["kind"] = "code" | "patch" | "stdio" | "mbppplus".
+     # mbppplus (Week2-B0): tests / hidden_tests = [{"input": repr, "expected": repr, "atol": float, "time_limit": s}, ...]
+     #   함수형(code) 하네스를 그대로 쓰되 프렐류드(harmonet/mbppplus_compare.py 소스)를 후보 exec **뒤에** 네임스페이스에 넣고,
+     #   케이스마다 entry_point(*input) 을 호출해 공식 evalplus 비교(집합 비교·특수 판정·float atol·np.allclose)로 판정한다.
+     #   시간제한: 공식과 같은 케이스별 max(1s, 4×정답 시간)을 호출 후 경과시간으로 판정(초과 = 그 케이스 실패), 프로세스 전체는
+     #   공식 식 min(60, Σ제한)+2 초로 타임아웃. 공식은 SIGALRM 으로 케이스 도중 끊지만 Windows 엔 SIGALRM 이 없다 — 사후 측정이
+     #   통과/실패 게이트에서는 동치(초과 케이스는 어느 쪽이든 비통과)이고, 폭주 케이스는 전체 타임아웃으로 잡힌다.
      # stdio (Week2-A0, LiveCodeBench): tests / hidden_tests = [{"input": stdin, "output": expected_stdout}, ...]
      #   하네스가 테스트마다 후보를 **별도 subprocess** 로 실행하고 그 테스트의 stdin 만 넘긴다. 기대 출력·nonce·결과 파일 경로는
      #   후보 프로세스에 노출되지 않는다(argv·env·후보 cwd 어디에도 없음: 하네스가 stdin 으로 받아 메모리에만 둔다).
@@ -87,6 +93,13 @@ try:
 except BaseException as e:                                    # noqa: BLE001
     res["errors"].append("import: " + type(e).__name__ + ": " + str(e)[:300])
     _write(); _exit(0)
+if os.path.exists("prelude.py"):                              # mbppplus: 공식 비교 함수. 후보 뒤에 넣어 후보가 덮지 못하게
+    try:
+        with open("prelude.py", encoding="utf-8") as f:
+            exec(compile(f.read(), "prelude.py", "exec"), ns)
+    except BaseException as e:                                # noqa: BLE001
+        res["errors"].append("prelude: " + type(e).__name__ + ": " + str(e)[:300])
+        _write(); _exit(0)
 with open("tests.json", encoding="utf-8") as f:
     tests = json.load(f)
 for i, t in enumerate(tests):
@@ -181,7 +194,7 @@ def _min_env() -> Dict[str, str]:
     return {k: os.environ[k] for k in keep if k in os.environ}
 
 
-def _run_harness(artifact: str, tests: List[str], timeout_s: float) -> Dict[str, Any]:
+def _run_harness(artifact: str, tests: List[str], timeout_s: float, prelude: Optional[str] = None) -> Dict[str, Any]:
     """격리된 디렉터리에서 하네스 실행. result.json 을 nonce 로 검증해 outcome 을 정한다."""
     mode = _sandbox_mode()
     nonce = secrets.token_hex(16)
@@ -189,6 +202,9 @@ def _run_harness(artifact: str, tests: List[str], timeout_s: float) -> Dict[str,
     try:
         with open(os.path.join(tmp, "candidate.py"), "w", encoding="utf-8") as f:
             f.write(artifact + "\n")
+        if prelude:
+            with open(os.path.join(tmp, "prelude.py"), "w", encoding="utf-8") as f:
+                f.write(prelude)
         with open(os.path.join(tmp, "tests.json"), "w", encoding="utf-8") as f:
             json.dump(tests, f)
         with open(os.path.join(tmp, "harness.py"), "w", encoding="utf-8") as f:
@@ -227,7 +243,7 @@ def _run_harness(artifact: str, tests: List[str], timeout_s: float) -> Dict[str,
         elif data.get("n_passed") == data.get("n_run"):
             outcome = "pass"
         else:
-            outcome = "error" if any(e.startswith("import:") for e in data.get("errors", [])) else "fail"
+            outcome = "error" if any(e.startswith(("import:", "prelude:")) for e in data.get("errors", [])) else "fail"
         d = data or {}
         return {"outcome": outcome, "n_run": int(d.get("n_run", 0)), "n_passed": int(d.get("n_passed", 0)),
                 "n_failed": int(d.get("n_failed", 0)), "errors": list(d.get("errors", []))[:5], "tail": tail,
@@ -394,6 +410,36 @@ def _run_stdio_harness(artifact: str, tests: List[Dict[str, str]], per_test_time
         shutil.rmtree(tmp, ignore_errors=True)
 
 
+# ── MBPP+ (Week2-B0): 케이스 → 테스트 스니펫. 입력은 공식과 같이 복사 없이 그대로 넘긴다(untrusted_check 도 fn(*inp)).
+_MBPP_TIMEOUT_PER_TASK = 60.0   # evalplus EVALPLUS_TIMEOUT_PER_TASK 기본값
+
+
+def _mbpp_prelude() -> str:
+    from pathlib import Path
+    src = (Path(__file__).parent / "mbppplus_compare.py").read_text(encoding="utf-8")
+    return src.replace("from __future__ import annotations", "") + "\nimport time as _time\n"
+
+
+def _mbpp_tests(entry: str, cases: List[Dict[str, Any]]) -> List[str]:
+    out = []
+    for c in cases:
+        lim = float(c["time_limit"])
+        out.append(
+            f"_inp = parse_literal({json.dumps(c['input'])})\n"
+            f"_exp = parse_literal({json.dumps(c['expected'])})\n"
+            f"_t0 = _time.perf_counter()\n"
+            f"_out = {entry}(*_inp)\n"
+            f"_dt = _time.perf_counter() - _t0\n"
+            f"assert _dt <= {lim!r}, 'time limit %.2fs exceeded (%.2fs)' % ({lim!r}, _dt)\n"
+            f"assert mbpp_match({entry!r}, _inp, _out, _exp, {float(c['atol'])!r}), 'mismatch'\n")
+    return out
+
+
+def _mbpp_timeout(cases: List[Dict[str, Any]]) -> float:
+    # 공식 untrusted_check: timeout = min(60, Σ time_limits) + 1 (+1: fast_check=False)
+    return min(_MBPP_TIMEOUT_PER_TASK, sum(float(c["time_limit"]) for c in cases)) + 2.0
+
+
 def _normalize_tests(tests: Any) -> List[str]:
     if not tests:
         return []
@@ -462,13 +508,23 @@ def _verify(artifact: str, spec: Optional[Dict[str, Any]], tests_key: str, timeo
         evidence.append(f"entry_point={entry} missing")
         return _result("static", "error", evidence, method, flags=flags)
 
-    tests = _normalize_tests(spec.get(tests_key))
+    prelude = None
+    if kind == "mbppplus":
+        cases = spec.get(tests_key) or []
+        if not entry:
+            return _result("static", "error", evidence + ["mbppplus spec without entry_point"], method, flags=flags)
+        tests = _mbpp_tests(entry, cases)
+        prelude = _mbpp_prelude()
+        timeout_s = _mbpp_timeout(cases)
+        method.append("mbppplus_official_compare")
+    else:
+        tests = _normalize_tests(spec.get(tests_key))
     if not tests:
         return _result("static", "no_tests", evidence, method, flags=flags)
 
     # ── functional: 하네스 실행 ──
     method.append("test_exec")
-    h = _run_harness(artifact, tests, timeout_s)
+    h = _run_harness(artifact, tests, timeout_s, prelude=prelude)
     evidence.append(f"harness={h['outcome']} n_run={h['n_run']} n_passed={h['n_passed']} n_failed={h['n_failed']}"
                     + (" errors=" + " | ".join(h["errors"]) if h["errors"] else "")
                     + (f" tail={h['tail']!r}" if h["outcome"] in ("timeout", "aborted") and h["tail"] else ""))
