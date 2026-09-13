@@ -65,3 +65,21 @@ contest_date ≥ 2025-01-01 (stdin 112개):
 2. **날짜 완화**: 2024-10+ stdin 217개 (medium 50). haiku-4-5 학습 데이터 오염 가능성(컷오프 이전 문제) 을 한계로 명시해야 함.
 3. **EvalPlus(HumanEval+/MBPP+) 로 이동**: 층 순서의 최종 대안. HumanEval+ 는 **164개로 표본 조건(확인용 ≥200) 미달**이라 제외 (천장이라서가 아님 — 96.3% 는 HumanEval 결과). MBPP+ 378개는 확인용 ≥200 확보 가능. 로더 비용: `pip install evalplus`, plus_input 기대 출력은 canonical 실행으로 생성. **한계: 추가 테스트가 비공개라는 것 ≠ 사전학습 오염 없음** — MBPP 문제 자체는 2021년 공개돼 학습 데이터에 있을 수 있다.
 4. **release_v1~v4(2023-05~2024-09) 포함**: 문제 수는 충분하지만 오염 위험이 가장 큼 — 권하지 않음.
+
+---
+
+# 프로브 3 사전 등록 — MBPP+ (2026-09-14, 실행 전 작성)
+
+사용자 결정(2026-09-13): 주 트랙 = MBPP+, 확인용 ≥200 유지, LCB 는 보조로 강등, HumanEval+ 는 표본 조건(164) 미달로 제외.
+
+## 풀
+- MBPP+ v0.2.0, evalplus 0.3.1, 데이터 sha256 `ee1701c9…` / 스펙 sha256 `b6888ff4…` (`mbppplus_source.md`).
+- 제외 후 345개 → 프로브 60개 = `probe_ids_mbppplus.json` (seed 20260913, 커밋에 동결) → 확인용 285개 = `confirm_ids_mbppplus.json` (주 2 에서 손대지 않음).
+
+## 조건
+- 어댑터 single (`benchmark/mbppplus_g1.py`): builder 1회 호출 → 코드 추출 → verify_visible(base) → 종료 → score_hidden(plus−base).
+- 모델 claude-haiku-4-5, temperature 0.2, max_tokens 4096, 시스템 프롬프트 `_DEFAULT_SYSTEM`, 과제 프롬프트 = 공식 MBPP+ prompt + 코드블록 지시.
+- 판정 지표: **plus_only_pass** (히든 plus−base 통과율). base_pass·both_pass 는 함께 보고하되 판정에 쓰지 않는다.
+- 판정 규칙: plus_only_pass ∈ [30%, 70%] → 이 풀 채택(pass). 밖 → 채택 안 함(unconfirmed) — 다음 사전 등록만 쓰고 멈춤 (재프로브 실행 금지).
+- 비용 상한 $1 (HumanEval 164개가 $0.13 였으므로 60개 ≈ $0.05 예상). 초과 시 중단.
+- 보고 항목: pass/fail/error/timeout 분포, base_pass·plus_only_pass·both_pass, 비용, extraction 종류, token_source (measured 여야 함), trigger=eval:hidden 0건.
