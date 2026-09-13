@@ -46,7 +46,8 @@ def test_correct_output_then_runtime_error_is_error():
 
 def test_correct_output_then_infinite_loop_is_timeout():
     r = verify_visible(GOOD + "while True:\n    pass\n", SPEC)
-    assert r["passed"] is False and r["outcome"] == "timeout" and "output matched" in r["evidence"], r
+    # 버퍼링된 stdout 은 kill 시 유실될 수 있어 "(output matched)" 표시는 보장되지 않는다 — 판정만 단언
+    assert r["passed"] is False and r["outcome"] == "timeout", r
 
 
 def test_correct_output_then_non_daemon_thread_is_timeout():
