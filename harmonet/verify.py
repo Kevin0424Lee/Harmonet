@@ -27,10 +27,13 @@ os._exit 처럼 하네스를 통째로 죽이면 result.json 이 없다 → outc
 python -I, 타임아웃. HARMONET_SANDBOX=docker 면 python:3.11-slim 컨테이너(--network none)에서 실행하고 Docker 가
 없으면 RuntimeError (조용한 폴백 금지). 기본은 subprocess.
 
+A7b: nonce 와 결과 경로는 argv 가 아니라 stdin 으로 넘기고 후보 exec 전에 소비한다; 기록기(json.dump/open/os._exit)는
+후보 exec 전에 바인딩한다; 하네스는 끝에서 os._exit 로 종료해 후보의 잔여 스레드가 timeout 을 만들지 못하게 한다.
+
 알려진 한계 (subprocess 모드):
-  - 같은 OS 사용자 권한으로 돈다. 파일시스템·네트워크 격리 없음. 악의적 후보는 임시 디렉터리 밖에 쓸 수 있다.
-  - argv/환경을 읽어 nonce 를 위조하는 고의적 후보는 범위 밖.
-  - CPU/메모리 제한 없음 (타임아웃만).
+  - `sys._getframe` 등으로 하네스 프레임의 지역변수(nonce, out_path)를 읽는 후보는 막지 못한다.
+  - `builtins` / `os` 모듈 수준을 통째로 패치하는 후보(사전 바인딩된 함수 객체 자체를 바꾸는 수준)는 막지 못한다.
+  - 같은 OS 사용자 권한으로 돈다. 파일시스템·네트워크 격리 없음, CPU/메모리 제한 없음 (타임아웃만).
 """
 from __future__ import annotations
 
@@ -53,14 +56,15 @@ LEVELS = ("static", "apply", "functional")
 
 # 하네스: 후보 import → 테스트 하나씩 실행 → result.json. 종료 코드는 보지 않는다.
 _HARNESS = r'''
-import json, sys, time, traceback
-nonce, expected, out_path = sys.argv[1], int(sys.argv[2]), sys.argv[3]
+import json, os, sys, time, traceback
+_dump, _open, _exit = json.dump, open, os._exit            # 후보 exec 전에 바인딩: 후보가 json/open 을 패치해도 영향 없음
+nonce, expected, out_path = json.loads(sys.stdin.readline())  # stdin 으로 받고 즉시 소비: 후보는 argv 에서 nonce 를 볼 수 없다
 t0 = time.time()
 res = {"n_run": 0, "n_passed": 0, "n_failed": 0, "errors": [], "duration_ms": 0, "nonce": nonce}
 def _write():
     res["duration_ms"] = int((time.time() - t0) * 1000)
-    with open(out_path, "w", encoding="utf-8") as f:
-        json.dump(res, f)
+    with _open(out_path, "w", encoding="utf-8") as f:
+        _dump(res, f)
 ns = {"__name__": "candidate"}
 try:
     with open("candidate.py", encoding="utf-8") as f:
@@ -68,7 +72,7 @@ try:
     exec(compile(src, "candidate.py", "exec"), ns)          # 후보 import (SystemExit 포함 전부 error 로)
 except BaseException as e:                                    # noqa: BLE001
     res["errors"].append("import: " + type(e).__name__ + ": " + str(e)[:300])
-    _write(); raise SystemExit(0)
+    _write(); _exit(0)
 with open("tests.json", encoding="utf-8") as f:
     tests = json.load(f)
 for i, t in enumerate(tests):
@@ -80,6 +84,7 @@ for i, t in enumerate(tests):
         res["n_failed"] += 1
         res["errors"].append("test_%d: %s: %s" % (i, type(e).__name__, str(e)[:300]))
 _write()
+_exit(0)                                                      # 후보가 남긴 스레드가 프로세스를 붙잡아 timeout 나는 것 방지
 '''
 
 
@@ -176,14 +181,15 @@ def _run_harness(artifact: str, tests: List[str], timeout_s: float) -> Dict[str,
             f.write(_HARNESS)
         out_name = f"result_{nonce[:8]}.json"
         if mode == "docker":
-            cmd = ["docker", "run", "--rm", "--network", "none", "-v", f"{tmp}:/w", "-w", "/w", "python:3.11-slim",
-                   "python", "-I", "harness.py", nonce, str(len(tests)), out_name]
+            cmd = ["docker", "run", "-i", "--rm", "--network", "none", "-v", f"{tmp}:/w", "-w", "/w", "python:3.11-slim",
+                   "python", "-I", "harness.py"]
         else:
-            cmd = [sys.executable, "-I", "harness.py", nonce, str(len(tests)), out_name]
+            cmd = [sys.executable, "-I", "harness.py"]
         t0 = time.perf_counter()
         timed_out = False
         try:
-            proc = subprocess.run(cmd, cwd=tmp, env=_min_env(), capture_output=True, text=True, timeout=timeout_s)
+            proc = subprocess.run(cmd, cwd=tmp, env=_min_env(), input=json.dumps([nonce, len(tests), out_name]) + "\n",
+                                  capture_output=True, text=True, timeout=timeout_s)
             tail = (proc.stderr or proc.stdout)[-300:]
         except subprocess.TimeoutExpired:
             timed_out, tail = True, "timeout"

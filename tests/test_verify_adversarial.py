@@ -46,19 +46,52 @@ def test_printing_pass_to_stdout_is_not_a_pass():
 
 
 def test_candidate_prewriting_result_json_is_caught_by_nonce():
-    # 후보가 cwd 의 result_*.json 을 전부 위조하고 하네스를 죽인다 → nonce 불일치/파일 없음 → aborted
+    # A7b: nonce 와 결과 경로는 stdin 으로 넘어가 후보 exec 전에 소비된다. 후보는 argv 에서 아무것도 못 얻는다.
+    # 후보가 cwd 의 result_*.json 을 추측·위조하고 하네스를 죽인다 → 진짜 결과 파일 없음 → aborted
     code = (
         "def add(a, b):\n    return 0\n"
-        "import os, json, glob\n"
-        "for name in ['result.json'] + [f for f in os.listdir('.') if f.startswith('result_')]:\n"
+        "import os, json\n"
+        "assert len(__import__('sys').argv) == 1  # A7b: argv 에 nonce/경로가 없어야 한다\n"
+        "for name in ['result.json', 'result_00000000.json'] + [f for f in os.listdir('.') if f.startswith('result_')]:\n"
         "    json.dump({'n_run': 1, 'n_passed': 1, 'n_failed': 0, 'errors': [], 'duration_ms': 1, 'nonce': 'forged'}, open(name, 'w'))\n"
-        "import sys\n"
-        "# 하네스가 나중에 덮어쓰지 못하게 argv 의 결과 파일명으로도 위조\n"
-        "json.dump({'n_run': 1, 'n_passed': 1, 'n_failed': 0, 'errors': [], 'duration_ms': 1, 'nonce': 'forged'}, open(sys.argv[3], 'w'))\n"
         "os._exit(0)\n"
     )
     r = _run(code)
-    assert r["outcome"] == "aborted" and "nonce mismatch" in r["evidence"], r
+    assert r["outcome"] == "aborted" and r["passed"] is False, r
+
+
+def test_candidate_reading_argv_cannot_recover_nonce():
+    # A7b 이전: sys.argv[1] 의 nonce 로 정확히 위조하면 passed=True 였다 (Fable 재현). 이제 argv 는 비어 있다.
+    code = (
+        "import sys, json\ndef add(a, b):\n    return 0\n"
+        "nonce = sys.argv[1]; out = sys.argv[3]\n"
+        "json.dump({'n_run': 1, 'n_passed': 1, 'n_failed': 0, 'errors': [], 'duration_ms': 1, 'nonce': nonce}, open(out, 'w'))\n"
+        "import os; os._exit(0)\n"
+    )
+    r = _run(code)
+    assert r["passed"] is False and r["outcome"] == "error" and r["n_run"] == 0, r
+
+
+def test_candidate_monkeypatching_json_dump_is_ineffective():
+    # A7b 이전: 하네스가 후보가 바꿔친 json.dump 로 결과를 써서 passed=True 였다 (Fable 재현). 이제 사전 바인딩된 _dump 를 쓴다.
+    code = (
+        "import sys\ndef add(a, b):\n    return 0\n"
+        "_j = sys.modules['json']; _real = _j.dump\n"
+        "def fake(obj, f, **k):\n    obj['n_passed'] = obj['n_run']; obj['n_failed'] = 0; obj['errors'] = []; _real(obj, f, **k)\n"
+        "_j.dump = fake\n"
+    )
+    r = _run(code)
+    assert r["passed"] is False and r["outcome"] == "fail" and r["n_passed"] == 0, r
+
+
+def test_correct_candidate_with_lingering_thread_is_not_timeout():
+    # A7b 이전: non-daemon 스레드가 프로세스를 붙잡아 정답이 timeout(거짓 실패). 이제 하네스가 os._exit 로 끝낸다.
+    code = (
+        "import threading, time\ndef add(a, b):\n    return a + b\n"
+        "threading.Thread(target=lambda: time.sleep(30)).start()\n"
+    )
+    r = verify_visible(code, SPEC, timeout_s=8.0)          # _run 은 passed=False 를 단언하므로 직접 호출
+    assert r["passed"] is True and r["outcome"] == "pass" and r["wall_ms"] < 5000, r
 
 
 def test_apply_level_never_passes(tmp_path):
