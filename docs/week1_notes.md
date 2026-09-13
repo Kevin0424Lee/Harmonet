@@ -68,3 +68,13 @@ Part A 진행 중 확정된 사실과, 2주차 설계(`docs/week2_design_draft.m
   프롬프트에 없는 히든 테스트로 채택 가능. 비용: `pip install evalplus`(numpy·tqdm·wget 등), HumanEval+ v0.1.10 / MBPP+ v0.2.0 캐시 다운로드(수 MB),
   기대 출력 생성용 canonical 실행 1회. **채택은 승인 후.**
 - 재채점 대조: 거짓 통과 0/360. v1 산출물은 120/120 `heuristic` 추출(코드 블록 없이 출력) — 채점엔 문제 없었으나 2주차 arm 에서는 fenced 를 요구할 것.
+
+## 검토 오류 기록 (2026-09-13, 코덱스 지적으로 발견)
+| 누가 | 무엇을 틀렸나 | 근거 파일 |
+|---|---|---|
+| Fable | C2 §0 "최선 고정 = REDEREF 사후분포가 수렴하는 정책" 주장 — REDEREF 원문을 확인하지 않고 씀. REDEREF 는 질의 유사도·시간 감쇠로 사전분포를 두고 판정 결과로 재라우팅·종료한다 | `docs/week2_design_draft.md` §0 (C3 에서 정정), `docs/related_work_week1.md` REDEREF 행 |
+| Fable | 교수님 문서에서 SWE 11/30 을 HarmoNet 수치로 오기 — 실제는 single_validate(single + apply-check 수리) | `evidence/swe_fair/haiku_0_30_4k_nohints/README.md` |
+| Fable | v1 토큰 434 를 2차 통과율 옆에 배치해 같은 조건처럼 읽히게 함 | `evidence/g1_fair/rerun/README.md` |
+| Fable | "힌트 빼면 25%" 를 인과로 서술 — README 는 hints 유무를 통제한 비교가 아님(모델·max_tokens 도 함께 바뀜) | `evidence/swe_fair/haiku_0_30_4k_nohints/README.md` |
+| Claude Code | A7 보고 "argv 위조도 nonce 불일치로 aborted" — 테스트가 'forged' 라는 틀린 nonce 를 써서 통과한 것. 실제로는 argv 를 읽는 후보가 passed=True 였음 | `tests/test_verify_probe8.py` (A7b), 이 파일 A7 항목 |
+| Claude Code | A7 에서 verify 함수만 고치고 러너(`external_g1.py`)의 채점 호출처는 연결하지 않아 옛 종료 코드 채점기가 그대로 쓰임 | A7c 커밋 `d7f429a` 이전의 `benchmark/external_g1.py:evaluate_code` |
