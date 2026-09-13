@@ -78,3 +78,12 @@ Part A 진행 중 확정된 사실과, 2주차 설계(`docs/week2_design_draft.m
 | Fable | "힌트 빼면 25%" 를 인과로 서술 — README 는 hints 유무를 통제한 비교가 아님(모델·max_tokens 도 함께 바뀜) | `evidence/swe_fair/haiku_0_30_4k_nohints/README.md` |
 | Claude Code | A7 보고 "argv 위조도 nonce 불일치로 aborted" — 테스트가 'forged' 라는 틀린 nonce 를 써서 통과한 것. 실제로는 argv 를 읽는 후보가 passed=True 였음 | `tests/test_verify_probe8.py` (A7b), 이 파일 A7 항목 |
 | Claude Code | A7 에서 verify 함수만 고치고 러너(`external_g1.py`)의 채점 호출처는 연결하지 않아 옛 종료 코드 채점기가 그대로 쓰임 | A7c 커밋 `d7f429a` 이전의 `benchmark/external_g1.py:evaluate_code` |
+
+## Week2-A0 LiveCodeBench 로더·stdio 하네스
+- 데이터는 HF `livecodebench/code_generation_lite` revision `0fe84c3912ea0c4d4a78037083943e8f0c4dd505` 의 jsonl 을 직접 받는다
+  (로딩 스크립트/`trust_remote_code` 불필요). `private_test_cases` 는 base64→zlib→**pickle**(JSON 문자열): 공식 출처 + 고정 revision 파일만
+  역직렬화한다. 다른 출처 파일은 넣지 않는다 (`benchmark/lcb.py` docstring).
+- stdin 문제는 전부 atcoder, functional 문제는 전부 leetcode. test5+test6(2024-09~2025-04) stdin 217개; **2025-01-01 이후 stdin 은 112개(medium 26)**.
+  사전 등록 필터(medium·2025+)로는 프로브 60 도 확인용 ≥200 도 확보 불가 → 프로브 미실행 (pool_probe.md).
+- 하네스 메모리 상한은 Windows 에서 미적용(`mem_limit=not_applied(windows)` 로 기록). POSIX 는 RLIMIT_AS 2GiB.
+- 비교 규칙은 공식 `grade_stdio` 를 옮김: 줄 수 일치 필수, 줄 단위 strip, 정확 일치 아니면 양쪽 Decimal 리스트 일치. 비수치 줄은 대소문자 구분.

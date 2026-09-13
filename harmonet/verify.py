@@ -17,6 +17,16 @@ harmonet/verify.py — 기계적 검증 (LLM 호출 0회)  [WEEK1 A1 → A7 재�
      "evidence": str, "cost_tokens": 0,
      "wall_ms": int, "exec_count": int, "sandbox": "subprocess"|"docker"}
 
+task_spec["kind"] = "code" | "patch" | "stdio".
+     # stdio (Week2-A0, LiveCodeBench): tests / hidden_tests = [{"input": stdin, "output": expected_stdout}, ...]
+     #   하네스가 테스트마다 후보를 **별도 subprocess** 로 실행하고 그 테스트의 stdin 만 넘긴다. 기대 출력·nonce·결과 파일 경로는
+     #   후보 프로세스에 노출되지 않는다(argv·env·후보 cwd 어디에도 없음: 하네스가 stdin 으로 받아 메모리에만 둔다).
+     #   테스트당 타임아웃(기본 10s) 시 자식 프로세스 트리 전체 종료(Windows taskkill /T, POSIX 프로세스 그룹). stdout 상한 1MB(초과 = fail).
+     #   메모리 상한: POSIX 는 RLIMIT_AS, Windows 는 미적용 — 결과의 mem_limit 에 "not_applied" 로 기록한다(조용히 생략하지 않음).
+     #   출력을 완성한 뒤 종료하지 않는 후보: 타임아웃 시점의 stdout 이 기대 출력과 일치하면 pass 로 판정하고 프로세스는 강제 종료한다.
+     #   비교 규칙은 LCB 공식 testing_util.grade_stdio 와 동일 (harmonet/stdio_compare.py).
+     #   **별도 subprocess 는 보안 격리가 아니다** (같은 사용자 권한·파일 접근·자원 고갈 가능).
+
 거짓 통과 방지 (A7): 종료 코드는 통과 신호가 아니다. 하네스가 후보를 import 하고 테스트를 하나씩 실행한 뒤
 result.json {n_run, n_passed, n_failed, errors, duration_ms, nonce} 를 쓴다. 검증기는
   파일 존재 ∧ nonce 일치 ∧ n_run == 기대 테스트 수 ∧ n_passed == n_run  일 때만 pass.
@@ -222,6 +232,159 @@ def _run_harness(artifact: str, tests: List[str], timeout_s: float) -> Dict[str,
         shutil.rmtree(tmp, ignore_errors=True)
 
 
+# ── stdio 하네스 (Week2-A0) ─────────────────────────────────────────────────
+# 부모(하네스) 프로세스가 stdin 으로 {nonce, out_path, tests[{input,output}], timeout_s, stdout_cap} 를 받아 메모리에만 두고,
+# 테스트마다 `python -I candidate.py` 를 run/ 디렉터리(cwd)에서 띄워 stdin 만 넘긴다. 결과 파일은 부모 cwd(run/ 밖)에 쓴다.
+_STDIO_HARNESS_MAIN = r'''
+import json, os, subprocess, sys, threading, time
+_dump, _open, _exit = json.dump, open, os._exit
+cfg = json.loads(sys.stdin.readline())
+nonce, out_path, tests, per_test_timeout, cap = cfg["nonce"], cfg["out_path"], cfg["tests"], cfg["timeout_s"], cfg["stdout_cap"]
+t0 = time.time()
+res = {"n_run": 0, "n_passed": 0, "n_failed": 0, "errors": [], "duration_ms": 0, "nonce": nonce, "mem_limit": "n/a", "notes": []}
+IS_WIN = os.name == "nt"
+def _write():
+    res["duration_ms"] = int((time.time() - t0) * 1000)
+    with _open(out_path, "w", encoding="utf-8") as f:
+        _dump(res, f)
+def _kill_tree(p):
+    try:
+        if IS_WIN:
+            subprocess.run(["taskkill", "/T", "/F", "/PID", str(p.pid)], capture_output=True)
+        else:
+            import signal
+            os.killpg(os.getpgid(p.pid), signal.SIGKILL)
+    except Exception:
+        pass
+def _preexec():
+    try:
+        import resource
+        lim = 2 * 1024 * 1024 * 1024
+        resource.setrlimit(resource.RLIMIT_AS, (lim, lim))
+    except Exception:
+        pass
+def _limit_note():
+    if IS_WIN:
+        return "not_applied(windows)"
+    try:
+        import resource  # noqa: F401
+        return "RLIMIT_AS=2GiB"
+    except Exception:
+        return "not_applied(no resource module)"
+res["mem_limit"] = _limit_note()
+def run_one(inp):
+    """(stdout, timed_out, overflow, rc)"""
+    kw = dict(stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, cwd="run")
+    if IS_WIN:
+        kw["creationflags"] = 0x00000200  # CREATE_NEW_PROCESS_GROUP
+    else:
+        kw["start_new_session"] = True
+        kw["preexec_fn"] = _preexec
+    p = subprocess.Popen([sys.executable, "-I", "candidate.py"], **kw)
+    buf = bytearray(); overflow = [False]
+    def reader():
+        while True:
+            chunk = p.stdout.read(65536)
+            if not chunk:
+                break
+            if len(buf) + len(chunk) > cap:
+                buf.extend(chunk[: max(0, cap - len(buf))]); overflow[0] = True; _kill_tree(p); break
+            buf.extend(chunk)
+    th = threading.Thread(target=reader, daemon=True); th.start()
+    try:
+        p.stdin.write(inp.encode("utf-8")); p.stdin.close()
+    except Exception:
+        pass
+    timed_out = False
+    try:
+        p.wait(timeout=per_test_timeout)
+    except subprocess.TimeoutExpired:
+        timed_out = True; _kill_tree(p)
+    th.join(timeout=2)
+    return buf.decode("utf-8", errors="replace"), timed_out, overflow[0], p.returncode
+for i, t in enumerate(tests):
+    res["n_run"] += 1
+    try:
+        out, timed_out, overflow, rc = run_one(t["input"])
+        if overflow:
+            res["n_failed"] += 1; res["errors"].append("test_%d: stdout over cap" % i); continue
+        ok, why = stdio_match(out, t["output"])
+        if ok:
+            res["n_passed"] += 1
+            if timed_out:
+                res["notes"].append("test_%d: output complete but process did not exit; killed" % i)
+        else:
+            res["n_failed"] += 1
+            res["errors"].append("test_%d: %s%s" % (i, "timeout; " if timed_out else "", why))
+    except BaseException as e:  # noqa: BLE001
+        res["n_failed"] += 1; res["errors"].append("test_%d: harness %s: %s" % (i, type(e).__name__, str(e)[:200]))
+_write()
+_exit(0)
+'''
+
+
+def _stdio_harness_source() -> str:
+    """stdio_compare.py 소스 + 하네스 본문 — 하네스가 표준 라이브러리 외 아무것도 import 하지 않게 한다."""
+    from pathlib import Path
+    cmp_src = (Path(__file__).parent / "stdio_compare.py").read_text(encoding="utf-8")
+    return cmp_src + "\n" + _STDIO_HARNESS_MAIN
+
+
+def _run_stdio_harness(artifact: str, tests: List[Dict[str, str]], per_test_timeout_s: float,
+                       stdout_cap: int = 1_000_000) -> Dict[str, Any]:
+    mode = _sandbox_mode()
+    nonce = secrets.token_hex(16)
+    tmp = tempfile.mkdtemp(prefix="harmonet_stdio_")
+    try:
+        os.makedirs(os.path.join(tmp, "run"))
+        with open(os.path.join(tmp, "run", "candidate.py"), "w", encoding="utf-8") as f:
+            f.write(artifact + "\n")
+        with open(os.path.join(tmp, "harness.py"), "w", encoding="utf-8") as f:
+            f.write(_stdio_harness_source())
+        out_name = f"result_{nonce[:8]}.json"
+        cfg = json.dumps({"nonce": nonce, "out_path": out_name, "tests": tests, "timeout_s": per_test_timeout_s, "stdout_cap": stdout_cap})
+        if mode == "docker":
+            cmd = ["docker", "run", "-i", "--rm", "--network", "none", "-v", f"{tmp}:/w", "-w", "/w", "python:3.11-slim",
+                   "python", "-I", "harness.py"]
+        else:
+            cmd = [sys.executable, "-I", "harness.py"]
+        total_timeout = per_test_timeout_s * (len(tests) + 1) + 30
+        t0 = time.perf_counter()
+        timed_out = False
+        try:
+            proc = subprocess.run(cmd, cwd=tmp, env=_min_env(), input=cfg + "\n", capture_output=True, text=True, timeout=total_timeout)
+            tail = (proc.stderr or proc.stdout)[-300:]
+        except subprocess.TimeoutExpired:
+            timed_out, tail = True, "harness timeout"
+        wall_ms = int((time.perf_counter() - t0) * 1000)
+        out_path = os.path.join(tmp, out_name)
+        data = None
+        if os.path.exists(out_path):
+            try:
+                with open(out_path, encoding="utf-8") as f:
+                    data = json.load(f)
+            except Exception as exc:
+                tail = f"result.json unreadable: {exc}"
+        if timed_out:
+            outcome = "timeout"
+        elif data is None or data.get("nonce") != nonce:
+            outcome = "aborted"
+        elif data.get("n_run") != len(tests):
+            outcome = "aborted"
+        elif data.get("n_passed") == data.get("n_run"):
+            outcome = "pass"
+        elif any("timeout" in e for e in data.get("errors", [])) and data.get("n_passed") == 0:
+            outcome = "timeout"
+        else:
+            outcome = "fail"
+        d = data or {}
+        return {"outcome": outcome, "n_run": int(d.get("n_run", 0)), "n_passed": int(d.get("n_passed", 0)),
+                "n_failed": int(d.get("n_failed", 0)), "errors": list(d.get("errors", []))[:5], "notes": list(d.get("notes", []))[:5],
+                "mem_limit": d.get("mem_limit", "n/a"), "tail": tail, "wall_ms": wall_ms, "sandbox": mode}
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
 def _normalize_tests(tests: Any) -> List[str]:
     if not tests:
         return []
@@ -240,6 +403,27 @@ def _verify(artifact: str, spec: Optional[Dict[str, Any]], tests_key: str, timeo
 
     if not artifact.strip():
         return _result("static", "error", ["empty artifact"] + evidence, method)
+
+    if kind == "stdio":
+        method.append("ast")
+        try:
+            tree = ast.parse(artifact)
+        except SyntaxError as e:
+            evidence.append(f"ast=syntax_error line {e.lineno}: {e.msg}")
+            return _result("static", "error", evidence, method)
+        flags = _exit_flags(tree)
+        tests = spec.get(tests_key) or []
+        if not tests:
+            return _result("static", "no_tests", evidence, method, flags=flags)
+        method.append("stdio_exec")
+        h = _run_stdio_harness(artifact, [{"input": t["input"], "output": t["output"]} for t in tests],
+                               per_test_timeout_s=float(spec.get("per_test_timeout_s", 10.0)))
+        evidence.append(f"harness={h['outcome']} n_run={h['n_run']} n_passed={h['n_passed']} n_failed={h['n_failed']} mem_limit={h['mem_limit']}"
+                        + (" errors=" + " | ".join(h["errors"]) if h["errors"] else "")
+                        + (" notes=" + " | ".join(h["notes"]) if h["notes"] else "")
+                        + (f" tail={h['tail']!r}" if h["outcome"] in ("timeout", "aborted") and h["tail"] else ""))
+        return _result("functional", h["outcome"], evidence, method, flags=flags, n_run=h["n_run"], n_passed=h["n_passed"],
+                       n_failed=h["n_failed"], wall_ms=h["wall_ms"], exec_count=h["n_run"], sandbox=h["sandbox"], mem_limit=h["mem_limit"])
 
     if kind == "patch":
         from benchmark.swebench_g1 import _check_patch_applies  # git worktree + apply --check (러너와 동일 판정)

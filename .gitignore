@@ -35,3 +35,6 @@ Thumbs.db
 # 실행 추적 (WEEK1 A4). 실험 산출물은 evidence/<실험>/ 로 옮겨 커밋한다
 evidence/traces/
 !evidence/week1_smoke/
+
+# LiveCodeBench raw files (~700MB, pinned revision, re-downloadable)
+benchmark_data/
