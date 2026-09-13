@@ -78,6 +78,10 @@ Part A 진행 중 확정된 사실과, 2주차 설계(`docs/week2_design_draft.m
 | Fable | "힌트 빼면 25%" 를 인과로 서술 — README 는 hints 유무를 통제한 비교가 아님(모델·max_tokens 도 함께 바뀜) | `evidence/swe_fair/haiku_0_30_4k_nohints/README.md` |
 | Claude Code | A7 보고 "argv 위조도 nonce 불일치로 aborted" — 테스트가 'forged' 라는 틀린 nonce 를 써서 통과한 것. 실제로는 argv 를 읽는 후보가 passed=True 였음 | `tests/test_verify_probe8.py` (A7b), 이 파일 A7 항목 |
 | Claude Code | A7 에서 verify 함수만 고치고 러너(`external_g1.py`)의 채점 호출처는 연결하지 않아 옛 종료 코드 채점기가 그대로 쓰임 | A7c 커밋 `d7f429a` 이전의 `benchmark/external_g1.py:evaluate_code` |
+| Fable | stdio 하네스 규칙 "출력 완료 시점 기준 pass + kill" — 정답 출력 후 RuntimeError/무한루프가 pass 로 판정됨 (코덱스 재현). A0c 에서 rc==0 ∧ 정상 종료 규칙으로 교체 | `harmonet/verify.py` stdio docstring, `tests/test_verify_stdio_adversarial.py` |
+| Fable | C3 §4 "참값은 보수적 gap 과 낙관적 gap 사이" — 근거 없는 괄호 주장. A0c 에서 삭제, 판정은 통과/미확인 둘로 | `docs/week2_design_draft.md` §4 |
+| Claude Code | HumanEval+ 제외 사유를 "천장(96.3%)"으로 씀 — 96.3% 는 HumanEval 결과이고 HumanEval+ 제외 사유는 164개 표본 조건 미달 | `evidence/week2/pool_probe.md` (A0c 정정) |
+| Claude Code | 노출 가드가 True 로 해석되지 않는 값을 전부 False 로 취급 — `{"hidden_exposed": "unknown"}` 이 히든 1.0 (코덱스 재현). A0c 에서 명시적 False 만 허용 | `benchmark/hidden_guard.py`, `tests/test_hidden_guard.py` |
 
 ## Week2-A0 LiveCodeBench 로더·stdio 하네스
 - 데이터는 HF `livecodebench/code_generation_lite` revision `0fe84c3912ea0c4d4a78037083943e8f0c4dd505` 의 jsonl 을 직접 받는다
