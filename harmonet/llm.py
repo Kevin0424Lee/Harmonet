@@ -542,23 +542,24 @@ def _warn_once(key: str, msg: str) -> None:
 
 
 def _assert_model_available(client: "LLMClient", role: str) -> None:
-    """명시적으로 지정한 모델을 백엔드가 열 수 있는지 확인. 못 열면 RuntimeError (다른 모델로 대체하지 않는다)."""
+    """명시적으로 지정한 모델을 백엔드가 열 수 있는지 + 가격표에 있는지 확인. 어느 쪽이든 실패면 RuntimeError, 호출 0회
+    (다른 모델로 대체하지 않는다). 가격 조회는 백엔드가 **보고할** id(models.retrieve 의 id, 날짜 접미사 정규화)로 한다 (Week2-B2)."""
+    from harmonet.pricing import preflight_price
     model = getattr(client, "model", None)
+    reported = model
     try:
-        if isinstance(client, MockLLMClient):
-            return                                   # mock 은 어떤 이름이든 echo
         if isinstance(client, OllamaClient):
             tags = client.requests.get(f"{client.host}/api/tags", timeout=5).json().get("models", [])
             if model not in {m["name"] for m in tags}:
                 raise RuntimeError(f"Ollama 에 모델 {model!r} 이 없습니다 (ollama pull {model})")
-            return
-        if isinstance(client, (OpenAIClient, OpenAICompatibleClient, AnthropicClient)):
-            client.client.models.retrieve(model)     # 무료 조회. 없으면 예외
-            return
+        elif isinstance(client, (OpenAIClient, OpenAICompatibleClient, AnthropicClient)):
+            info = client.client.models.retrieve(model)     # 무료 조회. 없으면 예외
+            reported = getattr(info, "id", None) or model
     except RuntimeError:
         raise
     except Exception as exc:
         raise RuntimeError(f"[LLM] 역할 {role!r} 에 지정한 모델 {model!r} 을 백엔드가 열 수 없습니다: {exc}") from exc
+    preflight_price(reported, role)                  # mock 은 prefix 규칙($0)으로 통과
 
 
 def get_llm_client(role: Optional[str] = None) -> "LLMClient":

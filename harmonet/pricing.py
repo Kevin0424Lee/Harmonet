@@ -32,15 +32,33 @@ def load_snapshot() -> Dict[str, Any]:
     return _cache["data"]
 
 
+def normalize_model_id(model: str) -> str:
+    """API 응답의 model 은 날짜 붙은 id(claude-haiku-4-5-20251001) — 표의 별칭(claude-haiku-4-5)으로 정규화 (Week2-B0 프로브에서 발견)."""
+    return re.sub(r"-\d{8}$", "", model)
+
+
+def sum_cost(rows) -> Dict[str, Any]:
+    """행 합계. 미측정(cost_usd None)이 하나라도 있으면 합계는 None — `or 0` 으로 하한을 합계인 척 하지 않는다 (Week2-B2)."""
+    vals = [r["cost_usd"] if isinstance(r, dict) else r for r in rows]
+    n_unpriced = sum(v is None for v in vals)
+    return {"cost_usd": None if n_unpriced else round(sum(vals), 8), "n_unpriced": n_unpriced}
+
+
+def preflight_price(reported_model: Optional[str], role: str = "") -> str:
+    """실행 전 점검: 백엔드가 보고할 model id 를 정규화해 가격표에 있는지 확인. 없으면 RuntimeError — 첫 호출 전에 막는다."""
+    entry, sid = price_for(reported_model)
+    if entry is None:
+        raise RuntimeError(f"[pricing] 역할 {role!r} 모델 {reported_model!r} 의 가격이 {sid} 에 없습니다 — 호출 0회로 중단 "
+                           f"(prices 파일에 {normalize_model_id(reported_model or '')!r} 항목을 추가하라)")
+    return normalize_model_id(reported_model or "")
+
+
 def price_for(model: Optional[str]) -> Tuple[Optional[Dict[str, float]], str]:
     """(가격, snapshot_id). 모르는 모델이면 (None, snapshot_id)."""
     snap = load_snapshot()
     if not model or model == "none":
         return None, snap["snapshot_id"]
-    entry = snap["models"].get(model)
-    if entry is None:
-        # API 응답의 model 은 날짜 붙은 id(claude-haiku-4-5-20251001) — 표의 별칭(claude-haiku-4-5)과 같은 가격 (Week2-B0 프로브에서 발견)
-        entry = snap["models"].get(re.sub(r"-\d{8}$", "", model))
+    entry = snap["models"].get(model) or snap["models"].get(normalize_model_id(model))
     if entry is None:
         for prefix, rule in snap.get("prefix_rules", {}).items():
             if model.startswith(prefix):
@@ -78,5 +96,12 @@ if __name__ == "__main__":
     assert abs(usd - (1000 * 1.0 + 1000 * 0.1) / 1e6) < 1e-12, usd
     assert cost_usd("mock-a", {"prompt_tokens": 5, "llm_calls": 1})[0] == 0.0
     assert cost_usd("unknown-model-x", {"prompt_tokens": 5, "llm_calls": 1})[2] == "price_unknown"
+    assert sum_cost([{"cost_usd": 0.1}, {"cost_usd": None}]) == {"cost_usd": None, "n_unpriced": 1}
+    assert sum_cost([{"cost_usd": 0.1}, {"cost_usd": 0.2}]) == {"cost_usd": 0.3, "n_unpriced": 0}
+    try:
+        preflight_price("unknown-model-x", "builder"); raise SystemExit("preflight should fail")
+    except RuntimeError:
+        pass
+    assert preflight_price("claude-haiku-4-5-20251001", "builder") == "claude-haiku-4-5"
     assert cost_usd("none", {"llm_calls": 0})[0] == 0.0
     print("pricing.py self-check OK", sid)

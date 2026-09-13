@@ -19,6 +19,7 @@ from benchmark.agents_single import _DEFAULT_SYSTEM
 from benchmark.hidden_guard import hidden_pass_rate
 from benchmark.mbppplus import MbppTask, load_mbppplus
 from harmonet.llm import get_llm_client
+from harmonet.pricing import sum_cost
 from harmonet.trace import NO_COST, TaskState, meter_delta, model_used, verify_cost
 from harmonet.usage import METER
 from harmonet.verify import extract_artifact, score_hidden, verify_visible
@@ -68,7 +69,7 @@ def run_task(task: MbppTask) -> Dict[str, Any]:
 def summarize(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
     n = len(rows)
     return {"n": n, "base_pass": sum(r["base_pass"] for r in rows) / n, "plus_only_pass": hidden_pass_rate(rows, "mbppplus"),
-            "both_pass": sum(r["both_pass"] for r in rows) / n, "cost_usd": sum(r["cost_usd"] or 0 for r in rows),
+            "both_pass": sum(r["both_pass"] for r in rows) / n, **sum_cost(rows),
             "token_source": sorted({r["token_source"] for r in rows}), "extraction": sorted({r["extraction"] for r in rows}),
             "outcomes": {o: sum(r["outcome"] == o for r in rows) for o in sorted({r["outcome"] for r in rows})}}
 
@@ -87,19 +88,27 @@ def main() -> int:
 
     rows: List[Dict[str, Any]] = []
     out = Path(args.output)
+
+    def _write():
+        s = summarize(rows)
+        out.write_text(json.dumps({"ids_file": args.ids, "summary": s, "rows": rows}, ensure_ascii=False, indent=1), encoding="utf-8")
+        with out.with_suffix(".csv").open("w", newline="", encoding="utf-8") as f:
+            w = csv.DictWriter(f, fieldnames=CSV_FIELDS, extrasaction="ignore")
+            w.writeheader()
+            w.writerows(rows)
+        return s
+
     for k, tid in enumerate(ids, 1):
         r = run_task(by_id[tid])
         rows.append(r)
         print(f"[single] {k}/{len(ids)} {tid} base={r['visible_outcome']} plus_only={r['outcome']} "
               f"{r['prompt_tokens']}/{r['completion_tokens']}tok ${r['cost_usd']}", flush=True)
-    s = summarize(rows)
-    out.write_text(json.dumps({"ids_file": args.ids, "summary": s, "rows": rows}, ensure_ascii=False, indent=1), encoding="utf-8")
-    with out.with_suffix(".csv").open("w", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=CSV_FIELDS, extrasaction="ignore")
-        w.writeheader()
-        w.writerows(rows)
+        if r["cost_usd"] is None:                 # 미측정 비용이 나오면 다음 호출을 하지 않는다 (Week2-B2)
+            _write()
+            raise SystemExit(f"[mbppplus_g1] {tid}: cost_usd=None (미측정) — {k}/{len(ids)} 에서 중단, 부분 결과 저장: {out}")
+    s = _write()
     print(f"\nbase_pass={100 * s['base_pass']:.1f}%  plus_only_pass={100 * s['plus_only_pass']:.1f}%  both_pass={100 * s['both_pass']:.1f}%  "
-          f"cost=${s['cost_usd']:.3f}  outcomes={s['outcomes']}")
+          f"cost=${s['cost_usd']}  n_unpriced={s['n_unpriced']}  outcomes={s['outcomes']}")
     print(f"Saved: {out} / {out.with_suffix('.csv')}")
     return 0
 

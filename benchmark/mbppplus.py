@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 SPEC_PATH = Path(__file__).resolve().parent.parent / "benchmark_data" / "mbppplus" / "MbppPlus-v0.2.0.spec.json"
-SPEC_SHA256 = "b6888ff46104e154a58b5b1f2cabf08729334eecea66cad681fb90843721e5ca"   # 2026-09-14 생성 (evidence/week2/mbppplus_source.md)
+SPEC_SHA256 = "bc2e82ee9969a2d198de7e6e9134445e6a942465718ffe891d0916510b7fbf32"   # 2026-09-14 재생성(B2: 과제별 워커·시간·메모리 상한) (evidence/week2/mbppplus_source.md)
 
 
 @dataclass

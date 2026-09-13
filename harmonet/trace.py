@@ -93,8 +93,9 @@ class TaskState:
         for k in COST_FIELDS:
             c[k] += act.cost[k]
         if act.cost_usd is None:
-            c["cost_usd_unknown_actions"] += 1   # $ 를 모르는 행동 수 — 0 이 아니면 cost_usd 합계는 하한
-        else:
+            c["cost_usd_unknown_actions"] += 1   # $ 를 모르는 행동 수
+            c["cost_usd"] = None                 # 하나라도 미측정이면 합계도 미측정 (하한을 합계로 보고하지 않는다, Week2-B2)
+        elif c["cost_usd"] is not None:
             c["cost_usd"] = round(c["cost_usd"] + act.cost_usd, 8)
         # 하나라도 추정치면 누적도 추정치
         if cost.get("source") == "estimated" or (c["source"] == "estimated"):
@@ -147,8 +148,11 @@ def validate_trace(data: Dict[str, Any]) -> None:
         for k in COST_FIELDS:
             total = sum(a["cost"][k] for a in data["history"])
             assert total == c[k], f"cost_so_far.{k}={c[k]} != sum(actions)={total}"
-        usd_sum = round(sum(a["cost_usd"] or 0.0 for a in data["history"]), 8)
-        assert abs(usd_sum - (c["cost_usd"] or 0.0)) < 1e-9, f"cost_usd {c['cost_usd']} != sum {usd_sum}"
+        if any(a["cost_usd"] is None for a in data["history"]):
+            assert c["cost_usd"] is None and c["cost_usd_unknown_actions"] > 0, "미측정 행동이 있으면 cost_so_far.cost_usd 는 None"
+        else:
+            usd_sum = round(sum(a["cost_usd"] for a in data["history"]), 8)
+            assert c["cost_usd_unknown_actions"] == 0 and abs(usd_sum - c["cost_usd"]) < 1e-9, f"cost_usd {c['cost_usd']} != sum {usd_sum}"
     assert data["leak_risk"] == any(a["trigger"] == "eval:hidden" for a in data["history"])
     assert data.get("actions_after_score", 0) == 0
     if data.get("score") is not None:
@@ -231,6 +235,7 @@ if __name__ == "__main__":  # 최소 자체 점검
     validate_trace(json.loads(json.dumps(asdict(st))))
     assert st.cost_so_far["prompt_tokens"] == 10 and st.cost_so_far["verify_calls"] == 1 and st.cost_so_far["wall_ms"] == 7
     assert st.cost_so_far["source"] == "measured" and st.cost_so_far["cost_usd_unknown_actions"] == 1  # 모델 'm' 은 가격 미상
+    assert st.cost_so_far["cost_usd"] is None
     p = st.save("selfcheck")
     data = json.loads(p.read_text(encoding="utf-8"))
     assert data["task_id"] == "t/1" and len(data["history"]) == 3 and p.name == "t_1.json" and p.parent.name == "unknown"

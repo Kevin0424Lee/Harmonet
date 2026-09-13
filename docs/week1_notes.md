@@ -100,7 +100,8 @@ Part A 진행 중 확정된 사실과, 2주차 설계(`docs/week2_design_draft.m
   첫 탐색 스크립트가 이 출력을 eval 로 복원하다 18GB 를 먹어 프로세스를 강제 종료했다. 공식 evalplus 는 이걸 pickle 캐시로 메모리에 들고 있다.
 - **plus 입력 0개 과제**: Mbpp/793 은 plus_input 이 비어 있어 plus_only_pass 를 정의할 수 없다 — 풀에서 제외. 정답 전수 확인에서 드러남(375/376).
 - **repr 왕복**: 집합의 repr 순서·복소수 `-0-1j` 는 문자열은 달라도 값·타입이 같다. 왕복 검증을 문자열 비교에서 값+타입 비교로 바꿈.
-- **공식 채점기는 Windows 에서 안 돈다**: `time_limit` 이 SIGALRM, `reliability_guard` 가 resource 모듈. 동등성 오라클은 이 둘만 no-op.
+- **공식 채점기는 Windows 에서 안 돈다**: `time_limit` 이 SIGALRM, `reliability_guard` 가 resource 모듈. 동등성 오라클은 이 둘을 비활성으로
+  두므로 우리가 말할 수 있는 건 "비교 판정이 검사한 17개 사례에서 공식과 일치" 까지다. 시간 제한·격리 동등성은 주장하지 않는다 (B2 1-2 정정).
 - **atol 상태 전이**: 공식 루프에서 `atol` 이 케이스 사이에 바뀐다(float 기대값 이후 1e-6 유지). 순서를 바꾸면 판정이 달라지는 케이스를
   테스트로 고정(`atol_state_*`). 스펙 생성 시 케이스별 atol 을 미리 계산.
 - **가격표 별칭 불일치**: API 응답 `model` 이 `claude-haiku-4-5-20251001` 이라 `claude-haiku-4-5` 항목과 안 맞아 프로브가 cost_usd=None 으로 돌았다

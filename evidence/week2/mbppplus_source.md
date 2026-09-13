@@ -9,8 +9,9 @@
 | evalplus 버전 | 0.3.1 (별도 venv `.venv-evalplus/`, 동결: `requirements-evalplus.txt`) |
 | 받은 날짜 | 2026-09-13 |
 | 과제 수 | 378 (Mbpp/2 … Mbpp/809) |
-| 스펙 파일 | `benchmark_data/mbppplus/MbppPlus-v0.2.0.spec.json` (gitignore, 7,252,625 bytes) |
-| 스펙 sha256 | `b6888ff46104e154a58b5b1f2cabf08729334eecea66cad681fb90843721e5ca` (2026-09-14 생성, `benchmark/mbppplus.py::SPEC_SHA256` 에 고정) |
+| 스펙 파일 | `benchmark_data/mbppplus/MbppPlus-v0.2.0.spec.json` (gitignore, 7,252,769 bytes) |
+| 스펙 sha256 | `bc2e82ee9969a2d198de7e6e9134445e6a942465718ffe891d0916510b7fbf32` (2026-09-14 B2 재생성, `benchmark/mbppplus.py::SPEC_SHA256` 에 고정). 프로브(4229d32)는 이전 스펙 `b6888ff4…`(같은 376과제, time_limit 만 재측정)로 돌았다 |
+| 정답 실행 상한 (B2 1-1) | 과제별 별도 프로세스, 시간 30s, RSS 2GiB (psutil 50ms 감시, 트리째 kill; Windows·POSIX 공통 적용) |
 
 ## 판정 로직: 공식 재사용 방식
 
@@ -19,9 +20,9 @@
   (집합 비교 8과제, not-None 3과제, 특수 오라클 4과제, float 자동 atol 1e-6, `np.allclose(rtol=1e-7)`, atol 상태 전이). 단순 `==` 아님.
 - 시간제한: 공식과 같은 케이스별 `max(1s, 4×정답시간)` (호출 후 경과시간으로 판정) + 프로세스 전체 `min(60, Σ)+2s`.
 - 하네스: 기존 함수형 하네스(임시 디렉터리·nonce·result.json·`-I`·최소 env) 에 프렐류드(비교 함수)를 **후보 exec 뒤에** 넣어 후보가 덮지 못하게.
-- 동등성: `tests/test_mbppplus_equivalence.py` 15케이스 + 2 — 공식 `unsafe_execute` 를 evalplus venv 에서 그대로 호출하는 오라클
-  (`tests/mbppplus_official_oracle.py`) 과 pass/fail 일치. **Windows 에는 SIGALRM·resource 가 없어 공식 채점기가 원래 돌지 않는다** —
-  오라클은 그 두 플랫폼 가드만 no-op 으로 바꾸고 비교 블록은 손대지 않았다.
+- 동등성(주장 범위 한정): `tests/test_mbppplus_equivalence.py` — **공식 `unsafe_execute` 와 비교 판정이 검사한 17개 사례(15 파라미터 + 2)에서
+  일치**. 오라클(`tests/mbppplus_official_oracle.py`)은 evalplus venv 에서 공식 함수를 호출하되 Windows 에 없는 `time_limit`(SIGALRM)·
+  `reliability_guard`(resource) 를 비활성으로 두므로 **시간 제한·격리의 동등성은 주장하지 않는다**. 우리 하네스의 시간제한은 별도 규칙(위)이다.
 - 전수 확인: 공식 정답 376개를 우리 하네스로 채점 → base·hidden 375/376 pass (`mbppplus_canonical_check.txt`). 1건(Mbpp/793)은 plus 입력이
   0개라 hidden 이 `no_tests` — 데이터 자체의 성질이며 풀에서 제외.
 
@@ -35,7 +36,7 @@
 
 | 과제 | 사유 |
 |---|---|
-| Mbpp/255 | 정답 출력 repr 1,294,369,422 bytes (조합 폭발) > 상한 1MB |
+| Mbpp/255 | 정답 실행 RSS 2,492,669,952 > 2GiB 로 kill (B2; 이전엔 repr 1.29GB > 1MB 로 제외 — 같은 과제) |
 | Mbpp/630 | 정답 출력 repr 11,383,632 bytes > 상한 1MB |
 
 ## 제외 (풀) → `benchmark/mbppplus_split.py`

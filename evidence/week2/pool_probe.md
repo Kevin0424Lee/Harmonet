@@ -90,7 +90,7 @@ contest_date ≥ 2025-01-01 (stdin 112개):
 - 실패 9: base 통과·plus 만 실패 4 (109, 113, 589, 639 — 히든 102~121개 중 4~39개 실패), base 도 실패 5 (124, 160, 235, 430, 773). 430 은 ZeroDivisionError.
 - 추출 fenced 60/60, token_source measured 60/60, trace 60개 중 trigger=eval:hidden **0건**, score.trigger=post_hoc 60/60.
 - 비용: prompt 8,277 / completion 6,040 토큰 = **$0.039** (상한 $1). 실행 중 `cost_usd=None`(price_unknown) — API 응답 model id 에 날짜가 붙어
-  가격표 별칭과 안 맞았다. 실행 후 pricing 을 고쳐(90498eb) 같은 토큰으로 사후 계산해 `cost_usd_posthoc` 로 기록. trace 파일은 손대지 않았다.
+  가격표 별칭과 안 맞았다. 실행 후 pricing 을 고쳐(90498eb) 같은 토큰으로 사후 계산해 `cost_usd_posthoc` 로 기록. 요약의 `cost_usd` 는 **None**(n_unpriced 60) — 0 이 아니다(B2 1-3 정정). trace 파일은 손대지 않았다.
 
 ## 판정 (사전 등록 기준 적용)
 **85.0% > 70% → unconfirmed.** 상한 CI 하단 73.9% 도 70% 를 넘는다. MBPP+ 는 이 모델·이 프롬프트에서 천장 구간이다. 사전 등록대로

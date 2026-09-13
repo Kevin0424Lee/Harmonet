@@ -3,8 +3,9 @@ tests/mbppplus_official_oracle.py — 동등성 테스트용 공식 오라클. *
 
 stdin: {"entry_point", "code", "inputs": [repr…], "expected": [repr…], "atol"} → stdout: {"stat": "pass"|"fail"|"timeout", "details": [...]}
 
-공식 evalplus.eval.unsafe_execute 를 그대로 호출하되, Windows 에 없는 두 플랫폼 가드만 no-op 으로 바꾼다:
-  time_limit (SIGALRM 타이머) · reliability_guard (resource 모듈 rlimit). 비교 블록(집합·특수 판정·atol·np.allclose)은 손대지 않는다.
+공식 evalplus.eval.unsafe_execute 를 호출하되, Windows 에 없는 두 플랫폼 가드 time_limit(SIGALRM) · reliability_guard(resource) 는
+no-op 으로 둔다. 따라서 이 오라클로 주장하는 것은 **비교 판정(집합·특수 판정·atol·np.allclose)이 검사한 사례에서 공식과 일치한다** 는
+것뿐이다. 시간 제한·격리(reliability_guard)의 동등성은 검사하지 않았고 주장하지 않는다 (Week2-B2 1-2).
 """
 import contextlib
 import json

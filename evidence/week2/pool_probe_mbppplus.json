@@ -5,7 +5,7 @@
   "base_pass": 0.9166666666666666,
   "plus_only_pass": 0.85,
   "both_pass": 0.85,
-  "cost_usd": 0,
+  "cost_usd": null,
   "token_source": [
    "measured"
   ],
@@ -17,7 +17,8 @@
    "pass": 51
   },
   "cost_usd_posthoc": 0.0385,
-  "cost_note": "run-time cost_usd=None (dated model id missing from price table; fixed after the run) — cost_usd_posthoc computed from measured tokens with prices_2026-09"
+  "cost_note": "run-time cost_usd=None (dated model id missing from price table; fixed after the run) — cost_usd_posthoc computed from measured tokens with prices_2026-09",
+  "n_unpriced": 60
  },
  "rows": [
   {

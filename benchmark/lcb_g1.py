@@ -18,6 +18,7 @@ from typing import Any, Dict, List
 from benchmark.agents_single import _DEFAULT_SYSTEM
 from benchmark.lcb import LcbTask, load_lcb
 from harmonet.llm import get_llm_client
+from harmonet.pricing import sum_cost
 from harmonet.trace import NO_COST, TaskState, meter_delta, model_used, verify_cost
 from harmonet.usage import METER
 from harmonet.verify import extract_artifact, score_hidden, verify_visible
@@ -84,13 +85,16 @@ def main() -> int:
         rows.append(r)
         print(f"[single] {k}/{len(ids)} {qid} {r['difficulty']} hidden={r['outcome']} visible={r['visible_outcome']} "
               f"{r['prompt_tokens']}/{r['completion_tokens']}tok ${r['cost_usd']}")
-    out.write_text(json.dumps({"ids_file": args.ids, "n": len(rows), "rows": rows}, ensure_ascii=False, indent=1), encoding="utf-8")
+        if r["cost_usd"] is None:                 # 미측정 비용이 나오면 다음 호출을 하지 않는다 (Week2-B2)
+            out.write_text(json.dumps({"ids_file": args.ids, "n": len(rows), "rows": rows, "partial": True}, ensure_ascii=False, indent=1), encoding="utf-8")
+            raise SystemExit(f"[lcb_g1] {qid}: cost_usd=None (미측정) — {k}/{len(ids)} 에서 중단, 부분 결과 저장: {out}")
+    out.write_text(json.dumps({"ids_file": args.ids, "n": len(rows), "cost": sum_cost(rows), "rows": rows}, ensure_ascii=False, indent=1), encoding="utf-8")
     with out.with_suffix(".csv").open("w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=CSV_FIELDS)
         w.writeheader()
         w.writerows(rows)
     n_pass = sum(r["passed"] for r in rows)
-    print(f"\nhidden pass {n_pass}/{len(rows)} = {100 * n_pass / max(1, len(rows)):.1f}%  cost=${sum(r['cost_usd'] or 0 for r in rows):.3f}")
+    print(f"\nhidden pass {n_pass}/{len(rows)} = {100 * n_pass / max(1, len(rows)):.1f}%  cost={sum_cost(rows)}")
     print(f"Saved: {out} / {out.with_suffix('.csv')}")
     return 0
 
