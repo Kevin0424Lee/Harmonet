@@ -548,6 +548,8 @@ def _assert_model_available(client: "LLMClient", role: str) -> None:
     model = getattr(client, "model", None)
     reported = model
     try:
+        if type(client).__name__ == "ScenarioMockClient":
+            preflight_price(model, role); return    # 시나리오 mock: 모델 이름의 가격표만 확인 (유료 호출 없음)
         if isinstance(client, OllamaClient):
             tags = client.requests.get(f"{client.host}/api/tags", timeout=5).json().get("models", [])
             if model not in {m["name"] for m in tags}:
@@ -657,6 +659,11 @@ def _build_client(model: Optional[str]) -> "LLMClient":
     if backend == "mock":
         client = MockLLMClient(model=model or "mock")
         print(f"[LLM] MockLLM 강제 활성화 ({client.model}) [HARMONET_LLM_BACKEND=mock]")
+        return client
+    if backend == "mock-scenario":                      # 유효 코드 mock (Week2-F1): 시나리오가 정한 변형 코드를 낸다, 유료 0
+        from benchmark.mock_scenario import build_client
+        client = build_client(model)
+        print(f"[LLM] ScenarioMock 활성화 ({client.model}) [HARMONET_LLM_BACKEND=mock-scenario]")
         return client
 
     # ── 2. 자동 감지 (우선순위: OpenAI → Anthropic → RunYourAI → Ollama → Mock) ──

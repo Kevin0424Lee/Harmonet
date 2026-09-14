@@ -33,7 +33,7 @@
 ## 같이 확인된 경로 (테스트 외)
 - 적격성 배치 630 과제 × 4 판정 in-image (1,059s) → `bcb_eligibility.json` (D2 ⑤).
 - 프로브 120 후보 in-image 재채점 (453s) → `RESCORE_bcb.md`, 뒤집힘 0.
-- arms 스모크 3 과제 × 6 arm (mock LLM, in-image 채점) → `scripts/arms_smoke.py` OK (D5).
+- ~~arms 스모크 3 과제 × 6 arm (mock LLM, in-image 채점) → OK (D5)~~ **정정(F1)**: D5 스모크의 mock 은 코드가 아닌 텍스트를 내서 18/18 행이 정적 error(exec_count 0)였다 — 이미지 안에서 채점된 행은 0. F1-b 에서 유효 코드 시나리오 mock 으로 재실행: 36/36 행 hidden level=functional·sandbox=docker·exec_count≥1, 기대 일치 36/36 (`evidence/week2/arms_smoke_f1.md`).
 - 사전 점검 `bcb_preflight()`: docker info + digest 일치 + BigCodeBench/0 canonical pass (D1 ②).
 
 ## 이번 검증에서 드러난 것

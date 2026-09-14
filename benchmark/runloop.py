@@ -21,9 +21,17 @@ from harmonet.usage import METER
 EXIT_STOPPED = 2
 
 
+class InfraStop(RuntimeError):
+    """채점 인프라 장애(infra=True)를 verify 직후 그 자리에서 알린다 (F1-e). partial 에 그때까지의 결과를 실어 부분 저장한다."""
+
+    def __init__(self, msg: str, partial: Optional[Dict[str, Any]] = None):
+        super().__init__(msg)
+        self.partial = partial
+
+
 def require_budget(budget: Optional[Budget]) -> None:
     backend = os.getenv("HARMONET_LLM_BACKEND", "").lower()
-    if budget is None and backend != "mock":
+    if budget is None and backend not in ("mock", "mock-scenario"):
         raise RuntimeError("[runloop] 유료 백엔드는 예산 원장 없이 돌지 않는다 — HARMONET_BUDGET_CAP(USD) 와 HARMONET_BUDGET_ID 를 설정하라. 호출 0회.")
 
 
@@ -61,6 +69,14 @@ def run_loop(ids: List[str], run_task: Callable[[str], Dict[str, Any]], write: C
             r = run_task(tid)
         except BudgetStop as e:
             stopped = "budget"
+            print(f"[{label}] {k}/{len(ids)} {tid}: {e}", flush=True)
+            break
+        except InfraStop as e:
+            stopped = "infra"
+            if e.partial:
+                rows.append(e.partial)
+            if budget:
+                budget.stop("infra")
             print(f"[{label}] {k}/{len(ids)} {tid}: {e}", flush=True)
             break
         rows.append(r)

@@ -1,0 +1,996 @@
+{
+ "run_id": "arms_smoke_f1",
+ "scripts": {
+  "BigCodeBench/3": {
+   "s0": "near",
+   "A-self": "correct",
+   "A-role": "wrong",
+   "B-expert": "correct",
+   "B-solo": "wrong"
+  },
+  "BigCodeBench/4": {
+   "s0": "wrong",
+   "A-self": "near",
+   "A-role": "correct",
+   "B-expert": "wrong",
+   "B-solo": "correct"
+  },
+  "BigCodeBench/9": {
+   "s0": "correct",
+   "A-self": "wrong",
+   "A-role": "near",
+   "B-expert": "near",
+   "B-solo": "near"
+  }
+ },
+ "summary": {
+  "T": {
+   "n": 6,
+   "hidden_pass": 0.3333333333333333,
+   "refused_rate": 0.0,
+   "cost_own_cost_usd": 0.0,
+   "cost_own_n_unpriced": 0,
+   "n_calls_mean": 0.0,
+   "models": []
+  },
+  "A-self": {
+   "n": 6,
+   "hidden_pass": 0.3333333333333333,
+   "refused_rate": 0.0,
+   "cost_own_cost_usd": 0.081,
+   "cost_own_n_unpriced": 0,
+   "n_calls_mean": 1.0,
+   "models": [
+    "claude-sonnet-4-6"
+   ]
+  },
+  "A-selfxk": {
+   "n": 6,
+   "hidden_pass": 0.3333333333333333,
+   "refused_rate": 0.0,
+   "cost_own_cost_usd": 0.027,
+   "cost_own_n_unpriced": 0,
+   "n_calls_mean": 0.3333333333333333,
+   "models": [
+    "claude-sonnet-4-6"
+   ]
+  },
+  "A-role": {
+   "n": 6,
+   "hidden_pass": 0.3333333333333333,
+   "refused_rate": 0.0,
+   "cost_own_cost_usd": 0.081,
+   "cost_own_n_unpriced": 0,
+   "n_calls_mean": 1.0,
+   "models": [
+    "claude-sonnet-4-6"
+   ]
+  },
+  "B-expert": {
+   "n": 6,
+   "hidden_pass": 0.3333333333333333,
+   "refused_rate": 0.0,
+   "cost_own_cost_usd": 0.027,
+   "cost_own_n_unpriced": 0,
+   "n_calls_mean": 1.0,
+   "models": [
+    "claude-haiku-4-5"
+   ]
+  },
+  "B-solo": {
+   "n": 6,
+   "hidden_pass": 0.3333333333333333,
+   "refused_rate": 0.0,
+   "cost_own_cost_usd": 0.027,
+   "cost_own_n_unpriced": 0,
+   "n_calls_mean": 1.0,
+   "models": [
+    "claude-haiku-4-5"
+   ]
+  }
+ },
+ "cost": {
+  "arms_own_usd": 0.243,
+  "n_unpriced": 0,
+  "shared_s0_cost_total": 0.0405,
+  "total_spent_usd": 0.2835
+ },
+ "rows": [
+  {
+   "task_id": "BigCodeBench/3",
+   "arm": "B-solo",
+   "rep": 1,
+   "hidden_pass": false,
+   "passed": false,
+   "outcome": "fail",
+   "hidden_level": "functional",
+   "hidden_sandbox": "docker:bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405",
+   "hidden_exec_count": 1,
+   "visible_outcome": "fail",
+   "n_calls": 1,
+   "budget_refused": false,
+   "max_tokens": [
+    4096
+   ],
+   "cost_usd": 0.0045,
+   "b_cont": 0.05,
+   "models": [
+    "claude-haiku-4-5"
+   ],
+   "infra": false,
+   "hidden_exposed": false,
+   "trace_path": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\traces\\arms_smoke_f1\\rep1\\B-solo\\BigCodeBench_3.json",
+   "s0_dir": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\arms\\arms_smoke_f1\\BigCodeBench_3\\s0"
+  },
+  {
+   "task_id": "BigCodeBench/3",
+   "arm": "B-expert",
+   "rep": 1,
+   "hidden_pass": true,
+   "passed": true,
+   "outcome": "pass",
+   "hidden_level": "functional",
+   "hidden_sandbox": "docker:bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405",
+   "hidden_exec_count": 1,
+   "visible_outcome": "pass",
+   "n_calls": 1,
+   "budget_refused": false,
+   "max_tokens": [
+    4096
+   ],
+   "cost_usd": 0.0045,
+   "b_cont": 0.05,
+   "models": [
+    "claude-haiku-4-5"
+   ],
+   "infra": false,
+   "hidden_exposed": false,
+   "trace_path": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\traces\\arms_smoke_f1\\rep1\\B-expert\\BigCodeBench_3.json",
+   "s0_dir": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\arms\\arms_smoke_f1\\BigCodeBench_3\\s0"
+  },
+  {
+   "task_id": "BigCodeBench/3",
+   "arm": "T",
+   "rep": 1,
+   "hidden_pass": false,
+   "passed": false,
+   "outcome": "fail",
+   "hidden_level": "functional",
+   "hidden_sandbox": "docker:bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405",
+   "hidden_exec_count": 1,
+   "visible_outcome": "pass",
+   "n_calls": 0,
+   "budget_refused": false,
+   "max_tokens": [],
+   "cost_usd": 0.0,
+   "b_cont": 0.05,
+   "models": [],
+   "infra": false,
+   "hidden_exposed": false,
+   "trace_path": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\traces\\arms_smoke_f1\\rep1\\T\\BigCodeBench_3.json",
+   "s0_dir": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\arms\\arms_smoke_f1\\BigCodeBench_3\\s0"
+  },
+  {
+   "task_id": "BigCodeBench/3",
+   "arm": "A-self",
+   "rep": 1,
+   "hidden_pass": true,
+   "passed": true,
+   "outcome": "pass",
+   "hidden_level": "functional",
+   "hidden_sandbox": "docker:bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405",
+   "hidden_exec_count": 1,
+   "visible_outcome": "pass",
+   "n_calls": 1,
+   "budget_refused": false,
+   "max_tokens": [
+    3139
+   ],
+   "cost_usd": 0.0135,
+   "b_cont": 0.05,
+   "models": [
+    "claude-sonnet-4-6"
+   ],
+   "infra": false,
+   "hidden_exposed": false,
+   "trace_path": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\traces\\arms_smoke_f1\\rep1\\A-self\\BigCodeBench_3.json",
+   "s0_dir": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\arms\\arms_smoke_f1\\BigCodeBench_3\\s0"
+  },
+  {
+   "task_id": "BigCodeBench/3",
+   "arm": "A-role",
+   "rep": 1,
+   "hidden_pass": false,
+   "passed": false,
+   "outcome": "fail",
+   "hidden_level": "functional",
+   "hidden_sandbox": "docker:bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405",
+   "hidden_exec_count": 1,
+   "visible_outcome": "fail",
+   "n_calls": 1,
+   "budget_refused": false,
+   "max_tokens": [
+    3135
+   ],
+   "cost_usd": 0.0135,
+   "b_cont": 0.05,
+   "models": [
+    "claude-sonnet-4-6"
+   ],
+   "infra": false,
+   "hidden_exposed": false,
+   "trace_path": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\traces\\arms_smoke_f1\\rep1\\A-role\\BigCodeBench_3.json",
+   "s0_dir": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\arms\\arms_smoke_f1\\BigCodeBench_3\\s0"
+  },
+  {
+   "task_id": "BigCodeBench/3",
+   "arm": "A-selfxk",
+   "rep": 1,
+   "hidden_pass": false,
+   "passed": false,
+   "outcome": "fail",
+   "hidden_level": "functional",
+   "hidden_sandbox": "docker:bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405",
+   "hidden_exec_count": 1,
+   "visible_outcome": "pass",
+   "n_calls": 0,
+   "budget_refused": false,
+   "max_tokens": [],
+   "cost_usd": 0.0,
+   "b_cont": 0.05,
+   "models": [],
+   "infra": false,
+   "hidden_exposed": false,
+   "trace_path": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\traces\\arms_smoke_f1\\rep1\\A-selfxk\\BigCodeBench_3.json",
+   "s0_dir": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\arms\\arms_smoke_f1\\BigCodeBench_3\\s0"
+  },
+  {
+   "task_id": "BigCodeBench/3",
+   "arm": "B-solo",
+   "rep": 2,
+   "hidden_pass": false,
+   "passed": false,
+   "outcome": "fail",
+   "hidden_level": "functional",
+   "hidden_sandbox": "docker:bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405",
+   "hidden_exec_count": 1,
+   "visible_outcome": "fail",
+   "n_calls": 1,
+   "budget_refused": false,
+   "max_tokens": [
+    4096
+   ],
+   "cost_usd": 0.0045,
+   "b_cont": 0.05,
+   "models": [
+    "claude-haiku-4-5"
+   ],
+   "infra": false,
+   "hidden_exposed": false,
+   "trace_path": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\traces\\arms_smoke_f1\\rep2\\B-solo\\BigCodeBench_3.json",
+   "s0_dir": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\arms\\arms_smoke_f1\\BigCodeBench_3\\s0"
+  },
+  {
+   "task_id": "BigCodeBench/3",
+   "arm": "B-expert",
+   "rep": 2,
+   "hidden_pass": true,
+   "passed": true,
+   "outcome": "pass",
+   "hidden_level": "functional",
+   "hidden_sandbox": "docker:bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405",
+   "hidden_exec_count": 1,
+   "visible_outcome": "pass",
+   "n_calls": 1,
+   "budget_refused": false,
+   "max_tokens": [
+    4096
+   ],
+   "cost_usd": 0.0045,
+   "b_cont": 0.05,
+   "models": [
+    "claude-haiku-4-5"
+   ],
+   "infra": false,
+   "hidden_exposed": false,
+   "trace_path": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\traces\\arms_smoke_f1\\rep2\\B-expert\\BigCodeBench_3.json",
+   "s0_dir": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\arms\\arms_smoke_f1\\BigCodeBench_3\\s0"
+  },
+  {
+   "task_id": "BigCodeBench/3",
+   "arm": "T",
+   "rep": 2,
+   "hidden_pass": false,
+   "passed": false,
+   "outcome": "fail",
+   "hidden_level": "functional",
+   "hidden_sandbox": "docker:bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405",
+   "hidden_exec_count": 1,
+   "visible_outcome": "pass",
+   "n_calls": 0,
+   "budget_refused": false,
+   "max_tokens": [],
+   "cost_usd": 0.0,
+   "b_cont": 0.05,
+   "models": [],
+   "infra": false,
+   "hidden_exposed": false,
+   "trace_path": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\traces\\arms_smoke_f1\\rep2\\T\\BigCodeBench_3.json",
+   "s0_dir": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\arms\\arms_smoke_f1\\BigCodeBench_3\\s0"
+  },
+  {
+   "task_id": "BigCodeBench/3",
+   "arm": "A-self",
+   "rep": 2,
+   "hidden_pass": true,
+   "passed": true,
+   "outcome": "pass",
+   "hidden_level": "functional",
+   "hidden_sandbox": "docker:bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405",
+   "hidden_exec_count": 1,
+   "visible_outcome": "pass",
+   "n_calls": 1,
+   "budget_refused": false,
+   "max_tokens": [
+    3139
+   ],
+   "cost_usd": 0.0135,
+   "b_cont": 0.05,
+   "models": [
+    "claude-sonnet-4-6"
+   ],
+   "infra": false,
+   "hidden_exposed": false,
+   "trace_path": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\traces\\arms_smoke_f1\\rep2\\A-self\\BigCodeBench_3.json",
+   "s0_dir": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\arms\\arms_smoke_f1\\BigCodeBench_3\\s0"
+  },
+  {
+   "task_id": "BigCodeBench/3",
+   "arm": "A-role",
+   "rep": 2,
+   "hidden_pass": false,
+   "passed": false,
+   "outcome": "fail",
+   "hidden_level": "functional",
+   "hidden_sandbox": "docker:bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405",
+   "hidden_exec_count": 1,
+   "visible_outcome": "fail",
+   "n_calls": 1,
+   "budget_refused": false,
+   "max_tokens": [
+    3135
+   ],
+   "cost_usd": 0.0135,
+   "b_cont": 0.05,
+   "models": [
+    "claude-sonnet-4-6"
+   ],
+   "infra": false,
+   "hidden_exposed": false,
+   "trace_path": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\traces\\arms_smoke_f1\\rep2\\A-role\\BigCodeBench_3.json",
+   "s0_dir": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\arms\\arms_smoke_f1\\BigCodeBench_3\\s0"
+  },
+  {
+   "task_id": "BigCodeBench/3",
+   "arm": "A-selfxk",
+   "rep": 2,
+   "hidden_pass": false,
+   "passed": false,
+   "outcome": "fail",
+   "hidden_level": "functional",
+   "hidden_sandbox": "docker:bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405",
+   "hidden_exec_count": 1,
+   "visible_outcome": "pass",
+   "n_calls": 0,
+   "budget_refused": false,
+   "max_tokens": [],
+   "cost_usd": 0.0,
+   "b_cont": 0.05,
+   "models": [],
+   "infra": false,
+   "hidden_exposed": false,
+   "trace_path": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\traces\\arms_smoke_f1\\rep2\\A-selfxk\\BigCodeBench_3.json",
+   "s0_dir": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\arms\\arms_smoke_f1\\BigCodeBench_3\\s0"
+  },
+  {
+   "task_id": "BigCodeBench/4",
+   "arm": "T",
+   "rep": 1,
+   "hidden_pass": false,
+   "passed": false,
+   "outcome": "fail",
+   "hidden_level": "functional",
+   "hidden_sandbox": "docker:bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405",
+   "hidden_exec_count": 1,
+   "visible_outcome": "fail",
+   "n_calls": 0,
+   "budget_refused": false,
+   "max_tokens": [],
+   "cost_usd": 0.0,
+   "b_cont": 0.05,
+   "models": [],
+   "infra": false,
+   "hidden_exposed": false,
+   "trace_path": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\traces\\arms_smoke_f1\\rep1\\T\\BigCodeBench_4.json",
+   "s0_dir": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\arms\\arms_smoke_f1\\BigCodeBench_4\\s0"
+  },
+  {
+   "task_id": "BigCodeBench/4",
+   "arm": "A-self",
+   "rep": 1,
+   "hidden_pass": false,
+   "passed": false,
+   "outcome": "fail",
+   "hidden_level": "functional",
+   "hidden_sandbox": "docker:bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405",
+   "hidden_exec_count": 1,
+   "visible_outcome": "pass",
+   "n_calls": 1,
+   "budget_refused": false,
+   "max_tokens": [
+    3163
+   ],
+   "cost_usd": 0.0135,
+   "b_cont": 0.05,
+   "models": [
+    "claude-sonnet-4-6"
+   ],
+   "infra": false,
+   "hidden_exposed": false,
+   "trace_path": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\traces\\arms_smoke_f1\\rep1\\A-self\\BigCodeBench_4.json",
+   "s0_dir": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\arms\\arms_smoke_f1\\BigCodeBench_4\\s0"
+  },
+  {
+   "task_id": "BigCodeBench/4",
+   "arm": "B-solo",
+   "rep": 1,
+   "hidden_pass": true,
+   "passed": true,
+   "outcome": "pass",
+   "hidden_level": "functional",
+   "hidden_sandbox": "docker:bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405",
+   "hidden_exec_count": 1,
+   "visible_outcome": "pass",
+   "n_calls": 1,
+   "budget_refused": false,
+   "max_tokens": [
+    4096
+   ],
+   "cost_usd": 0.0045,
+   "b_cont": 0.05,
+   "models": [
+    "claude-haiku-4-5"
+   ],
+   "infra": false,
+   "hidden_exposed": false,
+   "trace_path": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\traces\\arms_smoke_f1\\rep1\\B-solo\\BigCodeBench_4.json",
+   "s0_dir": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\arms\\arms_smoke_f1\\BigCodeBench_4\\s0"
+  },
+  {
+   "task_id": "BigCodeBench/4",
+   "arm": "B-expert",
+   "rep": 1,
+   "hidden_pass": false,
+   "passed": false,
+   "outcome": "fail",
+   "hidden_level": "functional",
+   "hidden_sandbox": "docker:bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405",
+   "hidden_exec_count": 1,
+   "visible_outcome": "fail",
+   "n_calls": 1,
+   "budget_refused": false,
+   "max_tokens": [
+    4096
+   ],
+   "cost_usd": 0.0045,
+   "b_cont": 0.05,
+   "models": [
+    "claude-haiku-4-5"
+   ],
+   "infra": false,
+   "hidden_exposed": false,
+   "trace_path": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\traces\\arms_smoke_f1\\rep1\\B-expert\\BigCodeBench_4.json",
+   "s0_dir": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\arms\\arms_smoke_f1\\BigCodeBench_4\\s0"
+  },
+  {
+   "task_id": "BigCodeBench/4",
+   "arm": "A-role",
+   "rep": 1,
+   "hidden_pass": true,
+   "passed": true,
+   "outcome": "pass",
+   "hidden_level": "functional",
+   "hidden_sandbox": "docker:bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405",
+   "hidden_exec_count": 1,
+   "visible_outcome": "pass",
+   "n_calls": 1,
+   "budget_refused": false,
+   "max_tokens": [
+    3160
+   ],
+   "cost_usd": 0.0135,
+   "b_cont": 0.05,
+   "models": [
+    "claude-sonnet-4-6"
+   ],
+   "infra": false,
+   "hidden_exposed": false,
+   "trace_path": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\traces\\arms_smoke_f1\\rep1\\A-role\\BigCodeBench_4.json",
+   "s0_dir": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\arms\\arms_smoke_f1\\BigCodeBench_4\\s0"
+  },
+  {
+   "task_id": "BigCodeBench/4",
+   "arm": "A-selfxk",
+   "rep": 1,
+   "hidden_pass": false,
+   "passed": false,
+   "outcome": "fail",
+   "hidden_level": "functional",
+   "hidden_sandbox": "docker:bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405",
+   "hidden_exec_count": 1,
+   "visible_outcome": "pass",
+   "n_calls": 1,
+   "budget_refused": false,
+   "max_tokens": [
+    3163
+   ],
+   "cost_usd": 0.0135,
+   "b_cont": 0.05,
+   "models": [
+    "claude-sonnet-4-6"
+   ],
+   "infra": false,
+   "hidden_exposed": false,
+   "trace_path": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\traces\\arms_smoke_f1\\rep1\\A-selfxk\\BigCodeBench_4.json",
+   "s0_dir": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\arms\\arms_smoke_f1\\BigCodeBench_4\\s0"
+  },
+  {
+   "task_id": "BigCodeBench/4",
+   "arm": "T",
+   "rep": 2,
+   "hidden_pass": false,
+   "passed": false,
+   "outcome": "fail",
+   "hidden_level": "functional",
+   "hidden_sandbox": "docker:bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405",
+   "hidden_exec_count": 1,
+   "visible_outcome": "fail",
+   "n_calls": 0,
+   "budget_refused": false,
+   "max_tokens": [],
+   "cost_usd": 0.0,
+   "b_cont": 0.05,
+   "models": [],
+   "infra": false,
+   "hidden_exposed": false,
+   "trace_path": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\traces\\arms_smoke_f1\\rep2\\T\\BigCodeBench_4.json",
+   "s0_dir": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\arms\\arms_smoke_f1\\BigCodeBench_4\\s0"
+  },
+  {
+   "task_id": "BigCodeBench/4",
+   "arm": "A-self",
+   "rep": 2,
+   "hidden_pass": false,
+   "passed": false,
+   "outcome": "fail",
+   "hidden_level": "functional",
+   "hidden_sandbox": "docker:bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405",
+   "hidden_exec_count": 1,
+   "visible_outcome": "pass",
+   "n_calls": 1,
+   "budget_refused": false,
+   "max_tokens": [
+    3163
+   ],
+   "cost_usd": 0.0135,
+   "b_cont": 0.05,
+   "models": [
+    "claude-sonnet-4-6"
+   ],
+   "infra": false,
+   "hidden_exposed": false,
+   "trace_path": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\traces\\arms_smoke_f1\\rep2\\A-self\\BigCodeBench_4.json",
+   "s0_dir": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\arms\\arms_smoke_f1\\BigCodeBench_4\\s0"
+  },
+  {
+   "task_id": "BigCodeBench/4",
+   "arm": "B-solo",
+   "rep": 2,
+   "hidden_pass": true,
+   "passed": true,
+   "outcome": "pass",
+   "hidden_level": "functional",
+   "hidden_sandbox": "docker:bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405",
+   "hidden_exec_count": 1,
+   "visible_outcome": "pass",
+   "n_calls": 1,
+   "budget_refused": false,
+   "max_tokens": [
+    4096
+   ],
+   "cost_usd": 0.0045,
+   "b_cont": 0.05,
+   "models": [
+    "claude-haiku-4-5"
+   ],
+   "infra": false,
+   "hidden_exposed": false,
+   "trace_path": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\traces\\arms_smoke_f1\\rep2\\B-solo\\BigCodeBench_4.json",
+   "s0_dir": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\arms\\arms_smoke_f1\\BigCodeBench_4\\s0"
+  },
+  {
+   "task_id": "BigCodeBench/4",
+   "arm": "B-expert",
+   "rep": 2,
+   "hidden_pass": false,
+   "passed": false,
+   "outcome": "fail",
+   "hidden_level": "functional",
+   "hidden_sandbox": "docker:bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405",
+   "hidden_exec_count": 1,
+   "visible_outcome": "fail",
+   "n_calls": 1,
+   "budget_refused": false,
+   "max_tokens": [
+    4096
+   ],
+   "cost_usd": 0.0045,
+   "b_cont": 0.05,
+   "models": [
+    "claude-haiku-4-5"
+   ],
+   "infra": false,
+   "hidden_exposed": false,
+   "trace_path": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\traces\\arms_smoke_f1\\rep2\\B-expert\\BigCodeBench_4.json",
+   "s0_dir": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\arms\\arms_smoke_f1\\BigCodeBench_4\\s0"
+  },
+  {
+   "task_id": "BigCodeBench/4",
+   "arm": "A-role",
+   "rep": 2,
+   "hidden_pass": true,
+   "passed": true,
+   "outcome": "pass",
+   "hidden_level": "functional",
+   "hidden_sandbox": "docker:bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405",
+   "hidden_exec_count": 1,
+   "visible_outcome": "pass",
+   "n_calls": 1,
+   "budget_refused": false,
+   "max_tokens": [
+    3160
+   ],
+   "cost_usd": 0.0135,
+   "b_cont": 0.05,
+   "models": [
+    "claude-sonnet-4-6"
+   ],
+   "infra": false,
+   "hidden_exposed": false,
+   "trace_path": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\traces\\arms_smoke_f1\\rep2\\A-role\\BigCodeBench_4.json",
+   "s0_dir": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\arms\\arms_smoke_f1\\BigCodeBench_4\\s0"
+  },
+  {
+   "task_id": "BigCodeBench/4",
+   "arm": "A-selfxk",
+   "rep": 2,
+   "hidden_pass": false,
+   "passed": false,
+   "outcome": "fail",
+   "hidden_level": "functional",
+   "hidden_sandbox": "docker:bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405",
+   "hidden_exec_count": 1,
+   "visible_outcome": "pass",
+   "n_calls": 1,
+   "budget_refused": false,
+   "max_tokens": [
+    3163
+   ],
+   "cost_usd": 0.0135,
+   "b_cont": 0.05,
+   "models": [
+    "claude-sonnet-4-6"
+   ],
+   "infra": false,
+   "hidden_exposed": false,
+   "trace_path": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\traces\\arms_smoke_f1\\rep2\\A-selfxk\\BigCodeBench_4.json",
+   "s0_dir": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\arms\\arms_smoke_f1\\BigCodeBench_4\\s0"
+  },
+  {
+   "task_id": "BigCodeBench/9",
+   "arm": "B-expert",
+   "rep": 1,
+   "hidden_pass": false,
+   "passed": false,
+   "outcome": "fail",
+   "hidden_level": "functional",
+   "hidden_sandbox": "docker:bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405",
+   "hidden_exec_count": 1,
+   "visible_outcome": "pass",
+   "n_calls": 1,
+   "budget_refused": false,
+   "max_tokens": [
+    4096
+   ],
+   "cost_usd": 0.0045,
+   "b_cont": 0.05,
+   "models": [
+    "claude-haiku-4-5"
+   ],
+   "infra": false,
+   "hidden_exposed": false,
+   "trace_path": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\traces\\arms_smoke_f1\\rep1\\B-expert\\BigCodeBench_9.json",
+   "s0_dir": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\arms\\arms_smoke_f1\\BigCodeBench_9\\s0"
+  },
+  {
+   "task_id": "BigCodeBench/9",
+   "arm": "A-selfxk",
+   "rep": 1,
+   "hidden_pass": true,
+   "passed": true,
+   "outcome": "pass",
+   "hidden_level": "functional",
+   "hidden_sandbox": "docker:bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405",
+   "hidden_exec_count": 1,
+   "visible_outcome": "pass",
+   "n_calls": 0,
+   "budget_refused": false,
+   "max_tokens": [],
+   "cost_usd": 0.0,
+   "b_cont": 0.05,
+   "models": [],
+   "infra": false,
+   "hidden_exposed": false,
+   "trace_path": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\traces\\arms_smoke_f1\\rep1\\A-selfxk\\BigCodeBench_9.json",
+   "s0_dir": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\arms\\arms_smoke_f1\\BigCodeBench_9\\s0"
+  },
+  {
+   "task_id": "BigCodeBench/9",
+   "arm": "A-self",
+   "rep": 1,
+   "hidden_pass": false,
+   "passed": false,
+   "outcome": "fail",
+   "hidden_level": "functional",
+   "hidden_sandbox": "docker:bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405",
+   "hidden_exec_count": 1,
+   "visible_outcome": "fail",
+   "n_calls": 1,
+   "budget_refused": false,
+   "max_tokens": [
+    3166
+   ],
+   "cost_usd": 0.0135,
+   "b_cont": 0.05,
+   "models": [
+    "claude-sonnet-4-6"
+   ],
+   "infra": false,
+   "hidden_exposed": false,
+   "trace_path": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\traces\\arms_smoke_f1\\rep1\\A-self\\BigCodeBench_9.json",
+   "s0_dir": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\arms\\arms_smoke_f1\\BigCodeBench_9\\s0"
+  },
+  {
+   "task_id": "BigCodeBench/9",
+   "arm": "B-solo",
+   "rep": 1,
+   "hidden_pass": false,
+   "passed": false,
+   "outcome": "fail",
+   "hidden_level": "functional",
+   "hidden_sandbox": "docker:bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405",
+   "hidden_exec_count": 1,
+   "visible_outcome": "pass",
+   "n_calls": 1,
+   "budget_refused": false,
+   "max_tokens": [
+    4096
+   ],
+   "cost_usd": 0.0045,
+   "b_cont": 0.05,
+   "models": [
+    "claude-haiku-4-5"
+   ],
+   "infra": false,
+   "hidden_exposed": false,
+   "trace_path": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\traces\\arms_smoke_f1\\rep1\\B-solo\\BigCodeBench_9.json",
+   "s0_dir": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\arms\\arms_smoke_f1\\BigCodeBench_9\\s0"
+  },
+  {
+   "task_id": "BigCodeBench/9",
+   "arm": "T",
+   "rep": 1,
+   "hidden_pass": true,
+   "passed": true,
+   "outcome": "pass",
+   "hidden_level": "functional",
+   "hidden_sandbox": "docker:bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405",
+   "hidden_exec_count": 1,
+   "visible_outcome": "pass",
+   "n_calls": 0,
+   "budget_refused": false,
+   "max_tokens": [],
+   "cost_usd": 0.0,
+   "b_cont": 0.05,
+   "models": [],
+   "infra": false,
+   "hidden_exposed": false,
+   "trace_path": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\traces\\arms_smoke_f1\\rep1\\T\\BigCodeBench_9.json",
+   "s0_dir": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\arms\\arms_smoke_f1\\BigCodeBench_9\\s0"
+  },
+  {
+   "task_id": "BigCodeBench/9",
+   "arm": "A-role",
+   "rep": 1,
+   "hidden_pass": false,
+   "passed": false,
+   "outcome": "fail",
+   "hidden_level": "functional",
+   "hidden_sandbox": "docker:bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405",
+   "hidden_exec_count": 1,
+   "visible_outcome": "pass",
+   "n_calls": 1,
+   "budget_refused": false,
+   "max_tokens": [
+    3163
+   ],
+   "cost_usd": 0.0135,
+   "b_cont": 0.05,
+   "models": [
+    "claude-sonnet-4-6"
+   ],
+   "infra": false,
+   "hidden_exposed": false,
+   "trace_path": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\traces\\arms_smoke_f1\\rep1\\A-role\\BigCodeBench_9.json",
+   "s0_dir": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\arms\\arms_smoke_f1\\BigCodeBench_9\\s0"
+  },
+  {
+   "task_id": "BigCodeBench/9",
+   "arm": "B-expert",
+   "rep": 2,
+   "hidden_pass": false,
+   "passed": false,
+   "outcome": "fail",
+   "hidden_level": "functional",
+   "hidden_sandbox": "docker:bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405",
+   "hidden_exec_count": 1,
+   "visible_outcome": "pass",
+   "n_calls": 1,
+   "budget_refused": false,
+   "max_tokens": [
+    4096
+   ],
+   "cost_usd": 0.0045,
+   "b_cont": 0.05,
+   "models": [
+    "claude-haiku-4-5"
+   ],
+   "infra": false,
+   "hidden_exposed": false,
+   "trace_path": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\traces\\arms_smoke_f1\\rep2\\B-expert\\BigCodeBench_9.json",
+   "s0_dir": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\arms\\arms_smoke_f1\\BigCodeBench_9\\s0"
+  },
+  {
+   "task_id": "BigCodeBench/9",
+   "arm": "A-selfxk",
+   "rep": 2,
+   "hidden_pass": true,
+   "passed": true,
+   "outcome": "pass",
+   "hidden_level": "functional",
+   "hidden_sandbox": "docker:bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405",
+   "hidden_exec_count": 1,
+   "visible_outcome": "pass",
+   "n_calls": 0,
+   "budget_refused": false,
+   "max_tokens": [],
+   "cost_usd": 0.0,
+   "b_cont": 0.05,
+   "models": [],
+   "infra": false,
+   "hidden_exposed": false,
+   "trace_path": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\traces\\arms_smoke_f1\\rep2\\A-selfxk\\BigCodeBench_9.json",
+   "s0_dir": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\arms\\arms_smoke_f1\\BigCodeBench_9\\s0"
+  },
+  {
+   "task_id": "BigCodeBench/9",
+   "arm": "A-self",
+   "rep": 2,
+   "hidden_pass": false,
+   "passed": false,
+   "outcome": "fail",
+   "hidden_level": "functional",
+   "hidden_sandbox": "docker:bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405",
+   "hidden_exec_count": 1,
+   "visible_outcome": "fail",
+   "n_calls": 1,
+   "budget_refused": false,
+   "max_tokens": [
+    3166
+   ],
+   "cost_usd": 0.0135,
+   "b_cont": 0.05,
+   "models": [
+    "claude-sonnet-4-6"
+   ],
+   "infra": false,
+   "hidden_exposed": false,
+   "trace_path": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\traces\\arms_smoke_f1\\rep2\\A-self\\BigCodeBench_9.json",
+   "s0_dir": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\arms\\arms_smoke_f1\\BigCodeBench_9\\s0"
+  },
+  {
+   "task_id": "BigCodeBench/9",
+   "arm": "B-solo",
+   "rep": 2,
+   "hidden_pass": false,
+   "passed": false,
+   "outcome": "fail",
+   "hidden_level": "functional",
+   "hidden_sandbox": "docker:bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405",
+   "hidden_exec_count": 1,
+   "visible_outcome": "pass",
+   "n_calls": 1,
+   "budget_refused": false,
+   "max_tokens": [
+    4096
+   ],
+   "cost_usd": 0.0045,
+   "b_cont": 0.05,
+   "models": [
+    "claude-haiku-4-5"
+   ],
+   "infra": false,
+   "hidden_exposed": false,
+   "trace_path": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\traces\\arms_smoke_f1\\rep2\\B-solo\\BigCodeBench_9.json",
+   "s0_dir": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\arms\\arms_smoke_f1\\BigCodeBench_9\\s0"
+  },
+  {
+   "task_id": "BigCodeBench/9",
+   "arm": "T",
+   "rep": 2,
+   "hidden_pass": true,
+   "passed": true,
+   "outcome": "pass",
+   "hidden_level": "functional",
+   "hidden_sandbox": "docker:bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405",
+   "hidden_exec_count": 1,
+   "visible_outcome": "pass",
+   "n_calls": 0,
+   "budget_refused": false,
+   "max_tokens": [],
+   "cost_usd": 0.0,
+   "b_cont": 0.05,
+   "models": [],
+   "infra": false,
+   "hidden_exposed": false,
+   "trace_path": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\traces\\arms_smoke_f1\\rep2\\T\\BigCodeBench_9.json",
+   "s0_dir": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\arms\\arms_smoke_f1\\BigCodeBench_9\\s0"
+  },
+  {
+   "task_id": "BigCodeBench/9",
+   "arm": "A-role",
+   "rep": 2,
+   "hidden_pass": false,
+   "passed": false,
+   "outcome": "fail",
+   "hidden_level": "functional",
+   "hidden_sandbox": "docker:bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405",
+   "hidden_exec_count": 1,
+   "visible_outcome": "pass",
+   "n_calls": 1,
+   "budget_refused": false,
+   "max_tokens": [
+    3163
+   ],
+   "cost_usd": 0.0135,
+   "b_cont": 0.05,
+   "models": [
+    "claude-sonnet-4-6"
+   ],
+   "infra": false,
+   "hidden_exposed": false,
+   "trace_path": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\traces\\arms_smoke_f1\\rep2\\A-role\\BigCodeBench_9.json",
+   "s0_dir": "C:\\Users\\User\\AppData\\Local\\Temp\\arms_smoke_f1_5bgf2ig8\\arms\\arms_smoke_f1\\BigCodeBench_9\\s0"
+  }
+ ]
+}
