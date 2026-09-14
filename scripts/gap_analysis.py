@@ -130,6 +130,147 @@ def analyze(rows: Sequence[Dict[str, Any]], n_boot: int = 10000, seed: int = 0) 
                       "note": "N = ((z_0.975 + z_0.8)·σ/Δ)², σ = 과제별 교차 적합 차이의 표준편차 (파일럿 추정)"}}
 
 
+# ═══════════════════════════════════════════════════════════════════════════
+# Week2-H2: 정책 이득 추정기 — oracle 상한이 아니라 "결정 시점 특징으로 arm 을 고르는 정책" 의 이득.
+#
+# 입력 행: 위 스키마 + "features": {"visible": str, "n_failed": int, "error_kind": str, "artifact_chars": num, "s0_cost": num}  (§8 신호 형식)
+#   k=1 (과제마다 arm 당 1회). rows → Y[task, arm] ∈ {0,1}, C[task, arm] = cost_usd, 특징은 과제당 하나(모든 arm 행에 같은 값).
+# 학습기 2종 (사전 등록):
+#   P1 조회표: 가시 검증 범주(visible)별로 학습 과제에서 성공률이 최대인 arm (동점 ARMS 순서 앞). 학습에 없는 범주 → 최선 고정 arm.
+#   P2 L2 로지스틱: arm 마다 P(성공 | x) 를 로지스틱(특징 표준화, 범주 one-hot, ridge λ=1.0, IRLS 8회)으로 적합 → argmax_a.
+# 평가: 과제 K=5 겹 교차 검증 × R=20 회 셔플. 겹마다 최선 고정 arm 도 학습 과제에서 고른다.
+#   통계량 = 검증 과제 평균(정책이 고른 arm 의 성공 − 최선 고정 arm 의 성공), 겹·셔플 평균. 예산 매칭용으로 고른 arm 의 실제 $ 도 같이 집계.
+# 귀무: **특징 벡터를 과제 사이에서 순열**(결과 고정) B=2000 → 통계량 귀무분포 → p = P(null ≥ obs).
+#   arm 라벨 순열이 아닌 이유: 우리 질문은 "특징이 결과를 예측하는가" 이지 "arm 간 차이가 있는가" 가 아니다. arm 라벨을 섞으면 최선 고정
+#   arm 의 이점까지 없애 버려 귀무가 너무 넓어지고, 특징을 섞으면 과제×arm 결과 구조(고정 arm 의 우위, 과제 난이도)는 그대로 둔 채
+#   특징–결과 연결만 끊는다 — 정확히 정책 이득의 귀무다.
+# CI: 과제 부트스트랩(복제마다 CV 전체 재수행) 1000회.
+# 규칙 R2: p < 0.05 ∧ 점추정 ≥ 10pp → "통과", 그 외 "미확인".
+# ═══════════════════════════════════════════════════════════════════════════
+
+FEATURE_NUM = ("n_failed", "artifact_chars", "s0_cost")
+FEATURE_CAT = ("visible", "error_kind")
+P2_LAMBDA, P2_ITERS = 1.0, 8
+CV_K, CV_R = 5, 20
+
+
+def policy_tensor(rows: Sequence[Dict[str, Any]], arms: Sequence[str] = ARMS):
+    """rows → (Y[n, A], C[n, A], feats(list of dict, 과제 순), tasks). k=1 만 허용 (rep 이 여럿이면 예외)."""
+    S, tasks, reps = tensor(rows, arms)
+    if len(reps) != 1:
+        raise ValueError(f"정책 이득 추정은 k=1 행을 받는다 (rep 종류 {reps})")
+    ti, ai = {t: i for i, t in enumerate(tasks)}, {a: i for i, a in enumerate(arms)}
+    C = np.full((len(tasks), len(arms)), np.nan)
+    feats: List[Optional[Dict[str, Any]]] = [None] * len(tasks)
+    for r in rows:
+        C[ti[r["task_id"]], ai[r["arm"]]] = np.nan if r.get("cost_usd") is None else float(r["cost_usd"])
+        f = r.get("features")
+        if not isinstance(f, dict):
+            raise ValueError(f"features 누락: {r['task_id']}/{r['arm']}")
+        if feats[ti[r["task_id"]]] is None:
+            feats[ti[r["task_id"]]] = f
+        elif feats[ti[r["task_id"]]] != f:
+            raise ValueError(f"같은 과제의 arm 행마다 features 가 다르다: {r['task_id']}")
+    return S[:, :, 0], C, feats, tasks
+
+
+def design_matrix(feats: Sequence[Dict[str, Any]], cats: Optional[Dict[str, List[str]]] = None):
+    """수치 특징 + 범주 one-hot (+절편). 표준화는 호출자가 학습 과제 통계로 한다. cats 는 범주 수준 목록(학습에서 고정)."""
+    if cats is None:
+        cats = {c: sorted({str(f[c]) for f in feats}) for c in FEATURE_CAT}
+    cols = []
+    for f in feats:
+        row = [float(f[k]) for k in FEATURE_NUM]
+        for c in FEATURE_CAT:
+            row += [1.0 if str(f[c]) == lvl else 0.0 for lvl in cats[c]]
+        cols.append(row)
+    return np.array(cols, dtype=float), cats
+
+
+def _fit_logistic_batch(X: np.ndarray, Y: np.ndarray, lam: float = P2_LAMBDA, iters: int = P2_ITERS) -> np.ndarray:
+    """X[n, d] (절편 포함), Y[n, A] → beta[A, d]. arm 배치 IRLS, ridge(절편 제외)."""
+    n, d = X.shape
+    A = Y.shape[1]
+    beta = np.zeros((A, d))
+    pen = np.full(d, lam); pen[0] = 0.0
+    for _ in range(iters):
+        eta = X @ beta.T                                      # [n, A]
+        mu = 1 / (1 + np.exp(-eta))
+        w = np.clip(mu * (1 - mu), 1e-6, None)
+        z = eta + (Y - mu) / w
+        H = np.einsum("na,nd,ne->ade", w, X, X) + np.diag(pen)[None]
+        g = np.einsum("na,nd->ad", w * z, X)
+        beta = np.linalg.solve(H, g[..., None])[..., 0]
+    return beta
+
+
+def _standardize(Xtr: np.ndarray, Xte: np.ndarray, n_num: int):
+    mu, sd = Xtr[:, :n_num].mean(axis=0), Xtr[:, :n_num].std(axis=0) + 1e-9
+    Xtr = Xtr.copy(); Xte = Xte.copy()
+    Xtr[:, :n_num] = (Xtr[:, :n_num] - mu) / sd
+    Xte[:, :n_num] = (Xte[:, :n_num] - mu) / sd
+    return np.hstack([np.ones((len(Xtr), 1)), Xtr]), np.hstack([np.ones((len(Xte), 1)), Xte])
+
+
+def policy_p1(train_idx, test_idx, Y, feats, fixed_arm):
+    cat = np.array([str(f["visible"]) for f in feats])
+    choice = {}
+    for lvl in set(cat[train_idx]):
+        m = train_idx[cat[train_idx] == lvl]
+        choice[lvl] = int(np.argmax(Y[m].mean(axis=0)))
+    return np.array([choice.get(cat[i], fixed_arm) for i in test_idx])
+
+
+def policy_p2(train_idx, test_idx, Y, X, fixed_arm):
+    Xtr, Xte = _standardize(X[train_idx], X[test_idx], len(FEATURE_NUM))
+    beta = _fit_logistic_batch(Xtr, Y[train_idx])
+    return np.argmax(Xte @ beta.T, axis=1)
+
+
+def _cv_gain(Y: np.ndarray, C: np.ndarray, feats, X: np.ndarray, learner: str, rng, K: int = CV_K, R: int = CV_R):
+    """K 겹 × R 셔플. 반환 (gain 평균, 정책 $ 평균, 고정 $ 평균)."""
+    n = Y.shape[0]
+    gains, cost_pol, cost_fix = [], [], []
+    for _ in range(R):
+        perm = rng.permutation(n)
+        folds = np.array_split(perm, K)
+        for f in range(K):
+            te = folds[f]
+            tr = np.concatenate([folds[j] for j in range(K) if j != f])
+            fixed = int(np.argmax(Y[tr].mean(axis=0)))
+            pick = policy_p1(tr, te, Y, feats, fixed) if learner == "P1" else policy_p2(tr, te, Y, X, fixed)
+            gains.append((Y[te, pick] - Y[te, fixed]).mean())
+            cost_pol.append(np.nanmean(C[te, pick])); cost_fix.append(np.nanmean(C[te, fixed]))
+    return float(np.mean(gains)), float(np.mean(cost_pol)), float(np.mean(cost_fix))
+
+
+def policy_gain(rows: Sequence[Dict[str, Any]], learner: str = "P1", n_perm: int = 2000, n_boot: int = 1000, seed: int = 0,
+                with_ci: bool = True, R: int = CV_R) -> Dict[str, Any]:
+    if learner not in ("P1", "P2"):
+        raise ValueError(learner)
+    Y, C, feats, tasks = policy_tensor(rows)
+    X, cats = design_matrix(feats)
+    rng = np.random.default_rng(seed)
+    obs, cpol, cfix = _cv_gain(Y, C, feats, X, learner, np.random.default_rng(seed + 1), R=R)
+    null = np.empty(n_perm)
+    for b in range(n_perm):                                 # 특징 순열(결과 고정)
+        p = rng.permutation(len(tasks))
+        fp = [feats[i] for i in p]
+        null[b] = _cv_gain(Y, C, fp, X[p], learner, np.random.default_rng(seed + 1), R=R)[0]
+    pval = float((null >= obs).mean())
+    out = {"learner": learner, "n_tasks": len(tasks), "gain": obs, "p_value": pval, "null_mean": float(null.mean()),
+           "cost_policy_usd": cpol, "cost_fixed_usd": cfix, "n_perm": n_perm, "cv": {"K": CV_K, "R": R},
+           "verdict": "통과" if (pval < 0.05 and obs >= 0.10) else "미확인", "rule": "R2 = p<0.05 ∧ 정책 이득 ≥ 10pp"}
+    if with_ci:
+        vals = np.empty(n_boot)
+        for b in range(n_boot):                             # 과제 부트스트랩, 복제마다 CV 전체 재수행
+            idx = rng.integers(0, len(tasks), len(tasks))
+            vals[b] = _cv_gain(Y[idx], C[idx], [feats[i] for i in idx], X[idx], learner, np.random.default_rng(seed + 2 + b), R=R)[0]
+        out["ci95"] = [float(np.quantile(vals, 0.025)), float(np.quantile(vals, 0.975))]
+        out["n_boot"] = n_boot
+    return out
+
+
 # ── 합성 검증 ────────────────────────────────────────────────────────────
 def synth_rows(n_tasks: int, k: int, seed: int, interaction: float = 0.0, base: float = 0.5, deterministic: bool = False, cost=0.01):
     """arm 별 기저 성공률 + (interaction > 0 이면) 과제별로 하나의 arm 이 +interaction 만큼 잘 푸는 상호작용."""
