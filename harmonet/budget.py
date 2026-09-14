@@ -113,9 +113,12 @@ class Budget:
             self._write(d)
             return True
 
-    def commit(self, projected: float, actual: Optional[float], note: str = "", unknown_cost: bool = False) -> Dict[str, Any]:
-        """예약 해제 + 실측 가산. actual None → unpriced 로 중단. unknown_cost(호출 예외) → 예약액을 보수적으로 확정하고 중단.
-        커밋 후 spent > cap 이면 stopped_reason="cap_exceeded_post" (예약이 상계가 아님을 전제한 사후 장치). 갱신된 원장을 돌려준다."""
+    def commit(self, projected: float, actual: Optional[float], note: str = "", unknown_cost: bool = False, stop: bool = True,
+               attempt_failed_unbilled: bool = False) -> Dict[str, Any]:
+        """예약 해제 + 실측 가산. 시도별 귀속 규칙 (K2, PREREG v4 §5 동일 문장):
+        (a) 성공: actual 실측.  (b) 요금 없음이 확실한 실패(HTTP 429/400/401/5xx 응답): attempt_failed_unbilled → actual 0, 예약 해제, 호출 수 포함.
+        (c) 처리 여부 불명 실패(타임아웃·연결 끊김): unknown_cost → 예약액을 보수적으로 확정, unknown_cost_calls += 1; stop=False 면 중단하지 않는다(재시도 계속).
+        actual None(미측정) → unpriced 로 중단. 커밋 후 spent > cap → cap_exceeded_post. 갱신된 원장을 돌려준다."""
         with _Locked(self.path):
             d = self._read()
             d["reserved"] = max(0.0, round(d["reserved"] - projected, 10))
@@ -123,14 +126,18 @@ class Budget:
             if unknown_cost:
                 d["spent"] = round(d["spent"] + projected, 10)          # $0 확정 금지: 예약액을 지출로 확정
                 d["unknown_cost_calls"] = d.get("unknown_cost_calls", 0) + 1
-                d["stopped_reason"] = d["stopped_reason"] or "unknown_cost"
+                if stop:
+                    d["stopped_reason"] = d["stopped_reason"] or "unknown_cost"
+            elif attempt_failed_unbilled:
+                d["unbilled_failed_calls"] = d.get("unbilled_failed_calls", 0) + 1   # actual 0, spent 불변
             elif actual is None:
                 d["stopped_reason"] = d["stopped_reason"] or "unpriced"
             else:
                 d["spent"] = round(d["spent"] + actual, 10)
             if d["spent"] > d["cap"] + 1e-12:
                 d["stopped_reason"] = d["stopped_reason"] or "cap_exceeded_post"
-            d["log"].append({"t": time.time(), "event": "commit", "projected": projected, "actual": actual, "unknown_cost": unknown_cost, "note": note})
+            d["log"].append({"t": time.time(), "event": "commit", "projected": projected, "actual": (0.0 if attempt_failed_unbilled else actual),
+                             "unknown_cost": unknown_cost, "attempt_failed_unbilled": attempt_failed_unbilled, "note": note})
             self._write(d)
             return d
 

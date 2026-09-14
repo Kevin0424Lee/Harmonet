@@ -61,6 +61,8 @@ class Action:
             if self.cost[k] < 0:
                 raise ValueError(f"negative cost field {k}={self.cost[k]}")
         usd, sid, flag = pricing.cost_usd(self.model, self.cost)
+        if usd is not None and self.cost.get("unknown_reserved_usd"):
+            usd = round(usd + float(self.cost["unknown_reserved_usd"]), 10)   # K2 (c): 처리 여부 불명 시도의 확정 예약액도 이 행동의 비용
         self.cost_usd, self.price_snapshot_id = usd, sid
         if flag:
             self.flags.append(flag)

@@ -28,6 +28,17 @@ REVIEWER_SYSTEM_MARK = "senior Python reviewer"      # benchmark.arms.REVIEWER_S
 REVISE_MARK = "### Task"                             # benchmark.arms._revise_prompt 의 표지
 
 
+_FAIL_STATE = {"n": 0}
+
+
+class _HttpError(Exception):
+    """HTTP 응답이 있는 실패 흉내 (anthropic.APIStatusError 처럼 status_code 를 가진다)."""
+
+    def __init__(self, status: int):
+        super().__init__(f"[mock-scenario] simulated HTTP {status}")
+        self.status_code = status
+
+
 class ScenarioMockClient:
     def __init__(self, model: str, role_a: str, role_b: str, scenario_path: str):
         self.model = model
@@ -62,6 +73,15 @@ class ScenarioMockClient:
         return hits[0]
 
     def generate(self, prompt: str, system_prompt: Optional[str] = None) -> str:
+        # K2 재현용: HARMONET_MOCK_FAIL_SCRIPT="429,timeout,..." — 프로세스 안 첫 호출들부터 순서대로 실패시킨다 (숫자 = HTTP 응답, timeout = 응답 없음)
+        fail = os.environ.get("HARMONET_MOCK_FAIL_SCRIPT")
+        if fail:
+            steps = [x for x in fail.split(",") if x]
+            n = _FAIL_STATE["n"]; _FAIL_STATE["n"] += 1
+            if n < len(steps):
+                if steps[n] == "timeout":
+                    raise TimeoutError("[mock-scenario] simulated timeout")
+                raise _HttpError(int(steps[n]))
         tid, key = self._task(prompt), self._key(prompt, system_prompt)
         script = self.sc["tasks"][tid]["script"]
         if key not in script:

@@ -69,17 +69,17 @@ def test_commit_over_cap_stops_post(tmp_path, monkeypatch):
     assert ex.value.code == 2 and saved["stopped"] in ("cap_exceeded_post", "budget")
 
 
-def test_call_exception_commits_reserved_amount_and_stops(tmp_path, monkeypatch):
-    """호출 예외 → $0 확정 금지: 예약액 0.40 을 지출로 확정, unknown_cost, 이후 호출 중단."""
+def test_unknown_failure_confirms_reservation_and_aborts_arm_after_two(tmp_path, monkeypatch):
+    """(c) 응답 없는 예외 → 예약액 0.40 을 지출로 확정(unknown_cost), 1회면 재시도, 같은 과제에서 2회면 CallAborted (K2). $0 확정 경로 없음."""
     _fixed_cost(monkeypatch, 0.40)
+    monkeypatch.setattr(RL.time, "sleep", lambda s: None)
     b = Budget(tmp_path / "budget.json", 1.0)
     c = _Client(raise_on_call=True)
-    with pytest.raises(BudgetStop) as e:
+    with pytest.raises(RL.CallAborted) as e:
         RL.budgeted_generate(c, b, "p", "s")
-    assert e.value.reason == "unknown_cost"
     st = b.state()
-    assert st["spent"] == 0.40 and st["unknown_cost_calls"] == 1 and st["stopped_reason"] == "unknown_cost"
-    assert not b.reserve(0.01)                          # 이후 예약 거부 = 호출 중단
+    assert c.calls == 2 and st["n_calls"] == 2 and st["unknown_cost_calls"] == 2 and abs(st["spent"] - 0.80) < 1e-9 and st["reserved"] == 0.0
+    assert abs(e.value.usd - 0.80) < 1e-9 and all(a["unknown_cost"] for a in e.value.attempts) and st["stopped_reason"] is None
 
 
 def test_budget_stops_before_second_call_and_never_exceeds_cap(tmp_path, monkeypatch):
@@ -191,17 +191,23 @@ def test_timeout_kills_and_removes_container(monkeypatch):
 
 
 # ── Week2-J2 ──────────────────────────────────────────────────────────
-class _Flaky(_Client):
-    """앞 n 회는 재시도 가능 오류(429), 그 다음 성공."""
+class _Http(Exception):
+    def __init__(self, status):
+        super().__init__(f"HTTP {status}")
+        self.status_code = status
 
-    def __init__(self, fail_first: int):
+
+class _Flaky(_Client):
+    """앞 n 회는 HTTP 429 응답(요금 없음 확실), 그 다음 성공."""
+
+    def __init__(self, fail_first: int, status: int = 429):
         super().__init__()
-        self.fail_first = fail_first
+        self.fail_first, self.status = fail_first, status
 
     def generate_once(self, prompt, system_prompt=None):
         self.calls += 1
         if self.calls <= self.fail_first:
-            raise RuntimeError("429 rate_limit_error: slow down")
+            raise _Http(self.status)
         return "ok"
 
     def generate(self, prompt, system_prompt=None):        # 클라이언트 자체 재시도 경로 — budgeted_generate 는 이걸 쓰면 안 된다
@@ -209,19 +215,20 @@ class _Flaky(_Client):
 
 
 def test_retry_reserves_and_commits_every_attempt(tmp_path, monkeypatch):
-    """재시도 2회 후 성공 → 원장 3건(실패 시도 2건은 예약액 확정, 성공 1건 실측), 예약 잔액 0, 중단 사유 없음."""
+    """429 → 429 → 성공: 원장 3건 (실패 2건은 (b) actual 0·attempt_failed_unbilled, 성공 1건 실측 0.07), 예약 잔액 0, 중단 사유 없음."""
     _fixed_cost(monkeypatch, 0.10, actual=0.07)
     monkeypatch.setattr(RL.time, "sleep", lambda s: None)
     b = Budget(tmp_path / "budget.json", 1.0)
     c = _Flaky(2)
     out, cost, usd, wall = RL.budgeted_generate(c, b, "p", "s", note="t")
     st = b.state()
-    assert c.calls == 3 and st["n_calls"] == 3 and st["stopped_reason"] is None and st["reserved"] == 0.0
-    assert abs(st["spent"] - (0.10 + 0.10 + 0.07)) < 1e-9
-    assert [e["event"] for e in st["log"]] == ["commit"] * 3 and "attempt 1 failed" in st["log"][0]["note"]
+    assert c.calls == 3 and st["n_calls"] == 3 and st["stopped_reason"] is None and st["reserved"] == 0.0 and st["unbilled_failed_calls"] == 2
+    assert abs(st["spent"] - 0.07) < 1e-9 and abs(usd - 0.07) < 1e-9 and cost["llm_calls"] == 3
+    assert [e["actual"] for e in st["log"]] == [0.0, 0.0, 0.07] and all(e["attempt_failed_unbilled"] for e in st["log"][:2]) and not st["log"][2]["attempt_failed_unbilled"]
+    assert [a["kind"] for a in cost["attempts"]] == ["unbilled_retry", "unbilled_retry", "success"] and not any(a["unknown_cost"] for a in cost["attempts"])
 
 
-def test_retry_exhausted_commits_unknown_cost(tmp_path, monkeypatch):
+def test_retry_exhausted_on_429_stops_with_call_failed_and_zero_spend(tmp_path, monkeypatch):
     _fixed_cost(monkeypatch, 0.10)
     monkeypatch.setattr(RL.time, "sleep", lambda s: None)
     b = Budget(tmp_path / "budget.json", 1.0)
@@ -229,7 +236,35 @@ def test_retry_exhausted_commits_unknown_cost(tmp_path, monkeypatch):
     with pytest.raises(BudgetStop) as e:
         RL.budgeted_generate(c, b, "p", "s")
     st = b.state()
-    assert e.value.reason == "unknown_cost" and c.calls == RL.MAX_ATTEMPTS and st["n_calls"] == RL.MAX_ATTEMPTS and abs(st["spent"] - 0.30) < 1e-9
+    assert e.value.reason == "call_failed" and c.calls == RL.MAX_ATTEMPTS and st["n_calls"] == RL.MAX_ATTEMPTS and st["spent"] == 0.0
+
+
+def test_http_400_is_unbilled_but_fatal(tmp_path, monkeypatch):
+    _fixed_cost(monkeypatch, 0.10)
+    b = Budget(tmp_path / "budget.json", 1.0)
+    c = _Flaky(99, status=400)
+    with pytest.raises(BudgetStop) as e:
+        RL.budgeted_generate(c, b, "p", "s")
+    assert e.value.reason == "call_failed" and c.calls == 1 and b.state()["spent"] == 0.0 and b.state()["n_calls"] == 1
+
+
+def test_unknown_then_success_charges_reserve_plus_measured(tmp_path, monkeypatch):
+    """타임아웃 1회(c) → 성공: usd = 확정 예약 0.10 + 실측 0.07, 원장 spent 도 0.17 (arm 비용 == 원장)."""
+    _fixed_cost(monkeypatch, 0.10, actual=0.07)
+    monkeypatch.setattr(RL.time, "sleep", lambda s: None)
+
+    class _Timeout(_Client):
+        def generate_once(self, prompt, system_prompt=None):
+            self.calls += 1
+            if self.calls == 1:
+                raise TimeoutError("read timed out")
+            return "ok"
+    b = Budget(tmp_path / "budget.json", 1.0)
+    c = _Timeout()
+    out, cost, usd, wall = RL.budgeted_generate(c, b, "p", "s")
+    st = b.state()
+    assert abs(usd - 0.17) < 1e-9 and abs(st["spent"] - 0.17) < 1e-9 and st["unknown_cost_calls"] == 1 and st["stopped_reason"] is None
+    assert cost["n_unknown_attempts"] == 1 and cost["unknown_reserved_usd"] == 0.10
 
 
 def test_budget_stop_partial_rows_are_saved(tmp_path):
@@ -245,3 +280,31 @@ def test_budget_stop_partial_rows_are_saved(tmp_path):
     with pytest.raises(SystemExit) as e:
         RL.run_loop(["t1", "t2", "t3"], run_task, lambda rows, stopped: saved.update(rows=rows, stopped=stopped), b)
     assert e.value.code == 2 and saved["stopped"] == "budget" and [r["task_id"] for r in saved["rows"]] == ["t1", "t2"]
+
+
+# ── Week2-K2: SDK 재시도 0 — 모의 HTTP 429→429→성공, HTTP 요청 수 == 원장 건수 ──
+def test_sdk_http_429_twice_then_success_gives_three_ledger_entries(tmp_path, monkeypatch):
+    import httpx2 as httpx
+    from harmonet.llm import AnthropicClient
+    monkeypatch.setattr(RL.time, "sleep", lambda s: None)
+    hits = {"messages": 0, "count": 0}
+
+    def handler(req: httpx.Request) -> httpx.Response:
+        if req.url.path.endswith("/count_tokens"):
+            hits["count"] += 1
+            return httpx.Response(200, json={"input_tokens": 300})
+        hits["messages"] += 1
+        if hits["messages"] <= 2:
+            return httpx.Response(429, json={"type": "error", "error": {"type": "rate_limit_error", "message": "slow down"}})
+        return httpx.Response(200, json={"id": "msg_1", "type": "message", "role": "assistant", "model": "claude-haiku-4-5-20251001",
+                                         "content": [{"type": "text", "text": "```python\nx = 1\n```"}], "stop_reason": "end_turn",
+                                         "usage": {"input_tokens": 300, "output_tokens": 20}})
+    c = AnthropicClient(api_key="test-key", model="claude-haiku-4-5", http_client=httpx.Client(transport=httpx.MockTransport(handler)))
+    c.role = "builder"
+    assert c.client.max_retries == 0
+    b = Budget(tmp_path / "budget.json", 1.0)
+    out, cost, usd, wall = RL.budgeted_generate(c, b, "p", "s", note="k2")
+    st = b.state()
+    assert hits["messages"] == 3 == st["n_calls"] and hits["count"] == 1
+    assert st["unbilled_failed_calls"] == 2 and [e["actual"] for e in st["log"]][:2] == [0.0, 0.0] and st["log"][2]["actual"] == usd
+    assert abs(st["spent"] - usd) < 1e-12 and abs(usd - (330 * 0 + 300 * 1.0 + 20 * 5.0) / 1e6) < 1e-12   # haiku $1/$5 per M

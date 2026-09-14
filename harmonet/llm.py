@@ -336,7 +336,7 @@ class AnthropicClient(LLMClient):
         "Always produce complete, functional implementations with proper error handling."
     )
 
-    def __init__(self, api_key: Optional[str] = None, model: Optional[str] = None):
+    def __init__(self, api_key: Optional[str] = None, model: Optional[str] = None, http_client=None):
         self.api_key = api_key or os.getenv("ANTHROPIC_API_KEY")
         if not self.api_key:
             raise ValueError("Anthropic API key is missing.")
@@ -346,9 +346,9 @@ class AnthropicClient(LLMClient):
         _t = os.getenv("ANTHROPIC_TEMPERATURE")
         self.temperature = float(_t) if _t else None  # None이면 API 기본값
         from anthropic import Anthropic, AsyncAnthropic
-        self.client = Anthropic(api_key=self.api_key)
+        self.client = Anthropic(api_key=self.api_key, max_retries=0, http_client=http_client)     # K2: SDK 내부 재시도 0 — 재시도는 runloop 원장 경로에서만
         # AsyncAnthropic: httpx 기반 진짜 비동기 — asyncio.to_thread 불필요
-        self.async_client = AsyncAnthropic(api_key=self.api_key)
+        self.async_client = AsyncAnthropic(api_key=self.api_key, max_retries=0)
 
     def _build_system_blocks(self, system_prompt: Optional[str] = None):
         """cache_control이 적용된 시스템 프롬프트 블록 생성."""

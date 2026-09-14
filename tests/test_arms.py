@@ -124,8 +124,8 @@ class _Client:
 
 def test_max_tokens_rule_refuses_below_256_without_calling():
     c = _Client()
-    out, cost, usd, wall, mt, refused = A._call(c, None, "p" * 300, "s", remaining_usd=0.001, note="t")
-    assert refused is True and out is None and c.calls == 0 and mt < A.MIN_MAX_TOKENS
+    out, cost, usd, wall, mt, status = A._call(c, None, "p" * 300, "s", remaining_usd=0.001, note="t")
+    assert status == "refused" and out is None and c.calls == 0 and mt < A.MIN_MAX_TOKENS
 
 
 def test_budget_stop_is_distinct_from_refused(tmp_path, monkeypatch):
@@ -165,3 +165,19 @@ def test_max_tokens_rule_uses_counted_tokens_not_chars():
     n_in = 1000
     mt = A._max_tokens_for("claude-haiku-4-5", 0.01, n_in)
     assert mt == int((0.01 - n_in * 1.10 * e["input"] / 1e6) / (e["output"] / 1e6))
+
+
+# ── Week2-K2: 실패 2 + 성공 1 → arm 비용 == 원장 지출, 보고서 검산 통과 ───────
+def test_failed_attempts_are_attributed_to_arm_and_ledger_matches(tmp_path, monkeypatch):
+    """첫 호출(s0 build)이 429 → timeout(c) → 성공. arm/s0 비용에 (c) 확정 예약액이 들어가고, 원장 spent == Σ 셀 비용 + s0 비용 (spend_report 검산)."""
+    import pilot_dryrun as PD
+    monkeypatch.setenv("HARMONET_MOCK_FAIL_SCRIPT", "429,timeout")
+    d = _run(tmp_path, "k2", k=1)
+    led = json.loads((tmp_path / "budget" / "k2" / "budget.json").read_text(encoding="utf-8"))
+    assert led["unbilled_failed_calls"] == 1 and led["unknown_cost_calls"] == 1 and led["stopped_reason"] is None
+    assert led["n_calls"] == 2 + 2 + sum(r["n_attempts"] for r in d["rows"])       # s0 ×2 과제 (첫 s0 는 3 시도) + arm 시도 전부
+    env = {"HARMONET_BUDGET_ROOT": str(tmp_path / "budget"), "HARMONET_BUDGET_ID": "k2"}
+    rep = PD.spend_report(env, [d], 0.0)
+    assert rep["total_spent_usd"] == led["spent"] and rep["check"].startswith("ledger ==")
+    first_s0 = min(d["shared_s0_cost"].items())  # Mbpp/2 가 먼저 → 그 s0 에 (c) 예약액이 얹힘
+    assert first_s0[1] > 0.0135                    # 정상 s0 $0.0135 + 확정 예약액
