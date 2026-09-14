@@ -75,6 +75,9 @@ class ScenarioMockClient:
         METER.record(tok["prompt"], tok["completion"], estimated=False, role=self.role, model=self.model)
         return f"```python\n{code}\n```"
 
+    def count_input_tokens(self, prompt: str, system_prompt: Optional[str] = None) -> int:
+        return int(self.sc.get("tokens", {"prompt": 1000})["prompt"])
+
     async def generate_async(self, prompt: str, system_prompt: Optional[str] = None) -> str:
         return self.generate(prompt, system_prompt)
 

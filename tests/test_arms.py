@@ -114,6 +114,9 @@ class _Client:
     def __init__(self):
         self.calls = 0
 
+    def count_input_tokens(self, prompt, system_prompt=None):
+        return 300
+
     def generate(self, prompt, system_prompt=None):
         self.calls += 1
         return "```python\nx = 1\n```"

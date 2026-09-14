@@ -10,7 +10,8 @@ A·B 가 별도 프로세스로 같은 원장을 쓰므로 읽기-수정-쓰기�
                              예약을 먼저 잡기 때문에 두 프로세스가 동시에 검사해도 합계가 cap 을 넘지 않는다.
 호출 후  commit(projected, actual): 예약 해제 + 실측 가산. actual 이 None(미측정)이면 stopped_reason="unpriced" (다음 호출 금지, B2 규칙).
 
-입력 토큰 추정은 chars/3 (실측보다 크게 잡아 먼저 멈추는 쪽으로 보수적). 출력은 max_tokens 전부로 가정.
+입력 토큰은 백엔드의 count_tokens(무료)로 실측 × 1.10 여유 (F2). 세지 못하면 호출하지 않는다 — 추정으로 대체 금지. 출력은 max_tokens 전부로 가정.
+커밋 후 spent > cap 이면 stopped_reason="cap_exceeded_post" (예약이 상계가 아님을 전제한 사후 장치). 호출 예외는 $0 이 아니라 예약액을 확정(unknown_cost).
 """
 from __future__ import annotations
 
@@ -26,7 +27,11 @@ _IS_WIN = os.name == "nt"
 
 
 class BudgetStop(RuntimeError):
-    """예산 상한으로 호출을 하지 않음 (또는 원장이 이미 stopped)."""
+    """예산 때문에 멈춘다. reason: "budget"(예약 거부, 호출 안 함) | "cap_exceeded_post"(커밋 후 spent > cap) | "unknown_cost"(호출 예외, 비용 미상)."""
+
+    def __init__(self, msg: str, reason: str = "budget"):
+        super().__init__(msg)
+        self.reason = reason
 
 
 class _Locked:
@@ -107,17 +112,26 @@ class Budget:
             self._write(d)
             return True
 
-    def commit(self, projected: float, actual: Optional[float], note: str = "") -> None:
+    def commit(self, projected: float, actual: Optional[float], note: str = "", unknown_cost: bool = False) -> Dict[str, Any]:
+        """예약 해제 + 실측 가산. actual None → unpriced 로 중단. unknown_cost(호출 예외) → 예약액을 보수적으로 확정하고 중단.
+        커밋 후 spent > cap 이면 stopped_reason="cap_exceeded_post" (예약이 상계가 아님을 전제한 사후 장치). 갱신된 원장을 돌려준다."""
         with _Locked(self.path):
             d = self._read()
             d["reserved"] = max(0.0, round(d["reserved"] - projected, 10))
             d["n_calls"] += 1
-            if actual is None:
+            if unknown_cost:
+                d["spent"] = round(d["spent"] + projected, 10)          # $0 확정 금지: 예약액을 지출로 확정
+                d["unknown_cost_calls"] = d.get("unknown_cost_calls", 0) + 1
+                d["stopped_reason"] = d["stopped_reason"] or "unknown_cost"
+            elif actual is None:
                 d["stopped_reason"] = d["stopped_reason"] or "unpriced"
             else:
                 d["spent"] = round(d["spent"] + actual, 10)
-            d["log"].append({"t": time.time(), "event": "commit", "projected": projected, "actual": actual, "note": note})
+            if d["spent"] > d["cap"] + 1e-12:
+                d["stopped_reason"] = d["stopped_reason"] or "cap_exceeded_post"
+            d["log"].append({"t": time.time(), "event": "commit", "projected": projected, "actual": actual, "unknown_cost": unknown_cost, "note": note})
             self._write(d)
+            return d
 
     def stop(self, reason: str) -> None:
         with _Locked(self.path):
@@ -126,12 +140,16 @@ class Budget:
             self._write(d)
 
 
-def projected_cost(model: Optional[str], prompt_chars: int, max_tokens: int) -> float:
-    """호출 전 상한 추정: 입력 chars/3 토큰 × 입력단가 + max_tokens × 출력단가. 가격 미상이면 RuntimeError (사전 점검이 먼저 막지만 이중 확인)."""
+INPUT_MARGIN = 1.10
+
+
+def projected_cost(model: Optional[str], input_tokens: int, max_tokens: int) -> float:
+    """호출 전 예약액: 실측 입력 토큰(count_tokens) × 1.10 × 입력단가 + max_tokens × 출력단가 (F2: chars/3 추정 폐기).
+    가격 미상이면 RuntimeError (사전 점검이 먼저 막지만 이중 확인)."""
     entry, sid = price_for(model)
     if entry is None:
         raise RuntimeError(f"[budget] 모델 {model!r} 가격이 {sid} 에 없어 예산을 추정할 수 없다")
-    return (prompt_chars / 3.0) * entry["input"] / 1e6 + max_tokens * entry["output"] / 1e6
+    return input_tokens * INPUT_MARGIN * entry["input"] / 1e6 + max_tokens * entry["output"] / 1e6
 
 
 def budget_from_env(default_id: Optional[str] = None) -> Optional[Budget]:
@@ -152,5 +170,5 @@ if __name__ == "__main__":
     b = Budget(p, 1.0)
     assert b.reserve(0.6) and not b.reserve(0.6) and b.state()["stopped_reason"] == "budget"
     b2 = Budget(p, 1.0); b2.commit(0.6, 0.55); assert b2.state()["spent"] == 0.55 and b2.state()["reserved"] == 0.0
-    assert projected_cost("claude-haiku-4-5", 3000, 1000) == (1000 * 1.0 + 1000 * 5.0) / 1e6
+    assert abs(projected_cost("claude-haiku-4-5", 1000, 1000) - (1100 * 1.0 + 1000 * 5.0) / 1e6) < 1e-12
     print("budget.py self-check OK")

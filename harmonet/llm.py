@@ -356,6 +356,12 @@ class AnthropicClient(LLMClient):
         # ephemeral 캐시: TTL 5분, 반복 호출 시 입력 토큰 절감
         return [{"type": "text", "text": text, "cache_control": {"type": "ephemeral"}}]
 
+    def count_input_tokens(self, prompt: str, system_prompt: Optional[str] = None) -> int:
+        """무료 count_tokens 엔드포인트로 입력 토큰을 센다 (Week2-F2 예산 예약용). 실패는 예외로 — 추정으로 대체하지 않는다."""
+        kw = self._msg_kwargs(prompt, self._build_system_blocks(system_prompt))
+        r = self.client.messages.count_tokens(model=kw["model"], system=kw["system"], messages=kw["messages"])
+        return int(r.input_tokens)
+
     @_retry_sync(max_retries=3, base_delay=2.0)
     def generate(self, prompt: str, system_prompt: Optional[str] = None) -> str:
         response = self.client.messages.create(**self._msg_kwargs(prompt, self._build_system_blocks(system_prompt)))

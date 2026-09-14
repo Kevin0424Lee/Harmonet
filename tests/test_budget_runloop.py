@@ -14,17 +14,72 @@ from harmonet.budget import Budget, BudgetStop
 class _Client:
     model, max_tokens, role = "claude-haiku-4-5", 1000, "builder"
 
-    def __init__(self):
+    def __init__(self, raise_on_call=False):
         self.calls = 0
+        self.raise_on_call = raise_on_call
+
+    def count_input_tokens(self, prompt, system_prompt=None):   # F2: count_tokens 실측 (여기서는 고정값)
+        return 300
 
     def generate(self, prompt, system_prompt=None):
         self.calls += 1
+        if self.raise_on_call:
+            raise ConnectionError("simulated API failure")
         return "```python\ndef f():\n    return 1\n```"
 
 
-def _fixed_cost(monkeypatch, usd):
-    monkeypatch.setattr(RL, "projected_cost", lambda model, chars, max_tokens: usd)
-    monkeypatch.setattr(RL, "cost_usd", lambda model, cost: (usd, "snap", None))
+class _NoCount(_Client):
+    count_input_tokens = None
+
+
+def _fixed_cost(monkeypatch, usd, actual=None):
+    monkeypatch.setattr(RL, "projected_cost", lambda model, tokens, max_tokens: usd)
+    monkeypatch.setattr(RL, "cost_usd", lambda model, cost: (usd if actual is None else actual, "snap", None))
+
+
+# ── Week2-F2 ──────────────────────────────────────────────────────────
+
+def test_projection_uses_counted_tokens_with_margin():
+    """예약 = count_tokens 실측 × 1.10 × 입력단가 + max_tokens × 출력단가 (chars/3 폐기)."""
+    from harmonet.budget import projected_cost
+    assert abs(projected_cost("claude-haiku-4-5", 300, 1000) - (330 * 1.0 + 1000 * 5.0) / 1e6) < 1e-12
+
+
+def test_client_without_count_tokens_is_not_called(tmp_path):
+    b = Budget(tmp_path / "budget.json", 1.0)
+    c = _NoCount()
+    with pytest.raises(RuntimeError, match="count_tokens"):
+        RL.budgeted_generate(c, b, "p", "s")
+    assert c.calls == 0 and b.state()["n_calls"] == 0
+
+
+def test_commit_over_cap_stops_post(tmp_path, monkeypatch):
+    """cap 1.00, 예약 0.40, 실측 커밋 1.10 → stopped_reason=cap_exceeded_post, BudgetStop(reason), 종료 코드 2."""
+    _fixed_cost(monkeypatch, 0.40, actual=1.10)
+    b = Budget(tmp_path / "budget.json", 1.0)
+    c = _Client()
+    with pytest.raises(BudgetStop) as e:
+        RL.budgeted_generate(c, b, "p", "s")
+    assert e.value.reason == "cap_exceeded_post" and c.calls == 1
+    st = b.state()
+    assert st["spent"] == 1.10 and st["stopped_reason"] == "cap_exceeded_post" and st["reserved"] == 0.0
+    saved = {}
+    with pytest.raises(SystemExit) as ex:
+        RL.run_loop(["t1", "t2"], lambda tid: RL.budgeted_generate(c, b, "p", "s"), lambda rows, stopped: saved.update(stopped=stopped), b)
+    assert ex.value.code == 2 and saved["stopped"] in ("cap_exceeded_post", "budget")
+
+
+def test_call_exception_commits_reserved_amount_and_stops(tmp_path, monkeypatch):
+    """호출 예외 → $0 확정 금지: 예약액 0.40 을 지출로 확정, unknown_cost, 이후 호출 중단."""
+    _fixed_cost(monkeypatch, 0.40)
+    b = Budget(tmp_path / "budget.json", 1.0)
+    c = _Client(raise_on_call=True)
+    with pytest.raises(BudgetStop) as e:
+        RL.budgeted_generate(c, b, "p", "s")
+    assert e.value.reason == "unknown_cost"
+    st = b.state()
+    assert st["spent"] == 0.40 and st["unknown_cost_calls"] == 1 and st["stopped_reason"] == "unknown_cost"
+    assert not b.reserve(0.01)                          # 이후 예약 거부 = 호출 중단
 
 
 def test_budget_stops_before_second_call_and_never_exceeds_cap(tmp_path, monkeypatch):
