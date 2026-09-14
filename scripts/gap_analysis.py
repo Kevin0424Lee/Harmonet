@@ -323,17 +323,17 @@ def policy_gain(rows: Sequence[Dict[str, Any]], learner: str = "P1", n_perm: int
     perm_seeds = [seed * 100_003 + 7 + b for b in range(n_perm)]
     chunks = max(1, workers * 4)
     jobs = [(Y, C, feats, X, learner, R, n_num, seed + 1, perm_seeds[i::chunks], lam) for i in range(chunks)]
-    null = np.array(_parallel(_null_chunk, jobs, workers))
-    pval = float((int((null >= obs).sum()) + 1) / (len(null) + 1))          # (count+1)/(B+1), 진단용
+    null = np.array(_parallel(_null_chunk, jobs, workers)) if n_perm > 0 else np.array([])
+    pval = float((int((null >= obs).sum()) + 1) / (len(null) + 1)) if n_perm > 0 else None   # (count+1)/(B+1), 진단용; n_perm=0 → 없음
     pick_dist = {ARMS[a]: 0 for a in range(len(ARMS))}
     for _, a in picks:
         pick_dist[ARMS[a]] += 1
     tot = max(1, len(picks))
     pick_dist = {k: v / tot for k, v in pick_dist.items()}
-    out = {"learner": learner, "n_tasks": len(tasks), "gain": obs, "p_value": pval, "null_mean": float(null.mean()),
+    out = {"learner": learner, "n_tasks": len(tasks), "gain": obs, "p_value": pval, "null_mean": float(null.mean()) if n_perm > 0 else None,
            "cost_policy_usd": cpol, "cost_fixed_usd": cfix, "n_unpriced": int(np.isnan(C).sum()), "n_perm": n_perm, "cv": {"K": CV_K, "R": R}, "lambda": lam,
            "features": spec, "pick_dist": pick_dist,
-           "diag_R2": "통과" if (pval < 0.05 and obs >= 0.10) else "미확인",
+           "diag_R2": ("통과" if (pval < 0.05 and obs >= 0.10) else "미확인") if pval is not None else None,
            "rule": "진단 전용 — 특징 순열 p 는 '특징 ⟂ 결과' 의 검정이지 '정책 이득 ≤ 0' 의 검정이 아니다 (J). 판정은 PREREG v4 의 대응 McNemar"}
     if with_ci and n_boot > 0:                              # 과제 부트스트랩, 복제마다 CV 전체 재수행
         boot_seeds = [seed * 100_003 + 500_000 + b for b in range(n_boot)]
