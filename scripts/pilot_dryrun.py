@@ -29,6 +29,7 @@ sys.path.insert(0, str(ROOT)); sys.path.insert(0, str(ROOT / "scripts"))
 import gap_analysis as G                                        # noqa: E402
 from benchmark.features import FEATURES_VERSION, FEATURE_SPECS, task_features  # noqa: E402
 from prereg_render import CONFIG, PREREG, config_sha256, current_block       # noqa: E402
+from approval import ApprovalError, check_approval, id_set_hashes            # noqa: E402
 
 DRY_IDS = ["BigCodeBench/0", "BigCodeBench/1", "BigCodeBench/2", "BigCodeBench/3", "BigCodeBench/4", "BigCodeBench/9"]   # 개발용 (풀 제외)
 DRY_SCRIPTS = {  # 과제마다 다른 변형 → post 특징·히든 결과가 갈린다
@@ -142,6 +143,9 @@ def gate_common(args, cfg: dict, ids: dict, arms_root: Path, stage: str) -> dict
     if missing:
         raise Gate(f"s0 가져오기 미완료 {len(missing)}/{len(ids['probe_reuse_ids'])}: {missing[:3]} … (benchmark.s0_import 먼저)")
     checks["s0_imported"] = len(ids.get("probe_reuse_ids", []))
+    if args.backend == "anthropic":                        # K1: 승인 기록 대조 (값 하나하나). dry-run 은 승인 없이 배관만 점검
+        fz_path = arms_root / cfg["run_ids"]["explore"] / "frozen_policy.json"
+        checks["approval"] = {k: v for k, v in check_approval(stage, sha, FEATURES_VERSION, id_set_hashes(cfg), fz_path).items() if k in ("reviewer", "review_ref", "freeze_commit")}
     from benchmark.bcb import bcb_preflight
     checks["docker_preflight"] = bcb_preflight()
     if stage == "confirm":
@@ -315,6 +319,8 @@ def main() -> int:
     ap.add_argument("--n-boot", type=int, default=None, help="기본 = 설정 파일 n_boot_explore")
     ap.add_argument("--workers", type=int, default=14)
     args = ap.parse_args()
+    if args.backend == "anthropic" and args.stage == "all":
+        raise Gate("실제 백엔드에서 --stage all 금지: 탐색 → (동결 커밋, APPROVAL.json 갱신) → 확인은 별도 호출 (K1)")
     cfg = json.loads(CONFIG.read_text(encoding="utf-8"))
     args.n_perm = cfg["features"]["n_perm_diag"] if args.n_perm is None else args.n_perm
     args.n_boot = cfg["features"]["n_boot_explore"] if args.n_boot is None else args.n_boot

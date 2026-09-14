@@ -1,0 +1,17 @@
+{
+ "status": "unapproved_draft",
+ "stage": null,
+ "reviewer": null,
+ "review_ref": null,
+ "freeze_commit": null,
+ "config_hash": null,
+ "policy_hash": null,
+ "feature_extractor_version": null,
+ "id_set_hashes": {
+  "explore": null,
+  "confirm": null,
+  "reserve": null
+ },
+ "pool_gate": null,
+ "note": "탐색 실행 승인 시 stage=explore 로, 동결 커밋 뒤 확인 실행 승인 시 stage=confirm 으로 갱신. scripts/approval.py 가 값을 대조한다."
+}
