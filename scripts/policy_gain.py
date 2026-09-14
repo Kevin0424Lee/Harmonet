@@ -87,7 +87,7 @@ def rows_from(gen: Dict[str, Any]) -> List[Dict[str, Any]]:
     for i in range(len(gen["z"])):
         for a, arm in enumerate(ARMS):
             rows.append({"task_id": f"s{i}", "arm": arm, "rep": 1, "hidden_pass": bool(gen["Y"][i, a]), "cost_usd": float(gen["C"][i, a]),
-                         "budget_refused": False, "features": gen["feats"][i]})
+                         "budget_refused": False, "infra": False, "hidden_exposed": False, "features": gen["feats"][i]})   # J1 가드 필드(합성 = 노출 없음)
     return rows
 
 
@@ -140,7 +140,7 @@ def _cell(args):
     tg = true_gain(gen, s)
     r = G.policy_gain(rows_from(gen), learner, n_perm=n_perm, n_boot=0, seed=seed, with_ci=False, R=R)
     return {"s": s, "rho": rho, "N": N, "delta": delta, "seed": seed_i, "learner": learner, "true_gain": tg, "gain": r["gain"], "p": r["p_value"],
-            "pass": r["verdict"] == "통과", "cost_policy": r["cost_policy_usd"], "cost_fixed": r["cost_fixed_usd"]}
+            "pass": r["diag_R2"] == "통과", "cost_policy": r["cost_policy_usd"], "cost_fixed": r["cost_fixed_usd"]}
 
 
 def clopper_pearson(x: int, n: int):
@@ -174,8 +174,52 @@ def run(ss, rhos, Ns, seeds, learners, n_perm, R, workers, deltas=(DELTA_TYPE,))
     return res
 
 
+# ── J1: 부트스트랩 CI 포함률 재검증 (GroupKFold 수정 후) ────────────────────
+def _boot_cell(args):
+    """seed 하나: 수정본 CI(원본 id 로 겹 나눔) 와 누수본(복제 행을 행 단위로 겹 나눔, 구 코드) 의 부트스트랩 분포를 같은 복제 표본에서 비교."""
+    N, seed_i, s, rho, delta, R, n_boot = args
+    seed = 1000 * seed_i + 11
+    gen = generate(N, seed, s, rho, delta)
+    rows = rows_from(gen)
+    r = G.policy_gain(rows, "P2", n_perm=1, n_boot=n_boot, seed=seed, with_ci=True, R=R)
+    Y, C, feats, _ = G.policy_tensor(rows)
+    X, _ = G.design_matrix(feats)
+    leaky = []
+    for b in range(n_boot):
+        rng = np.random.default_rng(seed * 100_003 + 500_000 + b)      # policy_gain 과 같은 복제 seed
+        idx = rng.integers(0, N, N)
+        leaky.append(G._cv_gain(Y[idx], C[idx], [feats[i] for i in idx], X[idx], "P2", rng, R=R)[0])
+    return {"seed": seed_i, "true_gain": true_gain(gen, s), "gain": r["gain"], "ci95": r["ci95"],
+            "ci95_leaky": [float(np.quantile(leaky, 0.025)), float(np.quantile(leaky, 0.975))], "boot_mean_leaky": float(np.mean(leaky))}
+
+
+def _estimand_cell(args):
+    N, seed_i, s, rho, delta, R = args
+    gen = generate(N, 5_000_000 + seed_i, s, rho, delta)
+    return G.policy_gain(rows_from(gen), "P2", n_perm=1, n_boot=0, seed=seed_i, with_ci=False, R=R)["gain"]
+
+
+def boot_coverage(N: int, s: float, rho: float, delta: float, seeds: int, n_boot: int, R: int, workers: int, n_est: int = 40):
+    with Pool(workers) as pool:
+        est = pool.map(_estimand_cell, [(N, i, s, rho, delta, R) for i in range(n_est)])
+        cells = pool.map(_boot_cell, [(N, i, s, rho, delta, R, n_boot) for i in range(seeds)])
+    estimand = float(np.mean(est))
+    cov = sum(c["ci95"][0] <= estimand <= c["ci95"][1] for c in cells)
+    cov_true = sum(c["ci95"][0] <= c["true_gain"] <= c["ci95"][1] for c in cells)
+    cov_leaky = sum(c["ci95_leaky"][0] <= estimand <= c["ci95_leaky"][1] for c in cells)
+    return {"config": {"N": N, "s": s, "rho": rho, "delta": delta, "seeds": seeds, "n_boot": n_boot, "R": R, "n_estimand_datasets": n_est},
+            "cv_estimand": estimand, "true_gain_mean": float(np.mean([c["true_gain"] for c in cells])),
+            "coverage_cv_estimand": fmt_rate(cov, seeds), "coverage_true_gain": fmt_rate(cov_true, seeds), "coverage_cv_estimand_leaky": fmt_rate(cov_leaky, seeds),
+            "ci_width_mean": float(np.mean([c["ci95"][1] - c["ci95"][0] for c in cells])),
+            "ci_width_mean_leaky": float(np.mean([c["ci95_leaky"][1] - c["ci95_leaky"][0] for c in cells])),
+            "boot_center_shift_leaky_minus_fixed": float(np.mean([c["boot_mean_leaky"] - np.mean(c["ci95"]) for c in cells])), "cells": cells}
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
+    ap.add_argument("--boot-coverage", action="store_true")
+    ap.add_argument("--n-boot", type=int, default=200)
+    ap.add_argument("--N", type=int, default=100)
     ap.add_argument("--h2", action="store_true")
     ap.add_argument("--h3", action="store_true")
     ap.add_argument("--seeds", type=int, default=20)
@@ -184,6 +228,11 @@ def main() -> int:
     ap.add_argument("--R", type=int, default=5)
     ap.add_argument("--out", required=True)
     args = ap.parse_args()
+    if args.boot_coverage:
+        out = boot_coverage(args.N, 1.0, 1.0, 3.0, args.seeds, args.n_boot, args.R, args.workers)
+        Path(args.out).write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
+        print(json.dumps({k: v for k, v in out.items() if k != "cells"}, ensure_ascii=False, indent=1))
+        return 0
     if args.h2:
         res = run([0.0], [1.0, 0.7], [100, 150, 200, 300], args.seeds, ["P1", "P2"], args.n_perm, args.R, args.workers)
         out = {"config": {"n_perm": args.n_perm, "R": args.R, "seeds": args.seeds, "s": [0.0]}, "cells": summarize(res, ["learner", "rho", "N"]), "raw": res}

@@ -38,7 +38,7 @@ def test_features_feed_p2_pre_and_post(tmp_path):
                                 "artifact_lines": 5, "build_tokens": {"prompt_tokens": 300, "completion_tokens": 200 + i}, "build_cost_usd": 0.001},
                                "def task_func(a, b):\n    return a + b\n"))
         for a in G.ARMS:
-            rows.append({"task_id": f"t{i}", "arm": a, "rep": 1, "hidden_pass": bool(rng.random() < 0.5), "cost_usd": 0.01, "budget_refused": False, "features": f})
+            rows.append({"task_id": f"t{i}", "arm": a, "rep": 1, "hidden_pass": bool(rng.random() < 0.5), "cost_usd": 0.01, "budget_refused": False, "infra": False, "hidden_exposed": False, "features": f})
     for spec in ("pre", "post"):
         r = G.policy_gain(rows, "P2", n_perm=5, n_boot=0, seed=0, with_ci=False, R=1, spec=FEATURE_SPECS[spec])
         assert "gain" in r and r["features"] == FEATURE_SPECS[spec] and abs(sum(r["pick_dist"].values()) - 1) < 1e-9

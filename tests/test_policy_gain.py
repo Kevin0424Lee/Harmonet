@@ -21,7 +21,7 @@ def test_p1_and_p2_no_pass_under_null_and_detect_signal():
     rows1 = PG.rows_from(PG.generate(300, 11, 1.0, 1.0, delta=3.0))
     for L in ("P1", "P2"):
         r0 = G.policy_gain(rows0, L, n_perm=60, n_boot=0, seed=1, with_ci=False, R=3)
-        assert r0["verdict"] == "미확인" and r0["gain"] < 0.05, (L, r0["gain"], r0["p_value"])
+        assert r0["diag_R2"] == "미확인" and r0["gain"] < 0.05, (L, r0["gain"], r0["p_value"])
     r1 = G.policy_gain(rows1, "P2", n_perm=60, n_boot=0, seed=1, with_ci=False, R=3)
     assert r1["p_value"] < 0.05 and r1["gain"] > 0.03, r1
 
@@ -42,3 +42,46 @@ def test_ci_and_costs_present():
     r = G.policy_gain(rows, "P1", n_perm=30, n_boot=20, seed=0, R=2)
     assert len(r["ci95"]) == 2 and r["ci95"][0] <= r["gain"] <= r["ci95"][1] + 0.05
     assert r["cost_policy_usd"] >= 0 and r["cost_fixed_usd"] > 0
+
+
+# ── Week2-J1: 입력 가드·부트스트랩 누수·순열 p ────────────────────────────
+def test_guard_infra_row_rejected():
+    rows = PG.rows_from(PG.generate(10, 1, 0.0, 1.0))
+    rows[3] = dict(rows[3], infra=True)
+    with pytest.raises(ValueError, match="infra=True"):
+        G.policy_tensor(rows)
+
+
+def test_guard_hidden_exposed_must_be_explicit_false():
+    rows = PG.rows_from(PG.generate(10, 1, 0.0, 1.0))
+    for bad in (None, "False", 0, True):
+        r2 = [dict(r) for r in rows]
+        if bad is None:
+            del r2[0]["hidden_exposed"]
+        else:
+            r2[0]["hidden_exposed"] = bad
+        with pytest.raises(ValueError, match="hidden_exposed"):
+            G.policy_tensor(r2)
+
+
+def test_guard_unpriced_cost_gives_none_not_nanmean():
+    rows = PG.rows_from(PG.generate(30, 2, 0.0, 1.0))
+    rows = [dict(r, cost_usd=None) if r["task_id"] == "s1" else r for r in rows]     # 과제 하나 전체 미측정
+    r = G.policy_gain(rows, "P1", n_perm=5, n_boot=0, seed=0, with_ci=False, R=2)
+    assert r["n_unpriced"] == len(G.ARMS) and r["cost_policy_usd"] is None and r["cost_fixed_usd"] is None
+
+
+def test_group_folds_keep_duplicated_ids_on_one_side():
+    rng = np.random.default_rng(0)
+    groups = rng.integers(0, 40, 100)                      # 부트스트랩 복제처럼 같은 원본 id 가 여러 행
+    folds = G._group_folds(groups, rng, 5)
+    assert sorted(np.concatenate(folds).tolist()) == list(range(100))
+    for f in folds:
+        others = np.concatenate([g for g in folds if g is not f])
+        assert not set(groups[f]) & set(groups[others])
+
+
+def test_perm_pvalue_is_count_plus_one_over_B_plus_one():
+    rows = PG.rows_from(PG.generate(40, 3, 0.0, 1.0))
+    r = G.policy_gain(rows, "P1", n_perm=9, n_boot=0, seed=0, with_ci=False, R=1)
+    assert r["p_value"] >= 1 / 10 and abs(r["p_value"] * 10 - round(r["p_value"] * 10)) < 1e-9

@@ -145,12 +145,15 @@ def analyze(rows: Sequence[Dict[str, Any]], n_boot: int = 10000, seed: int = 0) 
 #   P2 L2 로지스틱: arm 마다 P(성공 | x) 를 로지스틱(특징 표준화, 범주 one-hot, ridge λ=1.0, IRLS 8회)으로 적합 → argmax_a.
 # 평가: 과제 K=5 겹 교차 검증 × R=20 회 셔플. 겹마다 최선 고정 arm 도 학습 과제에서 고른다.
 #   통계량 = 검증 과제 평균(정책이 고른 arm 의 성공 − 최선 고정 arm 의 성공), 겹·셔플 평균. 예산 매칭용으로 고른 arm 의 실제 $ 도 같이 집계.
-# 귀무: **특징 벡터를 과제 사이에서 순열**(결과 고정) B=2000 → 통계량 귀무분포 → p = P(null ≥ obs).
+# 귀무(진단): **특징 벡터를 과제 사이에서 순열**(결과 고정) B=2000 → 통계량 귀무분포 → p = (#{null ≥ obs} + 1)/(B + 1).
+#   J: 코덱스 판정 — 이 귀무("특징 ⟂ 결과")는 "정책 이득 ≤ 0" 과 같지 않다 → 판정 규칙이 아니라 **진단**. 판정은 확인 집합의 대응 McNemar (PREREG v4).
 #   arm 라벨 순열이 아닌 이유: 우리 질문은 "특징이 결과를 예측하는가" 이지 "arm 간 차이가 있는가" 가 아니다. arm 라벨을 섞으면 최선 고정
 #   arm 의 이점까지 없애 버려 귀무가 너무 넓어지고, 특징을 섞으면 과제×arm 결과 구조(고정 arm 의 우위, 과제 난이도)는 그대로 둔 채
 #   특징–결과 연결만 끊는다 — 정확히 정책 이득의 귀무다.
-# CI: 과제 부트스트랩(복제마다 CV 전체 재수행) 1000회.
-# 규칙 R2: p < 0.05 ∧ 점추정 ≥ 10pp → "통과", 그 외 "미확인".
+# CI: 과제 부트스트랩(복제마다 CV 전체 재수행) 1000회. 재표집된 복제 행은 **원본 task_id 로 묶어**(GroupKFold) 학습·평가 양쪽에 들어가지 않는다 (J1).
+#   탐색 단계의 모델 선택용 CV 에만 남긴다 — 확인 집합 판정에는 쓰지 않는다.
+# 입력 가드 (J1): infra=True 행 → 예외. hidden_exposed 가 명시적 False 가 아니면 → 예외. cost_usd None → 비용 합계 None + n_unpriced (nanmean 금지).
+# (구 R2 "p<0.05 ∧ ≥10pp" 는 진단 라벨 diag_R2 로만 남긴다.)
 # ═══════════════════════════════════════════════════════════════════════════
 
 FEATURE_NUM = ("n_failed", "artifact_chars", "s0_cost")
@@ -159,8 +162,19 @@ P2_LAMBDA, P2_ITERS = 1.0, 8
 CV_K, CV_R = 5, 20
 
 
+def guard_rows(rows: Sequence[Dict[str, Any]]) -> None:
+    """J1 입력 가드: infra=True 행은 분석에 넣지 않는다(예외). hidden_exposed 는 명시적 False 여야 한다(누락·None·문자열 → 예외)."""
+    for r in rows:
+        who = f"{r.get('task_id')}/{r.get('arm')}/{r.get('rep')}"
+        if r.get("infra") is True:
+            raise ValueError(f"infra=True 행은 분석 입력이 될 수 없다: {who}")
+        if r.get("hidden_exposed", None) is not False:
+            raise ValueError(f"hidden_exposed 가 명시적 False 가 아니다 ({r.get('hidden_exposed')!r}): {who}")
+
+
 def policy_tensor(rows: Sequence[Dict[str, Any]], arms: Sequence[str] = ARMS):
     """rows → (Y[n, A], C[n, A], feats(list of dict, 과제 순), tasks). k=1 만 허용 (rep 이 여럿이면 예외)."""
+    guard_rows(rows)
     S, tasks, reps = tensor(rows, arms)
     if len(reps) != 1:
         raise ValueError(f"정책 이득 추정은 k=1 행을 받는다 (rep 종류 {reps})")
@@ -236,24 +250,35 @@ def policy_p2(train_idx, test_idx, Y, X, fixed_arm, n_num: int = len(FEATURE_NUM
     return np.argmax(Xte @ beta.T, axis=1)
 
 
+def _group_folds(groups: np.ndarray, rng, K: int) -> List[np.ndarray]:
+    """GroupKFold: 같은 원본 id 의 행은 한 겹에만 (부트스트랩 복제 행이 학습·평가 양쪽에 들어가지 않게)."""
+    uniq = np.unique(groups)
+    parts = np.array_split(rng.permutation(uniq), K)
+    return [np.flatnonzero(np.isin(groups, p)) for p in parts]
+
+
 def _cv_gain(Y: np.ndarray, C: np.ndarray, feats, X: np.ndarray, learner: str, rng, K: int = CV_K, R: int = CV_R, n_num: int = len(FEATURE_NUM),
-             picks_out: Optional[list] = None):
-    """K 겹 × R 셔플. 반환 (gain 평균, 정책 $ 평균, 고정 $ 평균). picks_out 에 검증 과제의 (task idx, 선택 arm) 을 모은다(선택 분포 보고용)."""
+             picks_out: Optional[list] = None, groups: Optional[np.ndarray] = None):
+    """K 겹 × R 셔플. 반환 (gain 평균, 정책 $ 평균, 고정 $ 평균) — $ 는 검증 셀에 미측정(NaN)이 하나라도 있으면 None (nanmean 금지).
+    picks_out 에 검증 과제의 (task idx, 선택 arm) 을 모은다(선택 분포 보고용). groups = 행의 원본 과제 id(부트스트랩 복제용), None 이면 행 = 과제."""
     n = Y.shape[0]
+    groups = np.arange(n) if groups is None else np.asarray(groups)
     gains, cost_pol, cost_fix = [], [], []
     for _ in range(R):
-        perm = rng.permutation(n)
-        folds = np.array_split(perm, K)
+        folds = _group_folds(groups, rng, K)
         for f in range(K):
             te = folds[f]
+            if len(te) == 0:                                # 고유 원본 id 가 K 보다 적은 부트스트랩 복제(아주 작은 N) — 빈 겹은 건너뛴다
+                continue
             tr = np.concatenate([folds[j] for j in range(K) if j != f])
             fixed = int(np.argmax(Y[tr].mean(axis=0)))
             pick = policy_p1(tr, te, Y, feats, fixed) if learner == "P1" else policy_p2(tr, te, Y, X, fixed, n_num)
             if picks_out is not None:
                 picks_out.extend(zip(te.tolist(), pick.tolist()))
             gains.append((Y[te, pick] - Y[te, fixed]).mean())
-            cost_pol.append(np.nanmean(C[te, pick])); cost_fix.append(np.nanmean(C[te, fixed]))
-    return float(np.mean(gains)), float(np.mean(cost_pol)), float(np.mean(cost_fix))
+            cost_pol.append(np.mean(C[te, pick])); cost_fix.append(np.mean(C[te, fixed]))      # NaN 전파 → None
+    cp, cf = float(np.mean(cost_pol)), float(np.mean(cost_fix))
+    return float(np.mean(gains)), (None if np.isnan(cp) else cp), (None if np.isnan(cf) else cf)
 
 
 def _null_chunk(args):
@@ -272,7 +297,7 @@ def _boot_chunk(args):
     for bs in boot_seeds:
         rng = np.random.default_rng(bs)
         idx = rng.integers(0, len(feats), len(feats))
-        out.append(_cv_gain(Y[idx], C[idx], [feats[i] for i in idx], X[idx], learner, rng, R=R, n_num=n_num)[0])
+        out.append(_cv_gain(Y[idx], C[idx], [feats[i] for i in idx], X[idx], learner, rng, R=R, n_num=n_num, groups=idx)[0])   # 원본 id 로 겹 나눔
     return out
 
 
@@ -299,15 +324,17 @@ def policy_gain(rows: Sequence[Dict[str, Any]], learner: str = "P1", n_perm: int
     chunks = max(1, workers * 4)
     jobs = [(Y, C, feats, X, learner, R, n_num, seed + 1, perm_seeds[i::chunks]) for i in range(chunks)]
     null = np.array(_parallel(_null_chunk, jobs, workers))
-    pval = float((null >= obs).mean())
+    pval = float((int((null >= obs).sum()) + 1) / (len(null) + 1))          # (count+1)/(B+1), 진단용
     pick_dist = {ARMS[a]: 0 for a in range(len(ARMS))}
     for _, a in picks:
         pick_dist[ARMS[a]] += 1
     tot = max(1, len(picks))
     pick_dist = {k: v / tot for k, v in pick_dist.items()}
     out = {"learner": learner, "n_tasks": len(tasks), "gain": obs, "p_value": pval, "null_mean": float(null.mean()),
-           "cost_policy_usd": cpol, "cost_fixed_usd": cfix, "n_perm": n_perm, "cv": {"K": CV_K, "R": R}, "features": spec, "pick_dist": pick_dist,
-           "verdict": "통과" if (pval < 0.05 and obs >= 0.10) else "미확인", "rule": "R2 = p<0.05 ∧ 정책 이득 ≥ 10pp"}
+           "cost_policy_usd": cpol, "cost_fixed_usd": cfix, "n_unpriced": int(np.isnan(C).sum()), "n_perm": n_perm, "cv": {"K": CV_K, "R": R},
+           "features": spec, "pick_dist": pick_dist,
+           "diag_R2": "통과" if (pval < 0.05 and obs >= 0.10) else "미확인",
+           "rule": "진단 전용 — 특징 순열 p 는 '특징 ⟂ 결과' 의 검정이지 '정책 이득 ≤ 0' 의 검정이 아니다 (J). 판정은 PREREG v4 의 대응 McNemar"}
     if with_ci and n_boot > 0:                              # 과제 부트스트랩, 복제마다 CV 전체 재수행
         boot_seeds = [seed * 100_003 + 500_000 + b for b in range(n_boot)]
         jobs = [(Y, C, feats, X, learner, R, n_num, boot_seeds[i::chunks]) for i in range(chunks)]
