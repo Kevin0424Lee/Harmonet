@@ -11,15 +11,17 @@ from __future__ import annotations
 import argparse
 import csv
 import json
-import time
+import os
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from benchmark.agents_single import _DEFAULT_SYSTEM
 from benchmark.lcb import LcbTask, load_lcb
+from benchmark.runloop import budgeted_generate, require_budget, run_loop
+from harmonet.budget import Budget, budget_from_env
 from harmonet.llm import get_llm_client
 from harmonet.pricing import sum_cost
-from harmonet.trace import NO_COST, TaskState, meter_delta, model_used, verify_cost
+from harmonet.trace import NO_COST, TaskState, model_used, verify_cost
 from harmonet.usage import METER
 from harmonet.verify import extract_artifact, score_hidden, verify_visible
 
@@ -28,20 +30,17 @@ CSV_FIELDS = ["question_id", "difficulty", "contest_date", "platform", "passed",
               "hidden_exposed", "trace_path", "candidate_code"]
 
 
-def run_task(task: LcbTask, per_test_timeout_s: float = 10.0) -> Dict[str, Any]:
+def run_task(task: LcbTask, per_test_timeout_s: float = 10.0, budget: Optional[Budget] = None) -> Dict[str, Any]:
     METER.reset()
     state = TaskState(task.question_id, system="single")
     client = get_llm_client("builder")
     spec_public = {"kind": "stdio", "tests": task.public_tests, "per_test_timeout_s": per_test_timeout_s}   # 루프 안: public 만
 
-    before = METER.snapshot("builder")
-    t0 = time.perf_counter()
-    output = client.generate(task.prompt, system_prompt=_DEFAULT_SYSTEM)
-    wall = int((time.perf_counter() - t0) * 1000)
+    output, cost, _usd, wall = budgeted_generate(client, budget, task.prompt, _DEFAULT_SYSTEM, note=task.question_id)
     report: Dict[str, str] = {}
-    code = extract_artifact(output or "", "code", report=report)
+    code = extract_artifact(output, "code", report=report)
     state.artifact = code
-    state.record("build", "builder", model_used("builder", client), meter_delta(before, METER.snapshot("builder"), wall_ms=wall), (output or "")[:200])
+    state.record("build", "builder", model_used("builder", client), cost, output[:200])
 
     visible = verify_visible(code, spec_public, timeout_s=60.0)
     state.verification = visible
@@ -59,7 +58,8 @@ def run_task(task: LcbTask, per_test_timeout_s: float = 10.0) -> Dict[str, Any]:
         "n_public": len(task.public_tests), "n_private": len(task.private_tests),
         "prompt_tokens": b.cost["prompt_tokens"], "completion_tokens": b.cost["completion_tokens"], "token_source": b.token_source,
         "cost_usd": b.cost_usd, "wall_ms": b.cost["wall_ms"], "extraction": report.get("extraction", ""),
-        "hidden_exposed": False, "trace_path": str(trace_path), "candidate_code": code,
+        "hidden_exposed": False, "trace_path": str(trace_path), "candidate_code": code, "infra": bool(visible.get("infra") or hidden.get("infra")),
+        "line": f"{task.difficulty} hidden={hidden['outcome']} visible={visible['outcome']} {cost['prompt_tokens']}/{cost['completion_tokens']}tok",
     }
 
 
@@ -78,21 +78,20 @@ def main() -> int:
     if missing:
         raise SystemExit(f"[lcb_g1] 데이터에 없는 id: {missing[:5]} …")
 
-    rows: List[Dict[str, Any]] = []
+    budget = budget_from_env(os.getenv("HARMONET_TRACE_RUN_ID"))
+    require_budget(budget)
+    get_llm_client("builder")
     out = Path(args.output)
-    for k, qid in enumerate(ids, 1):
-        r = run_task(by_id[qid], args.per_test_timeout)
-        rows.append(r)
-        print(f"[single] {k}/{len(ids)} {qid} {r['difficulty']} hidden={r['outcome']} visible={r['visible_outcome']} "
-              f"{r['prompt_tokens']}/{r['completion_tokens']}tok ${r['cost_usd']}")
-        if r["cost_usd"] is None:                 # 미측정 비용이 나오면 다음 호출을 하지 않는다 (Week2-B2)
-            out.write_text(json.dumps({"ids_file": args.ids, "n": len(rows), "rows": rows, "partial": True}, ensure_ascii=False, indent=1), encoding="utf-8")
-            raise SystemExit(f"[lcb_g1] {qid}: cost_usd=None (미측정) — {k}/{len(ids)} 에서 중단, 부분 결과 저장: {out}")
-    out.write_text(json.dumps({"ids_file": args.ids, "n": len(rows), "cost": sum_cost(rows), "rows": rows}, ensure_ascii=False, indent=1), encoding="utf-8")
-    with out.with_suffix(".csv").open("w", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=CSV_FIELDS)
-        w.writeheader()
-        w.writerows(rows)
+
+    def _write(rows, stopped):
+        out.write_text(json.dumps({"ids_file": args.ids, "n": len(rows), "cost": sum_cost(rows), "stopped_reason": stopped, "rows": rows},
+                                  ensure_ascii=False, indent=1), encoding="utf-8")
+        with out.with_suffix(".csv").open("w", newline="", encoding="utf-8") as f:
+            w = csv.DictWriter(f, fieldnames=CSV_FIELDS, extrasaction="ignore")
+            w.writeheader()
+            w.writerows(rows)
+
+    rows, _ = run_loop(ids, lambda qid: run_task(by_id[qid], args.per_test_timeout, budget), _write, budget)
     n_pass = sum(r["passed"] for r in rows)
     print(f"\nhidden pass {n_pass}/{len(rows)} = {100 * n_pass / max(1, len(rows)):.1f}%  cost={sum_cost(rows)}")
     print(f"Saved: {out} / {out.with_suffix('.csv')}")

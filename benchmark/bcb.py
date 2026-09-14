@@ -100,6 +100,19 @@ def load_bcb(ids: Optional[List[str]] = None) -> List[BcbTask]:
     return tasks
 
 
+def bcb_preflight() -> Dict[str, Any]:
+    """첫 유료 호출 전 채점 인프라 점검 (Week2-D1 ②): docker 데몬 응답 + 이미지 digest 일치 + 알려진 canonical(BigCodeBench/0, 개발용 ID) 1개
+    가 공식 test 로 pass. 하나라도 실패면 RuntimeError (호출 0회)."""
+    from harmonet.verify import docker_infra_check, score_hidden
+    info = docker_infra_check()
+    t = load_bcb(["BigCodeBench/0"])[0]
+    r = score_hidden(t.prompt + "\n" + t._canonical, t.spec(visible=False))
+    if not r["passed"]:
+        raise RuntimeError(f"[bcb-preflight] 알려진 canonical(BigCodeBench/0) 채점이 pass 가 아님: {r['outcome']} infra={r['infra']} {r['evidence'][-200:]}")
+    info["canonical_check"] = "BigCodeBench/0 pass"
+    return info
+
+
 if __name__ == "__main__":
     ts = load_bcb()
     n_cand = sum(bool(t.doctest_src) for t in ts)

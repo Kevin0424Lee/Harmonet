@@ -173,7 +173,7 @@ def _exit_flags(tree: ast.AST) -> List[str]:
 def _result(level: str, outcome: str, evidence: List[str], method: List[str], **extra: Any) -> Dict[str, Any]:
     r = {"passed": level == "functional" and outcome == "pass", "level": level, "outcome": outcome,
          "applied": False, "n_run": 0, "n_passed": 0, "n_failed": 0, "flags": [], "method": method,
-         "evidence": "; ".join(evidence), "cost_tokens": 0, "wall_ms": 0, "exec_count": 0, "sandbox": "none"}
+         "evidence": "; ".join(evidence), "cost_tokens": 0, "wall_ms": 0, "exec_count": 0, "sandbox": "none", "infra": False}
     r.update(extra)
     return r
 
@@ -429,25 +429,92 @@ def bcb_docker_cmd(mount_dir: str, script: str) -> List[str]:
             "--cpus", os.getenv("HARMONET_BCB_CPUS", "2"), "-v", f"{mount_dir}:/w", "-w", "/w", "--entrypoint", "python3", image, "-I", script]
 
 
+_INFRA_RE = re.compile(r"error during connect|Cannot connect to the Docker daemon|docker daemon|No such image|Unable to find image|"
+                       r"pull access denied|manifest unknown|OCI runtime|failed to create|no space left|Error response from daemon", re.I)
+
+
+def bcb_image() -> str:
+    return os.getenv("HARMONET_BCB_IMAGE", BCB_IMAGE_DEFAULT)
+
+
+def bcb_task_timeout_s() -> float:
+    return float(os.getenv("HARMONET_BCB_TIMEOUT_S", BCB_TASK_TIMEOUT_S))   # 테스트에서만 줄인다
+
+
+def _docker(args: List[str], timeout: float = 60.0, input_text: Optional[str] = None) -> subprocess.CompletedProcess:
+    return subprocess.run(["docker"] + args, env=_min_env(), input=input_text, capture_output=True, text=True, timeout=timeout)
+
+
+def docker_infra_check() -> Dict[str, Any]:
+    """인프라 사전 점검 (D1 ②): docker 실행 파일 + 데몬 응답 + 이미지 digest 일치. 실패 항목이 있으면 RuntimeError."""
+    if not shutil.which("docker"):
+        raise RuntimeError("[bcb-preflight] docker 실행 파일이 없습니다")
+    info = _docker(["info", "--format", "{{.ServerVersion}}"])
+    if info.returncode != 0:
+        raise RuntimeError("[bcb-preflight] docker 데몬 응답 없음: " + (info.stderr or info.stdout)[-200:])
+    image = bcb_image()
+    ins = _docker(["image", "inspect", image, "--format", "{{json .RepoDigests}}"])
+    if ins.returncode != 0:
+        raise RuntimeError(f"[bcb-preflight] 이미지 {image} 가 로컬에 없습니다: " + (ins.stderr or ins.stdout)[-200:])
+    digests = json.loads(ins.stdout.strip() or "[]")
+    want = image.split("@", 1)[1] if "@" in image else None
+    if want and not any(d.endswith("@" + want) for d in digests):
+        raise RuntimeError(f"[bcb-preflight] 이미지 digest 불일치: 요청 {want}, 로컬 {digests}")
+    return {"server_version": info.stdout.strip(), "image": image, "repo_digests": digests}
+
+
 def _run_bcb_harness(artifact: str, entry: str, tests: List[str]) -> Dict[str, Any]:
+    """공식 이미지 컨테이너에서 하네스 실행 (D1 ④): docker create --name → start -a -i(stdin 으로 cfg) → 타임아웃 시 docker kill →
+    finally docker rm -f. CLI 타임아웃과 컨테이너 종료를 동일시하지 않는다. 결과의 infra=True 는 데몬·이미지·컨테이너 시작 오류
+    (후보 원인 aborted 와 구분)."""
     from pathlib import Path
     nonce = secrets.token_hex(16)
+    name = f"harmonet_{nonce[:12]}"
     tmp = tempfile.mkdtemp(prefix="harmonet_bcb_")
+    image = bcb_image()
+    infra = False
     try:
         with open(os.path.join(tmp, "candidate.py"), "w", encoding="utf-8") as f:
             f.write(artifact + "\n")
         shutil.copy(Path(__file__).parent / "bcb_harness.py", os.path.join(tmp, "harness.py"))
         out_name = f"result_{nonce[:8]}.json"
         cfg = json.dumps({"nonce": nonce, "out_path": out_name, "entry_point": entry, "tests": tests, "limits": BCB_LIMITS})
-        total_timeout = BCB_TASK_TIMEOUT_S * len(tests) + 90
+        total_timeout = bcb_task_timeout_s() * len(tests) + float(os.getenv("HARMONET_BCB_MARGIN_S", "90"))
         t0 = time.perf_counter()
         timed_out = False
-        try:
-            proc = subprocess.run(bcb_docker_cmd(tmp, "harness.py"), env=_min_env(), input=cfg + "\n", capture_output=True, text=True,
-                                  timeout=total_timeout)
-            tail = (proc.stderr or proc.stdout)[-300:]
-        except subprocess.TimeoutExpired:
-            timed_out, tail = True, "docker harness timeout"
+        tail = ""
+        if not shutil.which("docker"):
+            raise RuntimeError("BigCodeBench 판정은 공식 Docker 이미지 안에서만 한다 — docker 실행 파일이 없습니다 (Windows 전사 금지)")
+        cr = _docker(["create", "-i", "--name", name, "--network", "none", "--memory", os.getenv("HARMONET_BCB_MEMORY", "8g"),
+                      "--cpus", os.getenv("HARMONET_BCB_CPUS", "2"), "-v", f"{tmp}:/w", "-w", "/w", "--entrypoint", "python3", image,
+                      "-I", "harness.py"])
+        if cr.returncode != 0:
+            infra, tail = True, "docker create: " + (cr.stderr or cr.stdout)[-300:]
+            rc = cr.returncode
+        else:
+            # 타임아웃 처리는 CLI 를 죽이는 게 아니라 컨테이너를 죽인다(docker kill) — Windows 에서 CLI kill 만으로는 파이프가 닫히지 않아
+            # 컨테이너가 끝날 때까지 기다리게 된다(D1 ④ 에서 확인). stdout/stderr 는 파이프 대신 임시 파일(마운트 밖).
+            with tempfile.TemporaryFile() as fo, tempfile.TemporaryFile() as fe:
+                proc = subprocess.Popen(["docker", "start", "-a", "-i", name], env=_min_env(), stdin=subprocess.PIPE, stdout=fo, stderr=fe)
+                try:
+                    proc.stdin.write((cfg + "\n").encode("utf-8")); proc.stdin.close()
+                except OSError:
+                    pass
+                try:
+                    rc = proc.wait(timeout=total_timeout)
+                except subprocess.TimeoutExpired:
+                    timed_out, rc = True, None
+                    try:
+                        _docker(["kill", name], timeout=30)
+                    except Exception:
+                        pass
+                    try:
+                        proc.wait(timeout=30)
+                    except subprocess.TimeoutExpired:
+                        proc.kill(); proc.wait()
+                fo.seek(0); fe.seek(0)
+                out_txt, err_txt = fo.read().decode("utf-8", "replace"), fe.read().decode("utf-8", "replace")
+                tail = "docker harness timeout" if timed_out else (err_txt or out_txt)[-300:]
         wall_ms = int((time.perf_counter() - t0) * 1000)
         out_path = os.path.join(tmp, out_name)
         data = None
@@ -457,13 +524,15 @@ def _run_bcb_harness(artifact: str, entry: str, tests: List[str]) -> Dict[str, A
                     data = json.load(f)
             except Exception as exc:
                 tail = f"result.json unreadable: {exc}"
+        if not infra and data is None and not timed_out and rc != 0 and _INFRA_RE.search(tail or ""):
+            infra = True                                  # 결과 없음 + docker 오류 코드 + 인프라 오류 서명 → 후보 탓이 아니다
         if timed_out:
             outcome = "timeout"
         elif data is None or data.get("nonce") != nonce:
             outcome = "aborted"
-        elif any(e.startswith("setup:") for e in data.get("errors", [])) or data.get("n_run") != len(tests):
+        elif any(e.startswith("setup:") for e in data.get("errors", [])) or data.get("n_modules", data.get("n_run")) != len(tests):
             outcome = "error"
-        elif data.get("n_passed") == data.get("n_run"):
+        elif data.get("n_passed") == data.get("n_modules", data.get("n_run")):
             outcome = "pass"
         elif "timeout" in data.get("stats", []):
             outcome = "timeout"
@@ -471,9 +540,13 @@ def _run_bcb_harness(artifact: str, entry: str, tests: List[str]) -> Dict[str, A
             outcome = "fail"
         d = data or {}
         return {"outcome": outcome, "n_run": int(d.get("n_run", 0)), "n_passed": int(d.get("n_passed", 0)), "n_failed": int(d.get("n_failed", 0)),
-                "errors": list(d.get("errors", []))[:5], "stats": list(d.get("stats", [])), "official": d.get("official"), "tail": tail,
-                "wall_ms": wall_ms, "sandbox": "docker:" + os.getenv("HARMONET_BCB_IMAGE", BCB_IMAGE_DEFAULT)}
+                "n_modules": int(d.get("n_modules", d.get("n_run", 0))), "errors": list(d.get("errors", []))[:5], "stats": list(d.get("stats", [])),
+                "official": d.get("official"), "tail": tail, "wall_ms": wall_ms, "sandbox": "docker:" + image, "infra": infra, "container": name}
     finally:
+        try:
+            _docker(["rm", "-f", name], timeout=60)
+        except Exception:
+            pass
         shutil.rmtree(tmp, ignore_errors=True)
 
 
@@ -565,11 +638,13 @@ def _verify(artifact: str, spec: Optional[Dict[str, Any]], tests_key: str, timeo
             return _result("static", "no_tests", evidence, method, flags=flags)
         method.append("bcb_official_untrusted_check")
         h = _run_bcb_harness(artifact, entry or "task_func", tests)
-        evidence.append(f"harness={h['outcome']} n_run={h['n_run']} n_passed={h['n_passed']} stats={h['stats']} official={h['official']}"
+        evidence.append(f"harness={h['outcome']} n_modules={h['n_modules']} n_run={h['n_run']} n_passed={h['n_passed']} stats={h['stats']} "
+                        f"official={h['official']}" + (" infra=True" if h["infra"] else "")
                         + (" errors=" + " | ".join(h["errors"]) if h["errors"] else "")
                         + (f" tail={h['tail']!r}" if h["outcome"] in ("timeout", "aborted", "error") and h["tail"] else ""))
         return _result("functional", h["outcome"], evidence, method, flags=flags, n_run=h["n_run"], n_passed=h["n_passed"],
-                       n_failed=h["n_failed"], wall_ms=h["wall_ms"], exec_count=h["n_run"], sandbox=h["sandbox"])
+                       n_failed=h["n_failed"], wall_ms=h["wall_ms"], exec_count=h["n_modules"], sandbox=h["sandbox"], infra=h["infra"],
+                       container=h["container"], n_modules=h["n_modules"])
 
     if kind == "patch":
         from benchmark.swebench_g1 import _check_patch_applies  # git worktree + apply --check (러너와 동일 판정)
