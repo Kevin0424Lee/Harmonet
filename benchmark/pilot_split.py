@@ -33,6 +33,7 @@ def main() -> int:
     meta = {"dataset": "BigCodeBench Complete", "eligibility": elig["source"], "n_eligible": len(pool), "seed": SEED}
     (DIR / "pilot_explore_ids_bcb.json").write_text(json.dumps({**meta, "version": "v4", "n": len(explore_all), "ids": explore_all,
                                                               "probe_reuse_n": len(explore), "probe_reuse_ids": explore, "new_s0_n": len(extra), "new_s0_ids": extra,
+                                                              "sources": {**{t: "probe_reuse" for t in explore}, **{t: "new" for t in extra}},   # K3: 실행기 분기 키
                                                               "dropped_from_probe": dropped, "flip_subset_n": 30, "flip_subset_ids": flip}, indent=1), encoding="utf-8")
     (DIR / "pilot_confirm_ids_bcb.json").write_text(json.dumps({**meta, "n": len(confirm), "ids": confirm}, indent=1), encoding="utf-8")
     (DIR / "pilot_reserve_ids_bcb.json").write_text(json.dumps({**meta, "version": "v4", "n": len(reserve), "ids": reserve}, indent=1), encoding="utf-8")

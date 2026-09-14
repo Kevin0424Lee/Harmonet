@@ -138,6 +138,7 @@
    "n_tasks",
    "pool_gate",
    "round0",
+   "s0",
    "arms",
    "flip",
    "explore_cv",

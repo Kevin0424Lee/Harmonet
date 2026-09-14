@@ -70,7 +70,7 @@ temp 0.2, max_tokens 4096, 시스템 프롬프트)·토큰 출처(measured)를 `
 
 | 항목 | 값 |
 |---|---|
-| 설정 파일 sha256 | `918d7b381abecb32a3712f24111411eb27d6b40dabaa38177e27fdf2105aa055` |
+| 설정 파일 sha256 | `e540c51038ca93a42d16e81a46badf7d28c0528ad2ca8376351af11a0b19a22b` |
 | 탐색 N_e | 100 = 프로브 재사용 59 + 신규 s0 41 |
 | 뒤집힘 부분집합 | 30 × k=2 (A-self, B-expert) |
 | 확인 N_c | 200 |
@@ -92,6 +92,6 @@ temp 0.2, max_tokens 4096, 시스템 프롬프트)·토큰 출처(measured)를 `
 | 비용 | 탐색 ≈ $5, 확인 ≈ $9, 원장 cap $16 (과제당 6 arm ≈ $0.04 (프로브 실측), 41 s0 신규 ≈ $0.15, 뒤집힘 30×2 ≈ $0.5, 0회차 ≈ $0.2) |
 | 원장 / run_id | pilot_v4 / {'explore': 'pilot_explore', 'confirm': 'pilot_confirm'} |
 | 범위 | 결론 범위 = 이 BCB 적격 풀(403). 방법이 바뀌면 이 확인 200 은 재사용 불가 → 예비 103 |
-| 보고 항목(탐색) | stage, mode, run_id, n_tasks, pool_gate, round0, arms, flip, explore_cv, diag_perm_p, frozen, cost, stopped_reason, elapsed_s |
+| 보고 항목(탐색) | stage, mode, run_id, n_tasks, pool_gate, round0, s0, arms, flip, explore_cv, diag_perm_p, frozen, cost, stopped_reason, elapsed_s |
 | 보고 항목(확인) | stage, mode, run_id, n_tasks, frozen_hash, primary, secondary, arms, pick_dist, policy_cost, cost, stopped_reason, elapsed_s |
 <!-- config:end -->

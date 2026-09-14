@@ -166,6 +166,18 @@ def gate_round0(round0_path: Path) -> dict:
 
 
 # ── 단계 ──────────────────────────────────────────────────────────────────
+def prepare_s0(ids: dict, cfg: dict, env: dict, tmp: Path, generate: bool) -> dict:
+    """K3: source=probe_reuse → s0_import(LLM 0), source=new → make_s0(유료, generate=True 일 때만). 요약 JSON 반환."""
+    ids_file = tmp / f"s0_ids_{'gen' if generate else 'imp'}.json"; ids_file.write_text(json.dumps(ids), encoding="utf-8")
+    summ = tmp / f"s0_summary_{'gen' if generate else 'imp'}.json"
+    cmd = [sys.executable, "-X", "utf8", "-m", "benchmark.s0_import", "--probe", str(ROOT / "evidence" / "week2" / "pool_probe_bcb_A.json"), "--ids", str(ids_file),
+           "--run-id", cfg["run_ids"]["explore"], "--summary", str(summ)] + (["--generate"] if generate else [])
+    rc = subprocess.run(cmd, cwd=str(ROOT), env=env).returncode
+    if rc != 0:
+        raise SystemExit(f"[pilot] s0 준비 종료 코드 {rc}")
+    return json.loads(summ.read_text(encoding="utf-8"))
+
+
 def round0(ids: list, n: int, env: dict, tmp: Path, arms_root: Path, run_id: str, cfg: dict) -> dict:
     """0회차: B-expert 1회 × n 과제, b_cont=1.0 (→ max_tokens 상한 4096 에 걸림, 실질 무상한). 결과 파일이 있으면 재측정하지 않는다."""
     p = arms_root / run_id / "round0_bcont.json"
@@ -186,7 +198,9 @@ def round0(ids: list, n: int, env: dict, tmp: Path, arms_root: Path, run_id: str
 def explore_stage(args, cfg: dict, ids: dict, env: dict, tmp: Path, arms_root: Path, out_prefix: Path) -> dict:
     t0 = time.time()
     run_id = cfg["run_ids"]["explore"]
+    s0_imp = prepare_s0(ids, cfg, env, tmp, generate=False)          # probe_reuse 가져오기 (무료) → 게이트가 완료를 검사
     checks = gate_common(args, cfg, ids, arms_root, "explore")
+    s0_gen = prepare_s0(ids, cfg, env, tmp, generate=True)            # new 생성 (유료) — 게이트 뒤
     round0(ids["ids"], cfg["round0"]["n_tasks"], env, tmp, arms_root, run_id, cfg)
     r0 = gate_round0(arms_root / run_id / "round0_bcont.json")
     ids_file = tmp / "explore_ids.json"; ids_file.write_text(json.dumps({"ids": ids["ids"]}), encoding="utf-8")
@@ -220,7 +234,8 @@ def explore_stage(args, cfg: dict, ids: dict, env: dict, tmp: Path, arms_root: P
     fz.with_suffix(".sha256").write_text(fz_sha, encoding="utf-8")
     spend = spend_report(env, [main_out, flip_out], r0["round0_arm_usd"])
     report = {"stage": "explore", "mode": args.backend, "run_id": run_id, "n_tasks": len(tasks), "pool_gate": gate,
-              "round0": {k: r0[k] for k in ("b_cont", "a_call_median", "n", "arm")}, "arms": main_out["summary"], "flip": flip_rates(flip_out),
+              "round0": {k: r0[k] for k in ("b_cont", "a_call_median", "n", "arm")}, "s0": {"imported": s0_imp["imported"], "generated": s0_gen["generated"]},
+              "arms": main_out["summary"], "flip": flip_rates(flip_out),
               "explore_cv": {"lambda_menu": cv, "lambda_star": lam_star, "feature_subset": subset, "n_features": len(subset["num"]) + len(subset["cat"]),
                              "P2_post_gain": cv[str(lam_star)]["gain"], "P2_post_ci95": cv[str(lam_star)]["ci95"], "P2_pre_gain": r_pre["gain"], "P1_gain": r_p1["gain"],
                              "note": "모델 선택용 CV — 판정 아님"},
@@ -313,7 +328,7 @@ def write_report(report: dict, prefix: Path) -> None:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--backend", required=True, choices=["mock-scenario", "anthropic"])
-    ap.add_argument("--stage", required=True, choices=["explore", "confirm", "all"])
+    ap.add_argument("--stage", required=True, choices=["s0", "explore", "confirm", "all"], help="s0 = 탐색 s0 준비만 (probe_reuse 가져오기 + new 생성), K3")
     ap.add_argument("--out", required=True, help="출력 접두 (…_explore.json / …_confirm.json)")
     ap.add_argument("--n-perm", type=int, default=None, help="기본 = 설정 파일 n_perm_diag")
     ap.add_argument("--n-boot", type=int, default=None, help="기본 = 설정 파일 n_boot_explore")
@@ -329,7 +344,7 @@ def main() -> int:
     if args.backend == "mock-scenario":
         from benchmark.mock_scenario import write_bcb_scenario
         sc = tmp / "scenario.json"; write_bcb_scenario(DRY_IDS, DRY_SCRIPTS, sc, tokens={"prompt": 400, "completion": 500})
-        ids = {"ids": DRY_IDS[:4], "probe_reuse_ids": [], "flip_subset_n": 2, "flip_subset_ids": DRY_IDS[:2]}
+        ids = {"ids": DRY_IDS[:4], "probe_reuse_ids": [], "sources": {t: "new" for t in DRY_IDS[:4]}, "flip_subset_n": 2, "flip_subset_ids": DRY_IDS[:2]}
         confirm_ids = DRY_IDS[4:]
         extra = {"HARMONET_MOCK_SCENARIO": str(sc), "HARMONET_MODEL_BUILDER": "claude-haiku-4-5", "HARMONET_MODEL_REVIEWER": "claude-sonnet-4-6",
                  "HARMONET_BUDGET_ROOT": str(tmp / "budget"), "HARMONET_ARMS_ROOT": str(tmp / "arms"), "HARMONET_TRACE_DIR": str(tmp / "traces")}
@@ -339,6 +354,23 @@ def main() -> int:
         confirm_ids = json.loads((ROOT / "evidence" / "week2" / cfg["sets"]["confirm"]["file"]).read_text(encoding="utf-8"))["ids"]
         if len(ids["ids"]) != cfg["sets"]["explore"]["n"] or len(confirm_ids) != cfg["sets"]["confirm"]["n"]:
             raise Gate(f"ID 파일 크기가 설정과 다르다: 탐색 {len(ids['ids'])} vs {cfg['sets']['explore']['n']}, 확인 {len(confirm_ids)} vs {cfg['sets']['confirm']['n']}")
+    if args.stage == "s0":                                   # K3: 실제 탐색 ID 파일로 s0 준비만 (mock 이면 new 는 시나리오 mock 으로 생성)
+        ids = json.loads((ROOT / "evidence" / "week2" / cfg["sets"]["explore"]["file"]).read_text(encoding="utf-8"))
+        if args.backend == "mock-scenario":
+            from benchmark.mock_scenario import write_bcb_scenario
+            new = [t for t in ids["ids"] if ids["sources"][t] == "new"]
+            sc = tmp / "scenario_s0.json"; write_bcb_scenario(new, {t: {"s0": "correct"} for t in new}, sc, tokens={"prompt": 400, "completion": 500})
+            extra["HARMONET_MOCK_SCENARIO"] = str(sc)
+        arms_root = Path(extra.get("HARMONET_ARMS_ROOT", ROOT / "evidence" / "week2"))
+        env = _env(args.backend, cfg["run_ids"]["explore"], cfg, extra)
+        imp = prepare_s0(ids, cfg, env, tmp, generate=False)
+        gate_common(args, cfg, ids, arms_root, "explore")
+        gen = prepare_s0(ids, cfg, env, tmp, generate=True)
+        rep = {"stage": "s0", "mode": args.backend, "imported": imp["imported"], "generated": gen["generated"], "failed": imp["failed"] + gen["failed"],
+               "n_imported": len(imp["imported"]), "n_generated": len(gen["generated"]), "sources": {"probe_reuse": ids["probe_reuse_n"], "new": ids["new_s0_n"]}}
+        Path(args.out).with_name(Path(args.out).name + "_s0.json").write_text(json.dumps(rep, ensure_ascii=False, indent=1), encoding="utf-8")
+        print(f"[pilot] s0 준비: 가져오기 {rep['n_imported']} / 생성 {rep['n_generated']} / 실패 {len(rep['failed'])}")
+        return 0
     arms_root = Path(extra.get("HARMONET_ARMS_ROOT", ROOT / "evidence" / "week2"))
     out_prefix = Path(args.out)
     env_e, env_c = _env(args.backend, cfg["run_ids"]["explore"], cfg, extra), _env(args.backend, cfg["run_ids"]["confirm"], cfg, extra)
