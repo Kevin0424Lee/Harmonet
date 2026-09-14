@@ -5,26 +5,29 @@
   "file": "data/v0.1.4-00000-of-00001.parquet",
   "sha256": "d9a4965821c9507ebdfb551c288656b2d5fe553234f5183044333ca8a4018267",
   "image": "bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405",
-  "date": "2026-09-14"
+  "date": "2026-09-14",
+  "filter": "nondet-v2",
+  "checker": "harmonet-bcb-check-d2.1",
+  "config_hash": "f4b11bd6079cb887f4d5ab92de8d8d927a50ab1f705cedf7c7d2fc18d80d783b"
  },
  "n_total": 1140,
  "n_doctest_with_output": 1021,
- "n_static_clean": 637,
- "n_checked": 637,
- "gate1_visible_ge1": 412,
+ "n_static_clean": 630,
+ "n_checked": 630,
+ "gate1_visible_ge1": 411,
  "gate1_min": 260,
  "gate1_pass": true,
- "gate2_canonical_stable": 410,
+ "gate2_canonical_stable": 408,
  "dev_ids": [
   "BigCodeBench/0",
   "BigCodeBench/1",
-  "BigCodeBench/2"
- ],
- "n_eligible": 409,
- "eligible_ids": [
+  "BigCodeBench/2",
   "BigCodeBench/3",
   "BigCodeBench/4",
-  "BigCodeBench/9",
+  "BigCodeBench/9"
+ ],
+ "n_eligible": 404,
+ "eligible_ids": [
   "BigCodeBench/23",
   "BigCodeBench/24",
   "BigCodeBench/25",
@@ -183,6 +186,7 @@
   "BigCodeBench/484",
   "BigCodeBench/490",
   "BigCodeBench/495",
+  "BigCodeBench/497",
   "BigCodeBench/505",
   "BigCodeBench/516",
   "BigCodeBench/517",
@@ -200,7 +204,6 @@
   "BigCodeBench/559",
   "BigCodeBench/561",
   "BigCodeBench/563",
-  "BigCodeBench/565",
   "BigCodeBench/566",
   "BigCodeBench/568",
   "BigCodeBench/569",
@@ -260,7 +263,6 @@
   "BigCodeBench/704",
   "BigCodeBench/708",
   "BigCodeBench/718",
-  "BigCodeBench/721",
   "BigCodeBench/727",
   "BigCodeBench/732",
   "BigCodeBench/733",
@@ -303,7 +305,6 @@
   "BigCodeBench/810",
   "BigCodeBench/811",
   "BigCodeBench/813",
-  "BigCodeBench/817",
   "BigCodeBench/818",
   "BigCodeBench/820",
   "BigCodeBench/822",
@@ -481,7 +482,6 @@
   "BigCodeBench/284": "doctest ['fail', 'fail']",
   "BigCodeBench/285": "doctest ['fail', 'fail']",
   "BigCodeBench/286": "doctest ['fail', 'fail']",
-  "BigCodeBench/287": "doctest ['fail', 'fail']",
   "BigCodeBench/290": "doctest ['fail', 'fail']",
   "BigCodeBench/306": "doctest ['fail', 'fail']",
   "BigCodeBench/314": "doctest ['fail', 'fail']",
@@ -507,7 +507,6 @@
   "BigCodeBench/487": "doctest ['fail', 'fail']",
   "BigCodeBench/489": "doctest ['fail', 'fail']",
   "BigCodeBench/492": "doctest ['fail', 'fail']",
-  "BigCodeBench/497": "doctest ['fail', 'fail']",
   "BigCodeBench/498": "doctest ['fail', 'fail']",
   "BigCodeBench/503": "doctest ['fail', 'fail']",
   "BigCodeBench/504": "doctest ['fail', 'fail']",
@@ -550,6 +549,7 @@
   "BigCodeBench/716": "doctest ['fail', 'fail']",
   "BigCodeBench/717": "doctest ['fail', 'fail']",
   "BigCodeBench/719": "doctest ['fail', 'fail']",
+  "BigCodeBench/721": "test ['fail', 'fail']",
   "BigCodeBench/724": "doctest ['fail', 'fail']",
   "BigCodeBench/728": "doctest ['fail', 'fail']",
   "BigCodeBench/734": "doctest ['fail', 'fail']",
@@ -586,8 +586,6 @@
   "BigCodeBench/853": "doctest ['fail', 'fail']",
   "BigCodeBench/857": "doctest ['fail', 'fail']",
   "BigCodeBench/866": "doctest ['fail', 'fail']",
-  "BigCodeBench/871": "doctest ['fail', 'fail']",
-  "BigCodeBench/873": "doctest ['fail', 'fail']",
   "BigCodeBench/876": "doctest ['fail', 'fail']",
   "BigCodeBench/877": "doctest ['fail', 'fail']",
   "BigCodeBench/882": "doctest ['fail', 'fail']",
@@ -619,7 +617,6 @@
   "BigCodeBench/1006": "doctest ['fail', 'fail']",
   "BigCodeBench/1007": "doctest ['fail', 'fail']",
   "BigCodeBench/1008": "doctest ['fail', 'fail']",
-  "BigCodeBench/1009": "doctest ['fail', 'fail']",
   "BigCodeBench/1010": "doctest ['fail', 'fail']",
   "BigCodeBench/1011": "doctest ['fail', 'fail']",
   "BigCodeBench/1013": "doctest ['fail', 'fail']",
@@ -635,7 +632,6 @@
   "BigCodeBench/1065": "doctest ['fail', 'fail']",
   "BigCodeBench/1068": "doctest ['fail', 'fail']",
   "BigCodeBench/1085": "doctest ['fail', 'fail']",
-  "BigCodeBench/1090": "doctest ['fail', 'fail']",
   "BigCodeBench/1091": "doctest ['fail', 'fail']",
   "BigCodeBench/1092": "doctest ['fail', 'fail']",
   "BigCodeBench/1093": "doctest ['fail', 'fail']",
@@ -718,6 +714,7 @@
    "Axes"
   ],
   "BigCodeBench/75": [
+   ".show(",
    "seed"
   ],
   "BigCodeBench/76": [
@@ -729,7 +726,7 @@
   "BigCodeBench/85": [
    "datetime",
    "os.remove",
-   "savefig"
+   "savefig("
   ],
   "BigCodeBench/88": [
    "datetime"
@@ -785,6 +782,7 @@
    "random"
   ],
   "BigCodeBench/132": [
+   ".show(",
    "plt"
   ],
   "BigCodeBench/135": [
@@ -879,7 +877,8 @@
   "BigCodeBench/216": [
    "Figure",
    "open(",
-   "tempfile"
+   "tempfile",
+   "time."
   ],
   "BigCodeBench/217": [
    "Axes"
@@ -1001,6 +1000,9 @@
    "randint",
    "random",
    "seed"
+  ],
+  "BigCodeBench/287": [
+   "open("
   ],
   "BigCodeBench/288": [
    "open(",
@@ -1562,6 +1564,9 @@
   "BigCodeBench/558": [
    "Axes"
   ],
+  "BigCodeBench/565": [
+   "open("
+  ],
   "BigCodeBench/579": [
    "Axes",
    "os.remove"
@@ -1579,6 +1584,7 @@
    "Axes"
   ],
   "BigCodeBench/604": [
+   "open(",
    "os.path"
   ],
   "BigCodeBench/615": [
@@ -1604,6 +1610,7 @@
    "seed"
   ],
   "BigCodeBench/678": [
+   "open(",
    "shutil"
   ],
   "BigCodeBench/680": [
@@ -1718,6 +1725,9 @@
    "random",
    "seed"
   ],
+  "BigCodeBench/817": [
+   "open("
+  ],
   "BigCodeBench/819": [
    "seed"
   ],
@@ -1752,6 +1762,12 @@
   "BigCodeBench/862": [
    "seed"
   ],
+  "BigCodeBench/871": [
+   "open("
+  ],
+  "BigCodeBench/873": [
+   "open("
+  ],
   "BigCodeBench/875": [
    "seed"
   ],
@@ -1775,11 +1791,13 @@
    "datetime"
   ],
   "BigCodeBench/894": [
+   ".show(",
    "plt",
    "random",
    "seed"
   ],
   "BigCodeBench/895": [
+   ".show(",
    "plt",
    "random",
    "seed"
@@ -1788,6 +1806,7 @@
    "seed"
   ],
   "BigCodeBench/897": [
+   ".show(",
    "plt",
    "random",
    "seed"
@@ -1921,6 +1940,9 @@
   "BigCodeBench/1005": [
    "http"
   ],
+  "BigCodeBench/1009": [
+   "open("
+  ],
   "BigCodeBench/1012": [
    "http"
   ],
@@ -1954,6 +1976,7 @@
    "random"
   ],
   "BigCodeBench/1044": [
+   ".now(",
    "datetime"
   ],
   "BigCodeBench/1047": [
@@ -2002,6 +2025,9 @@
   "BigCodeBench/1088": [
    "random",
    "seed"
+  ],
+  "BigCodeBench/1090": [
+   "open("
   ],
   "BigCodeBench/1108": [
    "http"

@@ -29,10 +29,14 @@ BCB_FILE = "data/v0.1.4-00000-of-00001.parquet"
 BCB_SHA256 = "d9a4965821c9507ebdfb551c288656b2d5fe553234f5183044333ca8a4018267"
 DATA_DIR = Path(__file__).resolve().parent.parent / "benchmark_data" / "bcb"
 
-# 정적 스크린: 예제 소스·기대 출력에 이런 게 보이면 난수·시간·네트워크·파일시스템·플롯 의존으로 보고 가시 테스트에서 뺀다 (Week2-C0 2-3)
-_NONDET_RE = re.compile(r"\b(random|randint|shuffle|seed|time\.|datetime|\.now\(|today\(|uuid|requests|urllib|socket|http|"
-                        r"open\(|os\.(remove|listdir|path|makedirs|getcwd|environ)|shutil|tempfile|Path\(|glob|plt|pyplot|Axes|Figure|"
-                        r"savefig|\.show\(|input\(|subprocess|getpass)\b|<[\w.]+ object at 0x|<[\w.]+ at 0x")
+# 정적 스크린: 예제 소스·기대 출력에 이런 게 보이면 난수·시간·네트워크·파일시스템·플롯 의존으로 보고 가시 테스트에서 뺀다 (Week2-C0 2-3 → D2 ⑤ 개정)
+# v1 은 `open\(` 뒤에 \b 를 요구해 open('x') / Path('x') / input() 같은 호출을 못 잡았다 — 호출 패턴은 \b 없이 따로 둔다.
+FILTER_VERSION = "nondet-v2"
+_NONDET_RE = re.compile(
+    r"\b(random|randint|shuffle|seed|datetime|uuid|requests|urllib|socket|http|shutil|tempfile|glob|plt|pyplot|Axes|Figure|subprocess|getpass)\b"
+    r"|\btime\.|\.now\(|\btoday\(|\bopen\(|\bPath\(|\bos\.(remove|listdir|path|makedirs|getcwd|environ|unlink|rename|walk|system)\b"
+    r"|\bos\.path\.\w+\(|\bshutil\.\w+\(|\btempfile\.\w+\(|\bsavefig\(|\.show\(|\binput\("
+    r"|<[\w.]+ object at 0x|<[\w.]+ at 0x")
 
 
 @dataclass

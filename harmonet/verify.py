@@ -477,9 +477,10 @@ def _run_bcb_harness(artifact: str, entry: str, tests: List[str]) -> Dict[str, A
         with open(os.path.join(tmp, "candidate.py"), "w", encoding="utf-8") as f:
             f.write(artifact + "\n")
         shutil.copy(Path(__file__).parent / "bcb_harness.py", os.path.join(tmp, "harness.py"))
+        shutil.copy(Path(__file__).parent / "bcb_check.py", os.path.join(tmp, "bcb_check.py"))
         out_name = f"result_{nonce[:8]}.json"
         cfg = json.dumps({"nonce": nonce, "out_path": out_name, "entry_point": entry, "tests": tests, "limits": BCB_LIMITS})
-        total_timeout = bcb_task_timeout_s() * len(tests) + float(os.getenv("HARMONET_BCB_MARGIN_S", "90"))
+        total_timeout = (bcb_task_timeout_s() + 60) * len(tests) + float(os.getenv("HARMONET_BCB_MARGIN_S", "90"))   # +60: 기대 수 계산 프로세스
         t0 = time.perf_counter()
         timed_out = False
         tail = ""

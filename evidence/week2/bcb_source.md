@@ -8,7 +8,7 @@
 | 사용 필드 | task_id, complete_prompt, doc_struct, entry_point, libs, canonical_solution(적격성 전용), test(히든 채점 전용) |
 | 채점 이미지 | `bigcodebench/bigcodebench-evaluate` **v0.2.4** @ `sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405` (2025-02-23, 15.1GB, Python 3.10.16, bigcodebench 0.2.4) |
 | 컨테이너 옵션 | `--network none --memory 8g --cpus 2 --entrypoint python3 … -I harness.py` (Docker Desktop 26.0.0 / WSL2) |
-| 판정 함수 | 공식 `bigcodebench.eval.untrusted_check(code, test, entry, max_as_limit=30·1024, max_data_limit=30·1024, max_stack_limit=10, min_time_limit=1, gt_time_limit=1)` — 전사 없음, 이미지 안에서 그대로 호출 (`harmonet/bcb_harness.py`). 과제 타임아웃 = 공식 max(240, gt)+1 = 241s |
+| 판정 함수 | (C0) 공식 `bigcodebench.eval.untrusted_check` 그대로 → (D2) `harmonet/bcb_check.py` d2.1: 공식 환경 헬퍼(create_tempdir/safe_environment/reliability_guard/swallow_io/time_limit) + **실행 수 검사**(클린 프로세스에서 센 expected_tests == testsRun ∧ skipped 0 ∧ 실패·오류 0 ∧ 자식 exitcode 0) + unittest 참조 사전 바인딩. 공식 채점기는 실행 수를 검사하지 않는다. 과제 타임아웃 = 공식 max(240, gt)+1 = 241s |
 | 날짜 | 2026-09-14 |
 
 ## 노출 경계
@@ -44,4 +44,7 @@ doctest 를 2회 돌려 둘 다 pass. canonical 은 이 판정에만 쓴다. 최
 공식 test 실행 시간 중앙값 0.38s, 최대 263s(타임아웃 241s 초과분 포함).
 
 ## 개발·디버그에 쓴 ID
-BigCodeBench/0 (로더 자체 점검, kind bcb 스모크: canonical/오답/치트), BigCodeBench/1 (러너 mock 스모크, `tests/test_bcb.py`), BigCodeBench/2 (예비). 풀에서 제외.
+BigCodeBench/0 (로더 자체 점검, kind bcb 스모크, 적대 테스트, 사전 점검 canonical), BigCodeBench/1 (러너 mock 스모크, `tests/test_bcb.py`), BigCodeBench/2 (예비), BigCodeBench/3·4·9 (D5 arms 스모크). 풀에서 제외.
+
+## D2 ⑤ 재적격성 (2026-09-14)
+필터 v2 + 채점기 d2.1 로 재실행 (1,059s): 정적 통과 630, 관문 1 **411**, 관문 2 **408**, 적격 **404** (개발용 6 제외). 변경 상세는 `pool_probe.md` "D2 ⑤ 재적격성 기록". 적격성 캐시 `benchmark_data/bcb/work/eligibility_cache.json` (키 = revision·이미지 digest·필터 버전·채점기 버전).
