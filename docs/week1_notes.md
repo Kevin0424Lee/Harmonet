@@ -113,6 +113,17 @@ Part A 진행 중 확정된 사실과, 2주차 설계(`docs/week2_design_draft.m
 | Claude Code | (H 에서 새 오류 없음 — G3 의 "oracle − 고정 − 바닥은 구조적 가치를 담지 못한다" 결론 도출이 맞았음) | — |
 
 | Fable | P1(가시 범주 조회표)을 첫 후보 학습기로 둔 것은 합리적이었으나, 가시 검증이 "계속할지"만 갈라 유형을 못 고를 가능성을 사전에 지적하지 못함 — H3 합성에서 무력으로 판명 | `evidence/week2/policy_gain_h3.md` |
+| Fable | I2 판정 규칙 R2(CV + 특징 순열)의 귀무 불일치를 못 봄 — 순열 귀무는 "특징 ⟂ 결과" 이고 기각해야 할 귀무는 "정책 이득 ≤ 0" 이다 (난도만 예측해도 특징은 결과를 예측한다). J 에서 진단으로 강등, 판정은 확인 집합 대응 McNemar (2026-09-15, 코덱스 지적) | `evidence/week2/PREREG_pilot.md` v3 §4, `PREREG_pilot_v4.md` §4 |
+| Fable | "참 oracle gap 도 상한이 아니다" 과잉 정정 — 참 확률 oracle 이득은 정책 이득의 상한이 맞다. 상한이 아닌 것은 1회 실행 최대의 표본 내 통계. J6 에서 세 양 구분 (코덱스 지적) | `docs/week2_design_draft.md` §0 v3, §4 v4 J6 절 |
+| Fable | "12pp 에서 80% 검정력" — 합성 셀 하나(N=150, ρ=0.7, 17/20 [62,97])의 관측 통과율을 검정력 문장으로 과장. J6 철회 (코덱스 지적) | `evidence/week2/policy_gain_h3.md`, `docs/week2_design_draft.md` §4 v3 |
+| Fable | 분석기 부트스트랩 누수(복제 행이 CV 학습·평가 양쪽에 들어감)를 I3 dry-run 검토에서 발견 못 함 — 코덱스가 발견, J1 GroupKFold 로 수정. 합성에서 누수본은 N=100 부트스트랩 중심 +1.4pp·CI 17% 좁음 | `scripts/gap_analysis.py` `_group_folds`, `evidence/week2/boot_coverage_j1.md` |
+| Claude Code | 비용 누락 — 뒤집힘 부분집합(k=2)과 0회차 비용을 총지출에 넣지 않았고, 출력별 합계를 더하면 재사용 rep1 이 이중 계상됨. J1 원장 검산이 잡음 ($0.2465 vs 원장 $0.2117) | `scripts/pilot_dryrun.py` `spend_report` |
+| Claude Code | `_cv_gain` 이 미측정 비용을 `nanmean` 으로 조용히 건너뜀 — cost None 은 합계 None + n_unpriced 여야 함 (J1) | `scripts/gap_analysis.py` |
+| Claude Code | 분석기 입력 가드 부재 — infra=True 행, hidden_exposed 미명시 행이 그대로 통계에 들어감 (J1 guard_rows) | `scripts/gap_analysis.py`, `tests/test_policy_gain.py` |
+| Claude Code | arms.py arm 별 예산 규칙에 chars/3 추정이 잔존 (F2 에서 원장 예약만 count_tokens 로 바꾸고 max_tokens 규칙은 안 바꿈). J2 에서 count_tokens 경로 재사용 | `benchmark/arms.py` `_max_tokens_for` |
+| Claude Code | 재시도 비용 은폐 — `llm._retry_sync` 가 클라이언트 안에서 최대 3회 재호출하는데 원장은 1건만 기록. J2 에서 시도마다 예약·확정 (재시도 2회 후 성공 → 원장 3건) | `benchmark/runloop.py` `budgeted_generate`, `harmonet/llm.py` `generate_once` |
+| Claude Code | result.json 재사용 키 누락 — 모델·설정·채점기·특징 추출기 버전이 바뀌어도 옛 결과를 그대로 재사용. s0 해시도 artifact+prompt_context 만 덮음. J2 config_hash·전체 파일 해시 | `benchmark/arms.py` `config_hash`, `_s0_hash` |
+| Claude Code | BudgetStop 시 현재 과제의 완료 arm 행이 부분 결과에서 빠짐 (InfraStop 만 partial 처리). J2 | `benchmark/arms.py` `run_task_all_arms`, `benchmark/runloop.py` |
 
 **패턴 (세 번째, 코덱스 지적으로 발견): "이름을 보고 구현을 읽지 않음."** A1 (validator 이름만 보고 LLM 호출 여부 미확인), A7 (하네스 종료 코드를
 통과 신호로 믿음), D2 (`n_run` 이라는 이름을 실행 수로 믿고 공식 채점기가 실행 수를 세지 않는다는 것을 읽지 않음), D5/F1 ("validate 통과" 를
@@ -196,3 +207,15 @@ Part A 진행 중 확정된 사실과, 2주차 설계(`docs/week2_design_draft.m
 - I3 dry-run: 시나리오 mock → arms(k=1, 6 arm + 뒤집힘 부분집합) → 특징 → P2-post/P2-pre/P1(순열 2000·부트스트랩 1000) → 판정, 437s. 실제 파일럿과 백엔드 환경변수만 다르다.
 - 예상과 달랐던 것: (1) numpy 기본 BLAS 스레드로는 CV 1회 1.7s, 스레드 1 로 0.09s — 워커 14개까지 겹치면 수십 배 느려져 첫 dry-run 이 3시간 코스였다.
   gap_analysis 모듈 import 시 스레드 1 로 고정. (2) 6 과제 dry-run 의 판정은 당연히 미확인(CI [-15, 81]pp) — 형식 점검용이며 수치는 의미 없음.
+
+## Week2-J (2026-09-15) 예상과 달랐던 것
+- **v4 구조의 검정력은 낮다.** 학습 100 / 평가 200, P2 λ=1.0: 참 베이즈 이득 10pp 에서 관측 통과율 3/20 (f=6) — 검출(p<.05)은 17/20 이지만 학습된 정책의 참 이득이
+  7.5pp 라 "평균 d ≥ 10pp" 문턱에 걸린다. 15pp 에서 15/20 (f=6), 9/20 (f=12), 3/20 (f=20). 잡음 특징 15 열이 N_e=100 학습을 빠르게 망가뜨린다(베이즈 대비 손실 2.6 → 8.5pp).
+  귀무 2종은 0/60 [0,6]. 추정은 무편향(±1pp, 무학습 평가) — 문제는 편향이 아니라 100 과제로 배운 정책의 질이다. 해석: 확인 판정의 "통과" 는 참 이득이 충분히 크고
+  특징이 적을 때만 기대할 수 있고, 미확인은 "이득이 작다" 와 "탐색 100 이 부족했다" 를 구별하지 못한다 — PREREG v4 결론 문장에 그대로 반영.
+- **원장 검산이 첫 실행에서 바로 잡아낸 이중 계상.** 뒤집힘 실행은 주 실행의 rep1 result.json 을 재사용하므로 출력별 합계를 더하면 6 행이 두 번 들어간다.
+  "총지출을 계산하지 않고 원장에서 읽는다" 는 규칙이 없었다면 $0.035 과대 보고를 못 봤을 것.
+- **부트스트랩 누수의 크기.** 수정 전후 CI 포함률은 20회 기준으로 구별되지 않지만(19/20 vs 20/20), 복제 분포의 중심이 +1.4pp 이동하고 CI 가 17% 좁아진다 — "포함률이 괜찮다" 로는
+  누수를 못 잡는다. N=200 에서는 차이가 거의 사라진다(+0.1pp).
+- v4 파일럿 dry-run(탐색 4 / 확인 2, mock, 실제 Docker 채점): 두 단계 391s + 117s, 총지출 원장 $0.2088 = 탐색 $0.1537 + 확인 $0.0551, 검산 일치. 판정 미확인(N=2, b=1 c=0 p=0.5) — 배관 점검용.
+- 15pp 참 이득은 v3 생성기 기저(BETA)에서 도달 불가(천장 ≈ 14pp) — 기저를 평탄화한 변형에서 Δ 를 맞췄다. "효과 크기 축" 이 생성기 구조에 묶여 있다는 것을 다시 확인.
