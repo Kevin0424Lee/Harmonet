@@ -38,7 +38,7 @@ doctest 를 2회 돌려 둘 다 pass. canonical 은 이 판정에만 쓴다. 최
 | **관문 1** canonical 로 doctest 2회 모두 pass | **412** (≥ 260 통과). fail/fail 224 (예시용 경로·가상 파일 등 실행 불가 예제), pass/fail 1 (불안정) |
 | **관문 2** canonical 을 공식 test 로 2회 모두 pass | **410**. 제외 2: BigCodeBench/821·823 (fail→pass, 불안정) |
 | 개발용 ID 제외 (BigCodeBench/0·1·2 중 관문 통과분: /0) | **409 = 적격 풀** |
-| 프로브 60 (seed 20260913) / 확인 집합 | 60 / **349** (≥ 200) — `probe_ids_bcb.json`; 확인 집합은 프로브 판정 통과 뒤 동결 |
+| 프로브 60 (seed 20260913) / 확인 집합 | 60 / **349** (C0 시점; F5 재적격성 뒤 **344**) — `probe_ids_bcb.json`; 확인 집합은 프로브 판정 통과 뒤 동결 |
 
 참고: 검사한 637개 중 공식 test 가 불안정하거나 실패한 canonical 은 21개(fail/fail 16, fail/pass 3, timeout/timeout 2) — 관문 1 통과분에는 2개만 겹쳤다.
 공식 test 실행 시간 중앙값 0.38s, 최대 263s(타임아웃 241s 초과분 포함).
@@ -47,4 +47,4 @@ doctest 를 2회 돌려 둘 다 pass. canonical 은 이 판정에만 쓴다. 최
 BigCodeBench/0 (로더 자체 점검, kind bcb 스모크, 적대 테스트, 사전 점검 canonical), BigCodeBench/1 (러너 mock 스모크, `tests/test_bcb.py`), BigCodeBench/2 (예비), BigCodeBench/3·4·9 (D5 arms 스모크). 풀에서 제외.
 
 ## D2 ⑤ 재적격성 (2026-09-14)
-필터 v2 + 채점기 d2.1 로 재실행 (1,059s): 정적 통과 630, 관문 1 **411**, 관문 2 **408**, 적격 **404** (개발용 6 제외). 변경 상세는 `pool_probe.md` "D2 ⑤ 재적격성 기록". 적격성 캐시 `benchmark_data/bcb/work/eligibility_cache.json` (키 = revision·이미지 digest·필터 버전·채점기 버전).
+필터 v2 + 채점기 d2.1 로 재실행 (1,059s): 정적 통과 630, 관문 1 **411**, 관문 2 **408**, 적격 **404** (개발용 6 제외) → F5(3회 실행 + 이력 일치, 497 flaky 제외) **403**, 미사용 확인 후보 **344**. 변경 상세는 `pool_probe.md` "D2 ⑤ 재적격성 기록"·"F5 기록 정정". 적격성 캐시 `benchmark_data/bcb/work/eligibility_cache.json` (키 = revision·이미지 digest·필터 버전·채점기 버전).

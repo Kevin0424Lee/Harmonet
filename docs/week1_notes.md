@@ -91,9 +91,22 @@ Part A 진행 중 확정된 사실과, 2주차 설계(`docs/week2_design_draft.m
 | Claude Code | 채점 인프라 장애(docker 데몬·이미지) 시에도 다음 모델 호출을 계속함 — 후보 원인 aborted 와 구분 없음. D1 에서 infra 플래그 + 사전 점검 + 즉시 중단 | `harmonet/verify.py` `_run_bcb_harness`, `benchmark/runloop.py` |
 | Claude Code | 타임아웃 시 docker CLI 만 죽이고 컨테이너는 정리하지 않음 (Windows 에서는 CLI kill 로 파이프도 안 닫혀 컨테이너 종료까지 대기). D1 에서 named container + docker kill + rm -f | `harmonet/verify.py`, `tests/test_budget_runloop.py` |
 
+| Fable | D5 스모크 보고("18 traces validate")를 exec_count 확인 없이 승인 — 실제는 정적 error 18/18, 이미지 안 채점 0건 (F1 에서 정정) | `evidence/week2/docker_verification.md`, `evidence/week2/arms_smoke_f1.md` |
+| Fable | 규칙 전체 검정력 미확인 — CI 하한 조건만 보고 "점추정 ≥ 10pp" 를 합친 R1 의 통과율을 계산하지 않음 (F4 에서 전체 규칙으로) | `evidence/week2/gap_power.md`, `docs/week2_design_draft.md` §4 개정안 |
+| Claude Code | D5 mock 이 코드가 아닌 문장을 내서 스모크가 채점기를 한 번도 거치지 않음 (무효 코드 mock) | `benchmark/mock_scenario.py` (F1-a) |
+| Claude Code | D5 출력 스키마(tasks[].rows, passed)가 분석기 입력(hidden_pass, rep)과 불일치 — 그대로 넣으면 KeyError | `benchmark/arms.py` F1-d, `tests/test_arms.py::test_rows_feed_gap_analysis` |
+| Claude Code | 반복 층 부재 — arm 을 k 회 반복할 저장 경로·멱등 재실행이 없었음 | `benchmark/arms.py` F1-c (`<task>/<arm>/rep<r>/`) |
+| Claude Code | arm 내부에서 infra=True 여도 다음 verify·호출을 계속함 (테스트: s0 인프라 장애 뒤 6회 호출) | `benchmark/arms.py` F1-e (InfraStop) |
+| Claude Code | s0 build 비용을 6 arm trace 마다 재생해 실험 총지출이 6배로 잡힘 | `benchmark/arms.py` F1-f (shared_s0_cost) |
+| Claude Code | 예산 예약이 상계가 아닌데(chars/3 추정) 상한 보장인 것처럼 씀; 커밋 후 초과를 검사하지 않음 | `harmonet/budget.py` F2 (count_tokens, cap_exceeded_post) |
+| Claude Code | 호출 예외 시 비용을 $0 으로 확정 | `benchmark/runloop.py` F2 (unknown_cost = 예약액 확정) |
+| Claude Code | 분석기가 중복 (task, arm, rep) 을 덮어쓰고 문자열 "True" 를 참으로 해석 | `scripts/gap_analysis.py` F3 |
+| Claude Code | BigCodeBench/497 의 C0→D2 판정 뒤집힘(doctest fail/fail → pass/pass)을 "불안정 7건" 에 묶어 원인 없이 기록 — 실제는 예제가 오늘 요일에 의존 | `evidence/week2/pool_probe.md` F5 |
+
 **패턴 (세 번째, 코덱스 지적으로 발견): "이름을 보고 구현을 읽지 않음."** A1 (validator 이름만 보고 LLM 호출 여부 미확인), A7 (하네스 종료 코드를
-통과 신호로 믿음), D2 (`n_run` 이라는 이름을 실행 수로 믿고 공식 채점기가 실행 수를 세지 않는다는 것을 읽지 않음). 다음 인프라 항목부터는
-"이 이름의 값이 실제로 무엇을 세는가" 를 테스트로 먼저 고정한다.
+통과 신호로 믿음), D2 (`n_run` 이라는 이름을 실행 수로 믿고 공식 채점기가 실행 수를 세지 않는다는 것을 읽지 않음), D5/F1 ("validate 통과" 를
+"채점됐다" 로 읽음 — exec_count 0). 다음 인프라 항목부터는 "이 이름의 값이 실제로 무엇을 세는가" 를 테스트로 먼저 고정한다. F 항목들은 전부 코덱스
+지적으로 발견됐다 (2026-09-15).
 
 ## Week2-A0 LiveCodeBench 로더·stdio 하네스
 - 데이터는 HF `livecodebench/code_generation_lite` revision `0fe84c3912ea0c4d4a78037083943e8f0c4dd505` 의 jsonl 을 직접 받는다
