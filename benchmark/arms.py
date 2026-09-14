@@ -32,7 +32,7 @@ import os
 import random
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 from benchmark.agents_single import _DEFAULT_SYSTEM
 from benchmark.features import ast_features, error_class
@@ -244,12 +244,13 @@ def run_arm(arm: str, rep: int, s0_dir: Path, spec_full: Dict[str, Any], clients
 
 
 def run_task_all_arms(task_id: str, task_prompt: str, spec_full: Dict[str, Any], clients, cfg, budget, root: Path, run_id: str, seed: int,
-                      k: int) -> Dict[str, Any]:
+                      k: int, arms: Sequence[str] = ARMS) -> Dict[str, Any]:
     spec_visible = {kk: v for kk, v in spec_full.items() if kk != "hidden_tests"}
     s0_dir, created = make_s0(task_id, task_prompt, spec_visible, clients["A"], budget, root)
     ctx = json.loads((s0_dir / "prompt_context.json").read_text(encoding="utf-8"))
     order = list(ARMS)
     random.Random(f"{seed}:{task_id}").shuffle(order)      # 과제별 무작위, 반복마다 같은 순서, seed 기록
+    order = [a for a in order if a in arms]                # --arms 부분집합 (뒤집힘 부분집합 등), 순서는 전체 순열에서 유지
     (s0_dir.parent / "arm_order.json").write_text(json.dumps({"seed": seed, "order": order, "k": k}), encoding="utf-8")
     rows: List[Dict[str, Any]] = []
     try:
@@ -286,7 +287,11 @@ def main() -> int:
     ap.add_argument("--k", type=int, default=1, help="arm 반복 수 (같은 s0 에서)")
     ap.add_argument("--seed", type=int, default=20260913)
     ap.add_argument("--k-max", type=int, default=8)
+    ap.add_argument("--arms", default=",".join(ARMS), help="실행할 arm 부분집합 (쉼표). 기본 6개 전부")
     args = ap.parse_args()
+    arms_sel = tuple(a for a in args.arms.split(",") if a)
+    if any(a not in ARMS for a in arms_sel):
+        raise SystemExit(f"[arms] 알 수 없는 arm: {arms_sel}")
     ids = json.loads(Path(args.ids).read_text(encoding="utf-8"))["ids"]
     if args.pool == "bcb":
         from benchmark.bcb import load_bcb
@@ -329,7 +334,7 @@ def main() -> int:
             w.writeheader()
             w.writerows([{**r, "models": ",".join(r["models"])} for r in flat])
 
-    run_loop(ids, lambda tid: run_task_all_arms(tid, tasks[tid][0], tasks[tid][1], clients, cfg, budget, root, run_id, args.seed, args.k),
+    run_loop(ids, lambda tid: run_task_all_arms(tid, tasks[tid][0], tasks[tid][1], clients, cfg, budget, root, run_id, args.seed, args.k, arms_sel),
              _write, budget, label="arms")
     print(f"Saved: {out}")
     return 0

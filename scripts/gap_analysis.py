@@ -20,6 +20,11 @@ scripts/gap_analysis.py — 교차 적합 gap 분석 (Week2-D6, 설계 §4). 풀
 """
 from __future__ import annotations
 
+import os
+
+for _v in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS"):
+    os.environ.setdefault(_v, "1")     # 작은 행렬 + 워커 병렬: BLAS 스레드 과다가 수십 배 느리게 만든다 (G2·I3 에서 확인)
+
 import argparse
 import json
 import math
@@ -251,22 +256,49 @@ def _cv_gain(Y: np.ndarray, C: np.ndarray, feats, X: np.ndarray, learner: str, r
     return float(np.mean(gains)), float(np.mean(cost_pol)), float(np.mean(cost_fix))
 
 
+def _null_chunk(args):
+    """워커: 특징 순열 seed 목록 → 귀무 통계량 (병렬용, picklable 인자만)."""
+    Y, C, feats, X, learner, R, n_num, cv_seed, perm_seeds = args
+    out = []
+    for ps in perm_seeds:
+        p = np.random.default_rng(ps).permutation(len(feats))
+        out.append(_cv_gain(Y, C, [feats[i] for i in p], X[p], learner, np.random.default_rng(cv_seed), R=R, n_num=n_num)[0])
+    return out
+
+
+def _boot_chunk(args):
+    Y, C, feats, X, learner, R, n_num, boot_seeds = args
+    out = []
+    for bs in boot_seeds:
+        rng = np.random.default_rng(bs)
+        idx = rng.integers(0, len(feats), len(feats))
+        out.append(_cv_gain(Y[idx], C[idx], [feats[i] for i in idx], X[idx], learner, rng, R=R, n_num=n_num)[0])
+    return out
+
+
+def _parallel(fn, jobs, workers: int):
+    if workers <= 1:
+        return [v for j in jobs for v in fn(j)]
+    from multiprocessing import Pool
+    with Pool(workers) as pool:
+        return [v for chunk in pool.map(fn, jobs) for v in chunk]
+
+
 def policy_gain(rows: Sequence[Dict[str, Any]], learner: str = "P1", n_perm: int = 2000, n_boot: int = 1000, seed: int = 0,
-                with_ci: bool = True, R: int = CV_R, spec: Optional[Dict[str, List[str]]] = None) -> Dict[str, Any]:
+                with_ci: bool = True, R: int = CV_R, spec: Optional[Dict[str, List[str]]] = None, workers: int = 1) -> Dict[str, Any]:
     if learner not in ("P1", "P2"):
         raise ValueError(learner)
     spec = spec or DEFAULT_SPEC
     n_num = len(spec["num"])
     Y, C, feats, tasks = policy_tensor(rows)
     X, cats = design_matrix(feats, spec=spec)
-    rng = np.random.default_rng(seed)
     picks: list = []
     obs, cpol, cfix = _cv_gain(Y, C, feats, X, learner, np.random.default_rng(seed + 1), R=R, n_num=n_num, picks_out=picks)
-    null = np.empty(n_perm)
-    for b in range(n_perm):                                 # 특징 순열(결과 고정)
-        p = rng.permutation(len(tasks))
-        fp = [feats[i] for i in p]
-        null[b] = _cv_gain(Y, C, fp, X[p], learner, np.random.default_rng(seed + 1), R=R, n_num=n_num)[0]
+    # 특징 순열(결과 고정). 순열 seed 는 (seed, b) 로 결정적 → 워커 수와 무관하게 같은 결과
+    perm_seeds = [seed * 100_003 + 7 + b for b in range(n_perm)]
+    chunks = max(1, workers * 4)
+    jobs = [(Y, C, feats, X, learner, R, n_num, seed + 1, perm_seeds[i::chunks]) for i in range(chunks)]
+    null = np.array(_parallel(_null_chunk, jobs, workers))
     pval = float((null >= obs).mean())
     pick_dist = {ARMS[a]: 0 for a in range(len(ARMS))}
     for _, a in picks:
@@ -276,11 +308,10 @@ def policy_gain(rows: Sequence[Dict[str, Any]], learner: str = "P1", n_perm: int
     out = {"learner": learner, "n_tasks": len(tasks), "gain": obs, "p_value": pval, "null_mean": float(null.mean()),
            "cost_policy_usd": cpol, "cost_fixed_usd": cfix, "n_perm": n_perm, "cv": {"K": CV_K, "R": R}, "features": spec, "pick_dist": pick_dist,
            "verdict": "통과" if (pval < 0.05 and obs >= 0.10) else "미확인", "rule": "R2 = p<0.05 ∧ 정책 이득 ≥ 10pp"}
-    if with_ci:
-        vals = np.empty(n_boot)
-        for b in range(n_boot):                             # 과제 부트스트랩, 복제마다 CV 전체 재수행
-            idx = rng.integers(0, len(tasks), len(tasks))
-            vals[b] = _cv_gain(Y[idx], C[idx], [feats[i] for i in idx], X[idx], learner, np.random.default_rng(seed + 2 + b), R=R, n_num=n_num)[0]
+    if with_ci and n_boot > 0:                              # 과제 부트스트랩, 복제마다 CV 전체 재수행
+        boot_seeds = [seed * 100_003 + 500_000 + b for b in range(n_boot)]
+        jobs = [(Y, C, feats, X, learner, R, n_num, boot_seeds[i::chunks]) for i in range(chunks)]
+        vals = np.array(_parallel(_boot_chunk, jobs, workers))
         out["ci95"] = [float(np.quantile(vals, 0.025)), float(np.quantile(vals, 0.975))]
         out["n_boot"] = n_boot
     return out

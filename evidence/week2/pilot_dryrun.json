@@ -1,0 +1,189 @@
+{
+ "mode": "mock-scenario",
+ "run_id": "pilot_dryrun",
+ "n_tasks": 6,
+ "verdict_R2": "미확인",
+ "R2": {
+  "p_value": 0.2375,
+  "gain_P2_post": 0.295,
+  "ci95": [
+   -0.155,
+   0.81
+  ],
+  "threshold": 0.1
+ },
+ "secondary": {
+  "gain_P2_pre": 0.15,
+  "p_P2_pre": 0.6135,
+  "post_minus_pre": 0.145,
+  "gain_P1": 0.31,
+  "p_P1": 0.26,
+  "oracle_gap_descriptive": {
+   "oracle_minus_fixed_insample": 0.5,
+   "note": "기술 통계 — 상한 아님 (G1~G3)"
+  }
+ },
+ "arms": {
+  "T": {
+   "n": 6,
+   "hidden_pass": 0.3333333333333333,
+   "refused_rate": 0.0,
+   "cost_own_cost_usd": 0.0,
+   "cost_own_n_unpriced": 0,
+   "n_calls_mean": 0.0,
+   "models": []
+  },
+  "A-self": {
+   "n": 6,
+   "hidden_pass": 0.3333333333333333,
+   "refused_rate": 0.0,
+   "cost_own_cost_usd": 0.0174,
+   "cost_own_n_unpriced": 0,
+   "n_calls_mean": 1.0,
+   "models": [
+    "claude-haiku-4-5"
+   ]
+  },
+  "A-selfxk": {
+   "n": 6,
+   "hidden_pass": 0.3333333333333333,
+   "refused_rate": 0.0,
+   "cost_own_cost_usd": 0.0203,
+   "cost_own_n_unpriced": 0,
+   "n_calls_mean": 1.1666666666666667,
+   "models": [
+    "claude-haiku-4-5"
+   ]
+  },
+  "A-role": {
+   "n": 6,
+   "hidden_pass": 0.5,
+   "refused_rate": 0.0,
+   "cost_own_cost_usd": 0.0174,
+   "cost_own_n_unpriced": 0,
+   "n_calls_mean": 1.0,
+   "models": [
+    "claude-haiku-4-5"
+   ]
+  },
+  "B-expert": {
+   "n": 6,
+   "hidden_pass": 0.5,
+   "refused_rate": 0.0,
+   "cost_own_cost_usd": 0.0522,
+   "cost_own_n_unpriced": 0,
+   "n_calls_mean": 1.0,
+   "models": [
+    "claude-sonnet-4-6"
+   ]
+  },
+  "B-solo": {
+   "n": 6,
+   "hidden_pass": 0.5,
+   "refused_rate": 0.0,
+   "cost_own_cost_usd": 0.0522,
+   "cost_own_n_unpriced": 0,
+   "n_calls_mean": 1.0,
+   "models": [
+    "claude-sonnet-4-6"
+   ]
+  }
+ },
+ "cost": {
+  "arms_own_usd": 0.1595,
+  "n_unpriced": 0,
+  "shared_s0_cost_total": 0.0174,
+  "total_spent_usd": 0.1769
+ },
+ "pick_dist_P2_post": {
+  "T": 0.016666666666666666,
+  "A-self": 0.175,
+  "A-selfxk": 0.0,
+  "A-role": 0.5583333333333333,
+  "B-expert": 0.058333333333333334,
+  "B-solo": 0.19166666666666668
+ },
+ "budget_match": {
+  "policy_usd_per_task": 0.004118,
+  "fixed_usd_per_task": 0.00435
+ },
+ "flip": {
+  "A-self": {
+   "n_cells": 3,
+   "flip_rate": 0.0
+  },
+  "B-expert": {
+   "n_cells": 3,
+   "flip_rate": 0.0
+  }
+ },
+ "config": {
+  "standardize": true,
+  "l2_lambda": 1.0,
+  "irls_iters": 8,
+  "cv_k": 5,
+  "cv_r": 20,
+  "n_perm": 2000,
+  "n_boot": 1000,
+  "features": {
+   "pre": {
+    "num": [
+     "prompt_chars",
+     "n_examples",
+     "n_args",
+     "mentions_return",
+     "lib_pandas",
+     "lib_numpy",
+     "lib_matplotlib",
+     "lib_random",
+     "lib_sklearn",
+     "lib_collections",
+     "lib_re",
+     "lib_itertools",
+     "lib_scipy",
+     "lib_string",
+     "lib_os",
+     "lib_math",
+     "lib_other"
+    ],
+    "cat": []
+   },
+   "post": {
+    "num": [
+     "prompt_chars",
+     "n_examples",
+     "n_args",
+     "mentions_return",
+     "lib_pandas",
+     "lib_numpy",
+     "lib_matplotlib",
+     "lib_random",
+     "lib_sklearn",
+     "lib_collections",
+     "lib_re",
+     "lib_itertools",
+     "lib_scipy",
+     "lib_string",
+     "lib_os",
+     "lib_math",
+     "lib_other",
+     "n_failed",
+     "artifact_chars",
+     "artifact_lines",
+     "n_functions",
+     "has_try",
+     "n_imports",
+     "s0_prompt_tokens",
+     "s0_completion_tokens",
+     "s0_cost_usd"
+    ],
+    "cat": [
+     "visible",
+     "error_class"
+    ]
+   }
+  }
+ },
+ "stopped_reason": null,
+ "elapsed_s": 437
+}
