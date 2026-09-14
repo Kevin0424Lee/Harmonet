@@ -33,7 +33,9 @@ def render(cfg: dict, sha: str) -> str:
             ("0회차", f"{cfg['round0']['arm']} 1회 × {cfg['round0']['n_tasks']} 과제 → b_cont = 비용 중앙값"),
             ("풀 관문", f"최고 arm 성공률 ≤ {g['threshold']:.0%} → 진행, 초과 → 보류 ({g['basis']})"),
             ("특징 메뉴 / 상한", f"{cfg['features']['menu']} / ≤ {cfg['features']['max_selected']} 열"), ("λ 메뉴 (기본)", f"{cfg['features']['lambda_menu']} ({cfg['features']['lambda_default']})"),
-            ("탐색 CV", f"K={cfg['features']['cv']['K']} × R={cfg['features']['cv']['R']}, 부트스트랩 {cfg['features']['n_boot_explore']}, 순열(진단) {cfg['features']['n_perm_diag']}"),
+            ("탐색 CV", f"K={cfg['features']['cv']['K']} × R={cfg['features']['cv']['R']}, 부트스트랩 {cfg['features']['n_boot_explore']}, 순열(진단) {cfg['features']['n_perm_diag']}, "
+                        f"특징 선택 {cfg['features']['cv_selection']} (겹 안), P2-pre 자기 메뉴 선택 {cfg['features']['pre_own_selection']}; 규칙 {cfg['features']['selection_rule']}"),
+            ("비용 관점", f"실험 총지출 = {cfg['cost_views']['experiment_total']}; 배포 비용(과제당) = {cfg['cost_views']['deploy_per_task']}"),
             ("동결 항목", ", ".join(cfg["freeze"]["items"])), ("주 판정", f"{r['primary']}; α={r['alpha']}, 문턱 {r['threshold_pp']}pp; {r['pass']} → 통과, 그 외 {r['else']}"),
             ("CI", r["ci"]), ("의미", r["meaning"]), ("부차", "; ".join(cfg["secondary"])), ("금지", "; ".join(cfg["forbidden"])),
             ("비용", f"탐색 ≈ ${cfg['cost_usd']['explore_estimate']:.0f}, 확인 ≈ ${cfg['cost_usd']['confirm_estimate']:.0f}, 원장 cap ${cfg['cost_usd']['cap']:.0f} ({cfg['cost_usd']['basis']})"),

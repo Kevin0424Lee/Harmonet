@@ -35,9 +35,13 @@ temp 0.2, max_tokens 4096, 시스템 프롬프트)·토큰 출처(measured)를 `
 ## 3. 탐색 단계 절차 (전부 동결 대상)
 1. **0회차**: 탐색 첫 10 과제에서 B-expert 1회 호출(max_tokens 4096, 상한 없음) → b_cont = 비용 중앙값. 이후 모든 계속 arm 의 max_tokens 규칙에 적용, 거부율 기록.
 2. 6 arm k=1 실행 (T / A-self / A-self×k / A-role / B-expert / B-solo; A = claude-haiku-4-5, B = claude-sonnet-4-6, temp 0.2). 뒤집힘 부분집합 30 은 A-self·B-expert 만 k=2.
-3. 특징: 사전 등록 메뉴 = `benchmark/features.FEATURE_SPECS["post"]` (pre 17 + post 11 = **28 열**, `FEATURES_VERSION`). 여기서 **최대 20 열** 선택 (CV 로).
-   λ ∈ {0.3, 1.0, 3.0} (기본 1.0) 선택. 학습: P2-post(주), P2-pre, P1. CV = K5 × R20, 과제 부트스트랩 1000 (GroupKFold, J1) — **모델 선택용**이지 판정이 아니다.
-   특징 순열 p 는 진단으로만 기록한다 (귀무 "특징 ⟂ 결과" ≠ "정책 이득 ≤ 0").
+3. 특징: 사전 등록 메뉴 = `benchmark/features.FEATURE_SPECS["post"]` (pre 17 + post 11 = **28 열**, `FEATURES_VERSION`). 여기서 **최대 20 열** 선택
+   (규칙 `gap_analysis.select_features`: 메뉴 전체 1회 적합 → arm 평균 |표준화 계수| 상위). λ ∈ {0.3, 1.0, 3.0} (기본 1.0) 은 CV 이득 최대로 선택.
+   **탐색 CV 는 nested** (K5, 사전 등록): 겹마다 학습 과제에서만 특징을 선택하고 그 부분집합으로 적합한다 — 선택이 CV 수치에 새지 않는다. 동결용 부분집합은
+   탐색 100 전체에서 같은 규칙으로 1회 정한다. **P2-pre 는 자기 메뉴(`FEATURE_SPECS["pre"]` 17 열)에서 특징·λ 를 따로 선택**한다 — post 것을 물려받지 않는다;
+   pre/post 비교는 "각자 공정하게 튜닝된 두 정책의 절제 실험" 이다. 학습: P2-post(주), P2-pre, P1. CV = K5 × R20, 과제 부트스트랩 1000 (GroupKFold, J1) —
+   **모델 선택용**이지 판정이 아니다. 특징 순열 p 는 진단으로만 기록한다 (귀무 "특징 ⟂ 결과" ≠ "정책 이득 ≤ 0").
+   **특징 수는 합성(K4, f=6 이 가장 좋음)으로 줄이지 않는다** — 실제 탐색 절차(위 규칙, 상한 20)로 정한다.
 4. 고정 전략 **â = 탐색 100 에서 성공률 최고 arm** (동점 ARMS 순서 앞).
 5. **동결 커밋**: 특징 부분집합·λ·P2-post/P2-pre 계수·P1 표·â·b_cont·seed 를 파일로 저장하고 커밋 → 해시를 이 문서 표에 기입. 이후 변경 = 새 사전 등록.
 
@@ -49,8 +53,12 @@ temp 0.2, max_tokens 4096, 시스템 프롬프트)·토큰 출처(measured)를 `
 - 의미: 통과 = **"양의 정책 이득의 증거(p<0.05) + 점추정이 실용 문턱 10pp 이상"**. "≥10pp 를 입증" 한 것이 아니다 (CI 하한이 10pp 를 넘는다는 뜻이 아님).
 - 미확인 시 결론 문장: "BCB 적격 풀의 확인 200 에서, 탐색 100 으로 동결한 정책 π̂_post 가 고정 전략 â 를 이긴다는 증거(단측 McNemar p<0.05 ∧ 평균 이득 ≥10pp)를
   얻지 못했다 (미확인; 참 이득이 작은 경우와 특징이 유형을 담지 못한 경우를 구별하지 못한다)."
-- **부차** (전부 기술·대응 검정, 판정에 안 씀): P2-post vs P2-pre 과제별 차이(대응 McNemar) = 실행 후 상태 특징의 추가 가치(절제); P1 대응 차이; oracle(1회 실행
-  최대의 표본 내 통계 — 상한 아님, J6 구분); arm 별 성공률·$·거부율; 정책 선택 분포와 $; **총비용** = arm + 상태 취득(s0 생성 + 가시 검증) + 0회차 + 뒤집힘 (원장).
+- **부차** (전부 기술·대응 검정, 판정에 안 씀): P2-post vs P2-pre 과제별 차이(대응 McNemar) = 실행 후 상태 특징의 추가 가치(각자 튜닝된 두 정책의 절제); P1 대응 차이;
+  oracle(1회 실행 최대의 표본 내 통계 — 상한 아님, J6 구분); arm 별 성공률·$·거부율; 정책 선택 분포와 $.
+- **비용 두 관점** (K5): (1) **실험 총지출** = 원장 (arm + s0 생성 + 가시 검증 + 0회차 + 뒤집힘, 가져온 s0 원 생성비는 역사적 취득 비용 별도).
+  (2) **배포 비용(과제당)** = 선택 arm 비용 + **상태 취득 비용(s0 $ + 가시 검증)**; B-solo 배포 비용 = 자기 호출만(s0 불필요); T = 상태 취득 비용만.
+  보고: `policy_usd_per_task`(arm 만), `state_acquisition_usd_per_task`, `policy_deploy_usd_per_task`, `fixed_deploy_usd_per_task`(â 가 B-solo 면 상태 취득 제외),
+  가시 검증 $ 는 0(로컬 docker) 이고 wall_ms 로 따로.
 - **금지**: 확인 결과 열람 후 문턱·과제·분석 변경. 확인 집합에서 어떤 학습도 하지 않는다.
 - **결론 범위** = 이 BCB 적격 풀(403). 다른 풀·모델로 일반화하지 않는다. 방법을 바꾸면 이 200 은 재사용 불가 → 예비 103.
 
@@ -70,7 +78,7 @@ temp 0.2, max_tokens 4096, 시스템 프롬프트)·토큰 출처(measured)를 `
 
 | 항목 | 값 |
 |---|---|
-| 설정 파일 sha256 | `e540c51038ca93a42d16e81a46badf7d28c0528ad2ca8376351af11a0b19a22b` |
+| 설정 파일 sha256 | `cc053e328144c02abde9764be4fa68beae5b6eed30d7b1089de0646c2b4b9c4a` |
 | 탐색 N_e | 100 = 프로브 재사용 59 + 신규 s0 41 |
 | 뒤집힘 부분집합 | 30 × k=2 (A-self, B-expert) |
 | 확인 N_c | 200 |
@@ -82,7 +90,8 @@ temp 0.2, max_tokens 4096, 시스템 프롬프트)·토큰 출처(measured)를 `
 | 풀 관문 | 최고 arm 성공률 ≤ 80% → 진행, 초과 → 보류 (운영 기준: 여지(1 − 최고 arm 성공률) ≥ 2 × MDE(10pp). 원 등록값 70(프로브 B 75% → unconfirmed)은 보존, 80 은 프로브 후 개정) |
 | 특징 메뉴 / 상한 | benchmark/features.FEATURE_SPECS['post'] (pre 17 + post 11 = 28 열) / ≤ 20 열 |
 | λ 메뉴 (기본) | [0.3, 1.0, 3.0] (1.0) |
-| 탐색 CV | K=5 × R=20, 부트스트랩 1000, 순열(진단) 2000 |
+| 탐색 CV | K=5 × R=20, 부트스트랩 1000, 순열(진단) 2000, 특징 선택 nested (겹 안), P2-pre 자기 메뉴 선택 True; 규칙 select_features: 메뉴 전체 1회 적합 → arm 평균 |표준화 계수| 상위 ≤ max_selected (범주 열 유지) |
+| 비용 관점 | 실험 총지출 = ledger; 배포 비용(과제당) = arm + state acquisition (s0 $ + visible verify); B-solo = own call only |
 | 동결 항목 | feature_subset, lambda, P2-post coef, P2-pre coef, P1 table, a_hat (탐색 최고 arm), b_cont, seed |
 | 주 판정 | d_i = y[i, pi_post(i)] − y[i, a_hat]; 정확 McNemar 단측(b = #(정책 성공, â 실패) > c = #(정책 실패, â 성공)), p = P(Bin(b+c, ½) ≥ b); α=0.05, 문턱 10pp; p < 0.05 ∧ mean d ≥ 0.10 → 통과, 그 외 미확인 |
 | CI | 대응 차이 d_i 의 과제 부트스트랩 1000 (학습 없음) |

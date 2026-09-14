@@ -97,3 +97,15 @@ def test_mcnemar_exact_onesided_and_confirm_rule():
     assert r["b_policy_only"] == 30 and r["c_fixed_only"] == 0 and r["mean_d"] == 0.75 and r["verdict"] == "통과"
     r2 = G.confirm_test(Y, np.full(40, 4), a_hat=4, n_boot=0)
     assert r2["mean_d"] == 0.0 and r2["p_mcnemar_onesided"] == 1.0 and r2["verdict"] == "미확인" and r2["ci95"] is None
+
+
+# ── Week2-K5: nested 특징 선택 CV ─────────────────────────────────────────
+def test_nested_selection_runs_and_is_flagged():
+    rows = PG.rows_from(PG.generate(60, 5, 1.0, 1.0, delta=3.0))
+    for r in rows:                                          # 메뉴 = 정보 5 + 잡음 4
+        r["features"] = {**r["features"], **{f"noise_{j}": float(j + hash(r["task_id"]) % 7) for j in range(4)}}
+    menu = {"num": list(G.FEATURE_NUM) + [f"noise_{j}" for j in range(4)], "cat": list(G.FEATURE_CAT)}
+    r_nested = G.policy_gain(rows, "P2", n_perm=0, n_boot=0, seed=0, with_ci=False, R=2, spec=menu, nested_max_selected=5)
+    r_plain = G.policy_gain(rows, "P2", n_perm=0, n_boot=0, seed=0, with_ci=False, R=2, spec=menu)
+    assert r_nested["nested_selection"] is True and r_plain["nested_selection"] is False and r_nested["p_value"] is None
+    assert isinstance(r_nested["gain"], float) and r_nested["gain"] != r_plain["gain"]

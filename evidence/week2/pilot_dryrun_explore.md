@@ -1,9 +1,9 @@
-# 파일럿 보고 — explore (mock-scenario, run_id=pilot_explore, N=4, 391s)
+# 파일럿 보고 — explore (mock-scenario, run_id=pilot_explore, N=4, 488s)
 
 - 풀 관문: 최고 arm B-expert 75.0% (문턱 80%) → **진행**
 - 0회차: b_cont $0.0087, a_call_median $0.0029 (n=2)
 - 탐색 CV(모델 선택용): λ*=0.3, 특징 18열, P2-post +25.0pp CI [0.0, 0.3333333333333333], P2-pre +25.0pp, P1 +0.0pp; 순열 p(진단) 0.849
-- 동결: â=B-expert, sha256 bd83d95c37f6, 커밋 해시 (동결 커밋 뒤 PREREG 에 기입)
+- 동결: â=B-expert, sha256 3f735a2847f3, 커밋 해시 (동결 커밋 뒤 PREREG 에 기입)
 - 뒤집힘: {"A-self": {"n_cells": 2, "flip_rate": 0.0}, "B-expert": {"n_cells": 2, "flip_rate": 0.0}}
 
 | arm | 히든 성공률 | 거부율 | arm 단독 $ | 호출 수 평균 |

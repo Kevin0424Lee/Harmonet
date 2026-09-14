@@ -258,9 +258,10 @@ def _group_folds(groups: np.ndarray, rng, K: int) -> List[np.ndarray]:
 
 
 def _cv_gain(Y: np.ndarray, C: np.ndarray, feats, X: np.ndarray, learner: str, rng, K: int = CV_K, R: int = CV_R, n_num: int = len(FEATURE_NUM),
-             picks_out: Optional[list] = None, groups: Optional[np.ndarray] = None, lam: float = P2_LAMBDA):
+             picks_out: Optional[list] = None, groups: Optional[np.ndarray] = None, lam: float = P2_LAMBDA, nested: Optional[Dict[str, Any]] = None):
     """K 겹 × R 셔플. 반환 (gain 평균, 정책 $ 평균, 고정 $ 평균) — $ 는 검증 셀에 미측정(NaN)이 하나라도 있으면 None (nanmean 금지).
-    picks_out 에 검증 과제의 (task idx, 선택 arm) 을 모은다(선택 분포 보고용). groups = 행의 원본 과제 id(부트스트랩 복제용), None 이면 행 = 과제."""
+    picks_out 에 검증 과제의 (task idx, 선택 arm) 을 모은다(선택 분포 보고용). groups = 행의 원본 과제 id(부트스트랩 복제용), None 이면 행 = 과제.
+    nested = {"menu": spec, "max_selected": k} 이면 (K5) 겹마다 **학습 과제에서만** 특징을 선택하고 그 부분집합으로 적합한다 — 선택이 CV 추정에 새지 않는다."""
     n = Y.shape[0]
     groups = np.arange(n) if groups is None else np.asarray(groups)
     gains, cost_pol, cost_fix = [], [], []
@@ -268,11 +269,19 @@ def _cv_gain(Y: np.ndarray, C: np.ndarray, feats, X: np.ndarray, learner: str, r
         folds = _group_folds(groups, rng, K)
         for f in range(K):
             te = folds[f]
-            if len(te) == 0:                                # 고유 원본 id 가 K 보다 적은 부트스트랩 복제(아주 작은 N) — 빈 겹은 건너뛴다
-                continue
             tr = np.concatenate([folds[j] for j in range(K) if j != f])
+            if len(te) == 0 or len(tr) == 0:                # 고유 원본 id 가 K 보다 적은 부트스트랩 복제(아주 작은 N) — 빈 겹은 건너뛴다
+                continue
             fixed = int(np.argmax(Y[tr].mean(axis=0)))
-            pick = policy_p1(tr, te, Y, feats, fixed) if learner == "P1" else policy_p2(tr, te, Y, X, fixed, n_num, lam)
+            if learner == "P1":
+                pick = policy_p1(tr, te, Y, feats, fixed)
+            elif nested:
+                sub = select_features([feats[i] for i in tr], Y[tr], nested["menu"], lam, nested["max_selected"])
+                _, cats_tr = design_matrix([feats[i] for i in tr], spec=sub)
+                Xf, _ = design_matrix(feats, cats=cats_tr, spec=sub)
+                pick = policy_p2(tr, te, Y, Xf, fixed, len(sub["num"]), lam)
+            else:
+                pick = policy_p2(tr, te, Y, X, fixed, n_num, lam)
             if picks_out is not None:
                 picks_out.extend(zip(te.tolist(), pick.tolist()))
             gains.append((Y[te, pick] - Y[te, fixed]).mean())
@@ -283,21 +292,21 @@ def _cv_gain(Y: np.ndarray, C: np.ndarray, feats, X: np.ndarray, learner: str, r
 
 def _null_chunk(args):
     """워커: 특징 순열 seed 목록 → 귀무 통계량 (병렬용, picklable 인자만)."""
-    Y, C, feats, X, learner, R, n_num, cv_seed, perm_seeds, lam = args
+    Y, C, feats, X, learner, R, n_num, cv_seed, perm_seeds, lam, nested = args
     out = []
     for ps in perm_seeds:
         p = np.random.default_rng(ps).permutation(len(feats))
-        out.append(_cv_gain(Y, C, [feats[i] for i in p], X[p], learner, np.random.default_rng(cv_seed), R=R, n_num=n_num, lam=lam)[0])
+        out.append(_cv_gain(Y, C, [feats[i] for i in p], X[p], learner, np.random.default_rng(cv_seed), R=R, n_num=n_num, lam=lam, nested=nested)[0])
     return out
 
 
 def _boot_chunk(args):
-    Y, C, feats, X, learner, R, n_num, boot_seeds, lam = args
+    Y, C, feats, X, learner, R, n_num, boot_seeds, lam, nested = args
     out = []
     for bs in boot_seeds:
         rng = np.random.default_rng(bs)
         idx = rng.integers(0, len(feats), len(feats))
-        out.append(_cv_gain(Y[idx], C[idx], [feats[i] for i in idx], X[idx], learner, rng, R=R, n_num=n_num, groups=idx, lam=lam)[0])   # 원본 id 로 겹 나눔
+        out.append(_cv_gain(Y[idx], C[idx], [feats[i] for i in idx], X[idx], learner, rng, R=R, n_num=n_num, groups=idx, lam=lam, nested=nested)[0])   # 원본 id 로 겹 나눔
     return out
 
 
@@ -310,19 +319,22 @@ def _parallel(fn, jobs, workers: int):
 
 
 def policy_gain(rows: Sequence[Dict[str, Any]], learner: str = "P1", n_perm: int = 2000, n_boot: int = 1000, seed: int = 0,
-                with_ci: bool = True, R: int = CV_R, spec: Optional[Dict[str, List[str]]] = None, workers: int = 1, lam: float = P2_LAMBDA) -> Dict[str, Any]:
+                with_ci: bool = True, R: int = CV_R, spec: Optional[Dict[str, List[str]]] = None, workers: int = 1, lam: float = P2_LAMBDA,
+                nested_max_selected: Optional[int] = None) -> Dict[str, Any]:
+    """nested_max_selected 가 있으면 spec 을 **메뉴**로 보고 겹 안에서 특징을 선택한다 (K5 nested CV)."""
     if learner not in ("P1", "P2"):
         raise ValueError(learner)
+    nested = {"menu": spec or DEFAULT_SPEC, "max_selected": nested_max_selected} if nested_max_selected else None
     spec = spec or DEFAULT_SPEC
     n_num = len(spec["num"])
     Y, C, feats, tasks = policy_tensor(rows)
     X, cats = design_matrix(feats, spec=spec)
     picks: list = []
-    obs, cpol, cfix = _cv_gain(Y, C, feats, X, learner, np.random.default_rng(seed + 1), R=R, n_num=n_num, picks_out=picks, lam=lam)
+    obs, cpol, cfix = _cv_gain(Y, C, feats, X, learner, np.random.default_rng(seed + 1), R=R, n_num=n_num, picks_out=picks, lam=lam, nested=nested)
     # 특징 순열(결과 고정). 순열 seed 는 (seed, b) 로 결정적 → 워커 수와 무관하게 같은 결과
     perm_seeds = [seed * 100_003 + 7 + b for b in range(n_perm)]
     chunks = max(1, workers * 4)
-    jobs = [(Y, C, feats, X, learner, R, n_num, seed + 1, perm_seeds[i::chunks], lam) for i in range(chunks)]
+    jobs = [(Y, C, feats, X, learner, R, n_num, seed + 1, perm_seeds[i::chunks], lam, nested) for i in range(chunks)]
     null = np.array(_parallel(_null_chunk, jobs, workers)) if n_perm > 0 else np.array([])
     pval = float((int((null >= obs).sum()) + 1) / (len(null) + 1)) if n_perm > 0 else None   # (count+1)/(B+1), 진단용; n_perm=0 → 없음
     pick_dist = {ARMS[a]: 0 for a in range(len(ARMS))}
@@ -332,15 +344,16 @@ def policy_gain(rows: Sequence[Dict[str, Any]], learner: str = "P1", n_perm: int
     pick_dist = {k: v / tot for k, v in pick_dist.items()}
     out = {"learner": learner, "n_tasks": len(tasks), "gain": obs, "p_value": pval, "null_mean": float(null.mean()) if n_perm > 0 else None,
            "cost_policy_usd": cpol, "cost_fixed_usd": cfix, "n_unpriced": int(np.isnan(C).sum()), "n_perm": n_perm, "cv": {"K": CV_K, "R": R}, "lambda": lam,
-           "features": spec, "pick_dist": pick_dist,
+           "features": spec, "nested_selection": nested is not None, "pick_dist": pick_dist,
            "diag_R2": ("통과" if (pval < 0.05 and obs >= 0.10) else "미확인") if pval is not None else None,
            "rule": "진단 전용 — 특징 순열 p 는 '특징 ⟂ 결과' 의 검정이지 '정책 이득 ≤ 0' 의 검정이 아니다 (J). 판정은 PREREG v4 의 대응 McNemar"}
     if with_ci and n_boot > 0:                              # 과제 부트스트랩, 복제마다 CV 전체 재수행
         boot_seeds = [seed * 100_003 + 500_000 + b for b in range(n_boot)]
-        jobs = [(Y, C, feats, X, learner, R, n_num, boot_seeds[i::chunks], lam) for i in range(chunks)]
+        jobs = [(Y, C, feats, X, learner, R, n_num, boot_seeds[i::chunks], lam, nested) for i in range(chunks)]
         vals = np.array(_parallel(_boot_chunk, jobs, workers))
-        out["ci95"] = [float(np.quantile(vals, 0.025)), float(np.quantile(vals, 0.975))]
-        out["n_boot"] = n_boot
+        valid = vals[~np.isnan(vals)]                       # 극소 N 의 복제는 평가 가능한 겹이 없어 NaN (실제 N=100 에선 없음)
+        out["ci95"] = [float(np.quantile(valid, 0.025)), float(np.quantile(valid, 0.975))] if len(valid) else None
+        out["n_boot"], out["n_boot_valid"] = n_boot, int(len(valid))
     return out
 
 

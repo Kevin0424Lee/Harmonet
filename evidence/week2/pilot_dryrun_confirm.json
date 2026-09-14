@@ -3,7 +3,7 @@
  "mode": "mock-scenario",
  "run_id": "pilot_confirm",
  "n_tasks": 2,
- "frozen_hash": "bd83d95c37f678f3eab2b2ab8fd6daf5eb084c9e292a51dae757d00e61de92cb",
+ "frozen_hash": "3f735a2847f3ab97866a2ccf1b653f8b62b7c6a4d15a54e67e4693b038f08dc1",
  "primary": {
   "n": 2,
   "mean_d": 0.5,
@@ -126,7 +126,12 @@
  "policy_cost": {
   "policy_usd_per_task": 0.0058,
   "fixed_usd_per_task": 0.0087,
-  "n_unpriced": 0
+  "state_acquisition_usd_per_task": 0.0029,
+  "policy_deploy_usd_per_task": 0.0087,
+  "fixed_deploy_usd_per_task": 0.0116,
+  "visible_verify_wall_ms_per_task": 3711.0,
+  "n_unpriced": 0,
+  "note": "배포 비용 = arm + 상태 취득(s0 + 가시 검증, B-solo 제외); 실험 총지출은 cost(원장)"
  },
  "cost": {
   "total_spent_usd": 0.2088,

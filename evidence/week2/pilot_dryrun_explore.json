@@ -16,6 +16,15 @@
   "n": 2,
   "arm": "B-expert"
  },
+ "s0": {
+  "imported": [],
+  "generated": [
+   "BigCodeBench/0",
+   "BigCodeBench/1",
+   "BigCodeBench/2",
+   "BigCodeBench/3"
+  ]
+ },
  "arms": {
   "T": {
    "n": 4,
@@ -108,7 +117,8 @@
      "A-role": 0.0,
      "B-expert": 0.5,
      "B-solo": 0.0
-    }
+    },
+    "nested": true
    },
    "1.0": {
     "gain": 0.25,
@@ -124,7 +134,8 @@
      "A-role": 0.0,
      "B-expert": 0.5,
      "B-solo": 0.0
-    }
+    },
+    "nested": true
    },
    "3.0": {
     "gain": 0.25,
@@ -140,7 +151,8 @@
      "A-role": 0.0,
      "B-expert": 0.5,
      "B-solo": 0.0
-    }
+    },
+    "nested": true
    }
   },
   "lambda_star": 0.3,
@@ -174,9 +186,89 @@
    0.0,
    0.3333333333333333
   ],
+  "pre": {
+   "lambda_menu": {
+    "0.3": {
+     "gain": 0.25,
+     "ci95": [
+      0.0,
+      0.6666666666666666
+     ],
+     "diag_perm_p": 1.0,
+     "pick_dist": {
+      "T": 0.0,
+      "A-self": 0.0,
+      "A-selfxk": 0.0,
+      "A-role": 0.5,
+      "B-expert": 0.5,
+      "B-solo": 0.0
+     },
+     "nested": true
+    },
+    "1.0": {
+     "gain": 0.25,
+     "ci95": [
+      0.0,
+      0.6666666666666666
+     ],
+     "diag_perm_p": 1.0,
+     "pick_dist": {
+      "T": 0.0,
+      "A-self": 0.0,
+      "A-selfxk": 0.0,
+      "A-role": 0.5,
+      "B-expert": 0.5,
+      "B-solo": 0.0
+     },
+     "nested": true
+    },
+    "3.0": {
+     "gain": 0.25,
+     "ci95": [
+      0.0,
+      0.6666666666666666
+     ],
+     "diag_perm_p": 0.9110444777611194,
+     "pick_dist": {
+      "T": 0.0,
+      "A-self": 0.0,
+      "A-selfxk": 0.0,
+      "A-role": 0.5,
+      "B-expert": 0.5,
+      "B-solo": 0.0
+     },
+     "nested": true
+    }
+   },
+   "lambda_star": 0.3,
+   "feature_subset": {
+    "num": [
+     "prompt_chars",
+     "n_examples",
+     "n_args",
+     "mentions_return",
+     "lib_pandas",
+     "lib_numpy",
+     "lib_matplotlib",
+     "lib_random",
+     "lib_sklearn",
+     "lib_collections",
+     "lib_re",
+     "lib_itertools",
+     "lib_scipy",
+     "lib_string",
+     "lib_os",
+     "lib_math",
+     "lib_other"
+    ],
+    "cat": []
+   },
+   "n_features": 17
+  },
   "P2_pre_gain": 0.25,
   "P1_gain": 0.0,
-  "note": "모델 선택용 CV — 판정 아님"
+  "selection": "nested (겹 안 선택, 사전 등록)",
+  "note": "모델 선택용 CV — 판정 아님. pre/post = 각자 튜닝된 두 정책의 절제 실험"
  },
  "diag_perm_p": {
   "P2_post": 0.848575712143928,
@@ -185,10 +277,11 @@
   "note": "진단 — 귀무 '특징 ⟂ 결과' ≠ '정책 이득 ≤ 0'"
  },
  "frozen": {
-  "path": "C:\\Users\\User\\AppData\\Local\\Temp\\pilot_36qvlr2o\\arms\\pilot_explore\\frozen_policy.json",
-  "sha256": "bd83d95c37f678f3eab2b2ab8fd6daf5eb084c9e292a51dae757d00e61de92cb",
+  "path": "C:\\Users\\User\\AppData\\Local\\Temp\\pilot_y59z4rhg\\arms\\pilot_explore\\frozen_policy.json",
+  "sha256": "3f735a2847f3ab97866a2ccf1b653f8b62b7c6a4d15a54e67e4693b038f08dc1",
   "a_hat": "B-expert",
   "lambda": 0.3,
+  "lambda_pre": 0.3,
   "commit_hash": "(동결 커밋 뒤 PREREG 에 기입)"
  },
  "cost": {
@@ -210,5 +303,5 @@
   "check": "ledger == prior + round0 + Σ arms_own + s0_built_here"
  },
  "stopped_reason": null,
- "elapsed_s": 391
+ "elapsed_s": 488
 }

@@ -75,7 +75,9 @@ def rows_with_features(arms_out: dict):
         sig = json.loads((s0 / "decision_signals.json").read_text(encoding="utf-8"))
         code = (s0 / "artifact.py").read_text(encoding="utf-8")
         f = task_features(ctx["task_prompt"], sig, code, ctx["spec_visible"].get("entry_point", "task_func"))
-        rows.append({**{k: r[k] for k in ("task_id", "arm", "rep", "hidden_pass", "cost_usd", "budget_refused", "infra", "hidden_exposed")}, "features": f})
+        vis = json.loads((s0 / "verify_visible.json").read_text(encoding="utf-8"))
+        rows.append({**{k: r[k] for k in ("task_id", "arm", "rep", "hidden_pass", "cost_usd", "budget_refused", "infra", "hidden_exposed")}, "features": f,
+                     "s0_cost_usd": sig["build_cost_usd"], "s0_verify_wall_ms": int(vis.get("wall_ms", 0))})     # K5: 상태 취득 비용 (s0 + 가시 검증)
     return rows
 
 
@@ -213,19 +215,24 @@ def explore_stage(args, cfg: dict, ids: dict, env: dict, tmp: Path, arms_root: P
     best = int(np.argmax(rates))
     gate = {"best_arm": G.ARMS[best], "best_rate": float(rates[best]), "threshold": cfg["pool"]["gate"]["threshold"],
             "decision": "진행" if rates[best] <= cfg["pool"]["gate"]["threshold"] else "보류", "basis": cfg["pool"]["gate"]["basis"]}
-    # 탐색에서만: 특징 선택(메뉴 ≤ max_selected) → λ 선택(CV, 모델 선택용) → 학습 → 동결
+    # 탐색에서만 (K5): nested CV — 겹 안에서 메뉴(≤ max_selected) 특징 선택, λ 는 메뉴에서 CV 로; P2-pre 는 자기 메뉴에서 따로 선택 (post 것을 물려받지 않음)
     fcfg = cfg["features"]
-    subset = G.select_features(feats, Y, FEATURE_SPECS["post"], fcfg["lambda_default"], fcfg["max_selected"])
-    cv = {}
-    for lam in fcfg["lambda_menu"]:
-        r = G.policy_gain(rows, "P2", n_perm=args.n_perm, n_boot=args.n_boot, seed=cfg["sets"]["seed"], spec=subset, workers=args.workers, R=fcfg["cv"]["R"], lam=lam)
-        cv[str(lam)] = {"gain": r["gain"], "ci95": r.get("ci95"), "diag_perm_p": r["p_value"], "pick_dist": r["pick_dist"]}
-    lam_star = float(max(fcfg["lambda_menu"], key=lambda l: cv[str(l)]["gain"]))
-    pre_spec = {"num": [c for c in subset["num"] if c in FEATURE_SPECS["pre"]["num"]], "cat": [c for c in subset["cat"] if c in FEATURE_SPECS["pre"]["cat"]]}
-    r_pre = G.policy_gain(rows, "P2", n_perm=args.n_perm, n_boot=0, seed=cfg["sets"]["seed"], spec=pre_spec, workers=args.workers, R=fcfg["cv"]["R"], lam=lam_star, with_ci=False)
+
+    def tune(menu, learner="P2"):
+        cv = {}
+        for lam in fcfg["lambda_menu"]:
+            r = G.policy_gain(rows, learner, n_perm=args.n_perm, n_boot=args.n_boot, seed=cfg["sets"]["seed"], spec=menu, workers=args.workers, R=fcfg["cv"]["R"],
+                              lam=lam, nested_max_selected=fcfg["max_selected"])
+            cv[str(lam)] = {"gain": r["gain"], "ci95": r.get("ci95"), "diag_perm_p": r["p_value"], "pick_dist": r["pick_dist"], "nested": r["nested_selection"]}
+        lam_star = float(max(fcfg["lambda_menu"], key=lambda l: cv[str(l)]["gain"]))
+        subset = G.select_features(feats, Y, menu, lam_star, fcfg["max_selected"])      # 동결용 부분집합은 탐색 전체에서 1회 (CV 수치는 nested 라 이 선택을 포함)
+        return cv, lam_star, subset
+    cv, lam_star, subset = tune(FEATURE_SPECS["post"])
+    cv_pre, lam_pre, pre_spec = tune(FEATURE_SPECS["pre"])
+    r_pre = cv_pre[str(lam_pre)]
     r_p1 = G.policy_gain(rows, "P1", n_perm=args.n_perm, n_boot=0, seed=cfg["sets"]["seed"], spec=subset, workers=args.workers, R=fcfg["cv"]["R"], with_ci=False)
     frozen = {"version": "v4", "config_sha256": checks["config_sha256"], "features_version": FEATURES_VERSION, "feature_subset": subset, "pre_subset": pre_spec,
-              "lambda": lam_star, "p2_post": G.fit_p2(feats, Y, subset, lam_star), "p2_pre": G.fit_p2(feats, Y, pre_spec, lam_star), "p1": G.fit_p1(feats, Y, best),
+              "lambda": lam_star, "lambda_pre": lam_pre, "p2_post": G.fit_p2(feats, Y, subset, lam_star), "p2_pre": G.fit_p2(feats, Y, pre_spec, lam_pre), "p1": G.fit_p1(feats, Y, best),
               "a_hat": G.ARMS[best], "a_hat_idx": best, "b_cont": r0["b_cont"], "a_call_median": r0["a_call_median"], "seed": cfg["sets"]["seed"],
               "n_explore": len(tasks), "explore_ids": tasks, "pool_gate": gate}
     fz = arms_root / run_id / "frozen_policy.json"
@@ -237,10 +244,12 @@ def explore_stage(args, cfg: dict, ids: dict, env: dict, tmp: Path, arms_root: P
               "round0": {k: r0[k] for k in ("b_cont", "a_call_median", "n", "arm")}, "s0": {"imported": s0_imp["imported"], "generated": s0_gen["generated"]},
               "arms": main_out["summary"], "flip": flip_rates(flip_out),
               "explore_cv": {"lambda_menu": cv, "lambda_star": lam_star, "feature_subset": subset, "n_features": len(subset["num"]) + len(subset["cat"]),
-                             "P2_post_gain": cv[str(lam_star)]["gain"], "P2_post_ci95": cv[str(lam_star)]["ci95"], "P2_pre_gain": r_pre["gain"], "P1_gain": r_p1["gain"],
-                             "note": "모델 선택용 CV — 판정 아님"},
-              "diag_perm_p": {"P2_post": cv[str(lam_star)]["diag_perm_p"], "P2_pre": r_pre["p_value"], "P1": r_p1["p_value"], "note": "진단 — 귀무 '특징 ⟂ 결과' ≠ '정책 이득 ≤ 0'"},
-              "frozen": {"path": str(fz), "sha256": fz_sha, "a_hat": G.ARMS[best], "lambda": lam_star, "commit_hash": "(동결 커밋 뒤 PREREG 에 기입)"},
+                             "P2_post_gain": cv[str(lam_star)]["gain"], "P2_post_ci95": cv[str(lam_star)]["ci95"],
+                             "pre": {"lambda_menu": cv_pre, "lambda_star": lam_pre, "feature_subset": pre_spec, "n_features": len(pre_spec["num"]) + len(pre_spec["cat"])},
+                             "P2_pre_gain": r_pre["gain"], "P1_gain": r_p1["gain"], "selection": "nested (겹 안 선택, 사전 등록)",
+                             "note": "모델 선택용 CV — 판정 아님. pre/post = 각자 튜닝된 두 정책의 절제 실험"},
+              "diag_perm_p": {"P2_post": cv[str(lam_star)]["diag_perm_p"], "P2_pre": r_pre["diag_perm_p"], "P1": r_p1["p_value"], "note": "진단 — 귀무 '특징 ⟂ 결과' ≠ '정책 이득 ≤ 0'"},
+              "frozen": {"path": str(fz), "sha256": fz_sha, "a_hat": G.ARMS[best], "lambda": lam_star, "lambda_pre": lam_pre, "commit_hash": "(동결 커밋 뒤 PREREG 에 기입)"},
               "cost": spend, "stopped_reason": main_out.get("stopped_reason") or flip_out.get("stopped_reason"), "elapsed_s": round(time.time() - t0)}
     assert list(report) == cfg["report_items"]["explore"], (list(report), cfg["report_items"]["explore"])
     write_report(report, out_prefix.with_name(out_prefix.name + "_explore"))
@@ -269,9 +278,7 @@ def confirm_stage(args, cfg: dict, ids: dict, confirm_ids: list, env: dict, tmp:
     secondary = {"P2_post_vs_P2_pre": post_vs_pre, "P2_pre_vs_a_hat": G.confirm_test(Y, pick_pre, a_hat, n_boot=0), "P1_vs_a_hat": G.confirm_test(Y, pick_p1, a_hat, n_boot=0),
                  "oracle_descriptive": {"oracle_minus_fixed_insample": float(Y.max(axis=1).mean() - Y.mean(axis=0).max()), "note": "1회 실행 최대의 표본 내 통계 — 상한 아님 (J6)"}}
     pick_dist = {G.ARMS[a]: float((pick == a).mean()) for a in range(len(G.ARMS))}
-    cp, cf = C[np.arange(len(Y)), pick], C[:, a_hat]
-    policy_cost = {"policy_usd_per_task": None if np.isnan(cp).any() else float(cp.mean()), "fixed_usd_per_task": None if np.isnan(cf).any() else float(cf.mean()),
-                   "n_unpriced": int(np.isnan(C).sum())}
+    policy_cost = deploy_cost(rows, tasks, C, pick, a_hat)
     spend = spend_report(env, [out], 0.0, prior_usd)
     report = {"stage": "confirm", "mode": args.backend, "run_id": run_id, "n_tasks": len(tasks), "frozen_hash": checks["frozen_policy"], "primary": primary,
               "secondary": secondary, "arms": out["summary"], "pick_dist": pick_dist, "policy_cost": policy_cost, "cost": spend,
@@ -279,6 +286,24 @@ def confirm_stage(args, cfg: dict, ids: dict, confirm_ids: list, env: dict, tmp:
     assert list(report) == cfg["report_items"]["confirm"], (list(report), cfg["report_items"]["confirm"])
     write_report(report, out_prefix.with_name(out_prefix.name + "_confirm"))
     return report
+
+
+def deploy_cost(rows, tasks, C, pick, a_hat) -> dict:
+    """K5 두 관점: (1) 실험 총지출은 cost/원장. (2) 배포 비용 = 선택 arm 비용 + 상태 취득 비용(s0 $ + 가시 검증; B-solo 는 s0 를 안 쓰므로 자기 호출만).
+    가시 검증 $ 는 0 (로컬 docker) — wall_ms 로 따로 보고. None 은 미측정 (nanmean 금지)."""
+    ti = {t: i for i, t in enumerate(tasks)}
+    s0 = np.full(len(tasks), np.nan); wall = np.zeros(len(tasks))
+    for r in rows:
+        s0[ti[r["task_id"]]] = np.nan if r["s0_cost_usd"] is None else float(r["s0_cost_usd"]); wall[ti[r["task_id"]]] = r["s0_verify_wall_ms"]
+    bsolo = G.ARMS.index("B-solo")
+    n = len(tasks)
+    state_pol = np.where(pick == bsolo, 0.0, s0); state_fix = np.zeros(n) if a_hat == bsolo else s0
+    cp, cf = C[np.arange(n), pick], C[:, a_hat]
+    m = lambda x: None if np.isnan(x).any() else float(np.mean(x))
+    return {"policy_usd_per_task": m(cp), "fixed_usd_per_task": m(cf), "state_acquisition_usd_per_task": m(s0),
+            "policy_deploy_usd_per_task": m(cp + state_pol), "fixed_deploy_usd_per_task": m(cf + state_fix),
+            "visible_verify_wall_ms_per_task": float(wall.mean()), "n_unpriced": int(np.isnan(C).sum()) + int(np.isnan(s0).sum()),
+            "note": "배포 비용 = arm + 상태 취득(s0 + 가시 검증, B-solo 제외); 실험 총지출은 cost(원장)"}
 
 
 def flip_rates(flip_out: dict):
@@ -311,7 +336,9 @@ def write_report(report: dict, prefix: Path) -> None:
                f"P2-pre vs â {100 * report['secondary']['P2_pre_vs_a_hat']['mean_d']:+.1f}pp; P1 vs â {100 * report['secondary']['P1_vs_a_hat']['mean_d']:+.1f}pp; "
                f"oracle(기술) {100 * report['secondary']['oracle_descriptive']['oracle_minus_fixed_insample']:.1f}pp",
                "- 정책 선택 분포: " + ", ".join(f"{k} {100 * v:.0f}%" for k, v in report["pick_dist"].items())
-               + f"; 정책 ${report['policy_cost']['policy_usd_per_task']} / 고정 ${report['policy_cost']['fixed_usd_per_task']} (과제당)"]
+               + f"; arm 만: 정책 ${report['policy_cost']['policy_usd_per_task']} / 고정 ${report['policy_cost']['fixed_usd_per_task']}; "
+               f"배포(+상태 취득 ${report['policy_cost']['state_acquisition_usd_per_task']}): 정책 ${report['policy_cost']['policy_deploy_usd_per_task']} / "
+               f"고정 ${report['policy_cost']['fixed_deploy_usd_per_task']} (과제당)"]
     a = report["arms"]
     md += ["", "| arm | 히든 성공률 | 거부율 | arm 단독 $ | 호출 수 평균 |", "|---|---|---|---|---|"]
     for arm in G.ARMS:

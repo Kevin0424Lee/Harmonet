@@ -80,7 +80,10 @@
    "R": 20
   },
   "n_boot_explore": 1000,
-  "n_perm_diag": 2000
+  "n_perm_diag": 2000,
+  "cv_selection": "nested",
+  "pre_own_selection": true,
+  "selection_rule": "select_features: 메뉴 전체 1회 적합 → arm 평균 |표준화 계수| 상위 ≤ max_selected (범주 열 유지)"
  },
  "freeze": {
   "items": [
@@ -163,5 +166,9 @@
    "stopped_reason",
    "elapsed_s"
   ]
+ },
+ "cost_views": {
+  "experiment_total": "ledger",
+  "deploy_per_task": "arm + state acquisition (s0 $ + visible verify); B-solo = own call only"
  }
 }
