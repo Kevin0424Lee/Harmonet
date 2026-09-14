@@ -215,7 +215,7 @@ def _fit_logistic_batch(X: np.ndarray, Y: np.ndarray, lam: float = P2_LAMBDA, it
     n, d = X.shape
     A = Y.shape[1]
     beta = np.zeros((A, d))
-    pen = np.full(d, lam); pen[0] = 0.0
+    pen = np.full(d, lam); pen[0] = 1e-8                      # 절편은 사실상 무벌점 — 1e-8 은 극소 표본(부트스트랩 복제에 과제 1~2개)의 특이 행렬 방지
     for _ in range(iters):
         eta = X @ beta.T                                      # [n, A]
         mu = 1 / (1 + np.exp(-eta))
@@ -244,9 +244,9 @@ def policy_p1(train_idx, test_idx, Y, feats, fixed_arm):
     return np.array([choice.get(cat[i], fixed_arm) for i in test_idx])
 
 
-def policy_p2(train_idx, test_idx, Y, X, fixed_arm, n_num: int = len(FEATURE_NUM)):
+def policy_p2(train_idx, test_idx, Y, X, fixed_arm, n_num: int = len(FEATURE_NUM), lam: float = P2_LAMBDA):
     Xtr, Xte = _standardize(X[train_idx], X[test_idx], n_num)
-    beta = _fit_logistic_batch(Xtr, Y[train_idx])
+    beta = _fit_logistic_batch(Xtr, Y[train_idx], lam=lam)
     return np.argmax(Xte @ beta.T, axis=1)
 
 
@@ -258,7 +258,7 @@ def _group_folds(groups: np.ndarray, rng, K: int) -> List[np.ndarray]:
 
 
 def _cv_gain(Y: np.ndarray, C: np.ndarray, feats, X: np.ndarray, learner: str, rng, K: int = CV_K, R: int = CV_R, n_num: int = len(FEATURE_NUM),
-             picks_out: Optional[list] = None, groups: Optional[np.ndarray] = None):
+             picks_out: Optional[list] = None, groups: Optional[np.ndarray] = None, lam: float = P2_LAMBDA):
     """K 겹 × R 셔플. 반환 (gain 평균, 정책 $ 평균, 고정 $ 평균) — $ 는 검증 셀에 미측정(NaN)이 하나라도 있으면 None (nanmean 금지).
     picks_out 에 검증 과제의 (task idx, 선택 arm) 을 모은다(선택 분포 보고용). groups = 행의 원본 과제 id(부트스트랩 복제용), None 이면 행 = 과제."""
     n = Y.shape[0]
@@ -272,7 +272,7 @@ def _cv_gain(Y: np.ndarray, C: np.ndarray, feats, X: np.ndarray, learner: str, r
                 continue
             tr = np.concatenate([folds[j] for j in range(K) if j != f])
             fixed = int(np.argmax(Y[tr].mean(axis=0)))
-            pick = policy_p1(tr, te, Y, feats, fixed) if learner == "P1" else policy_p2(tr, te, Y, X, fixed, n_num)
+            pick = policy_p1(tr, te, Y, feats, fixed) if learner == "P1" else policy_p2(tr, te, Y, X, fixed, n_num, lam)
             if picks_out is not None:
                 picks_out.extend(zip(te.tolist(), pick.tolist()))
             gains.append((Y[te, pick] - Y[te, fixed]).mean())
@@ -283,21 +283,21 @@ def _cv_gain(Y: np.ndarray, C: np.ndarray, feats, X: np.ndarray, learner: str, r
 
 def _null_chunk(args):
     """워커: 특징 순열 seed 목록 → 귀무 통계량 (병렬용, picklable 인자만)."""
-    Y, C, feats, X, learner, R, n_num, cv_seed, perm_seeds = args
+    Y, C, feats, X, learner, R, n_num, cv_seed, perm_seeds, lam = args
     out = []
     for ps in perm_seeds:
         p = np.random.default_rng(ps).permutation(len(feats))
-        out.append(_cv_gain(Y, C, [feats[i] for i in p], X[p], learner, np.random.default_rng(cv_seed), R=R, n_num=n_num)[0])
+        out.append(_cv_gain(Y, C, [feats[i] for i in p], X[p], learner, np.random.default_rng(cv_seed), R=R, n_num=n_num, lam=lam)[0])
     return out
 
 
 def _boot_chunk(args):
-    Y, C, feats, X, learner, R, n_num, boot_seeds = args
+    Y, C, feats, X, learner, R, n_num, boot_seeds, lam = args
     out = []
     for bs in boot_seeds:
         rng = np.random.default_rng(bs)
         idx = rng.integers(0, len(feats), len(feats))
-        out.append(_cv_gain(Y[idx], C[idx], [feats[i] for i in idx], X[idx], learner, rng, R=R, n_num=n_num, groups=idx)[0])   # 원본 id 로 겹 나눔
+        out.append(_cv_gain(Y[idx], C[idx], [feats[i] for i in idx], X[idx], learner, rng, R=R, n_num=n_num, groups=idx, lam=lam)[0])   # 원본 id 로 겹 나눔
     return out
 
 
@@ -310,7 +310,7 @@ def _parallel(fn, jobs, workers: int):
 
 
 def policy_gain(rows: Sequence[Dict[str, Any]], learner: str = "P1", n_perm: int = 2000, n_boot: int = 1000, seed: int = 0,
-                with_ci: bool = True, R: int = CV_R, spec: Optional[Dict[str, List[str]]] = None, workers: int = 1) -> Dict[str, Any]:
+                with_ci: bool = True, R: int = CV_R, spec: Optional[Dict[str, List[str]]] = None, workers: int = 1, lam: float = P2_LAMBDA) -> Dict[str, Any]:
     if learner not in ("P1", "P2"):
         raise ValueError(learner)
     spec = spec or DEFAULT_SPEC
@@ -318,11 +318,11 @@ def policy_gain(rows: Sequence[Dict[str, Any]], learner: str = "P1", n_perm: int
     Y, C, feats, tasks = policy_tensor(rows)
     X, cats = design_matrix(feats, spec=spec)
     picks: list = []
-    obs, cpol, cfix = _cv_gain(Y, C, feats, X, learner, np.random.default_rng(seed + 1), R=R, n_num=n_num, picks_out=picks)
+    obs, cpol, cfix = _cv_gain(Y, C, feats, X, learner, np.random.default_rng(seed + 1), R=R, n_num=n_num, picks_out=picks, lam=lam)
     # 특징 순열(결과 고정). 순열 seed 는 (seed, b) 로 결정적 → 워커 수와 무관하게 같은 결과
     perm_seeds = [seed * 100_003 + 7 + b for b in range(n_perm)]
     chunks = max(1, workers * 4)
-    jobs = [(Y, C, feats, X, learner, R, n_num, seed + 1, perm_seeds[i::chunks]) for i in range(chunks)]
+    jobs = [(Y, C, feats, X, learner, R, n_num, seed + 1, perm_seeds[i::chunks], lam) for i in range(chunks)]
     null = np.array(_parallel(_null_chunk, jobs, workers))
     pval = float((int((null >= obs).sum()) + 1) / (len(null) + 1))          # (count+1)/(B+1), 진단용
     pick_dist = {ARMS[a]: 0 for a in range(len(ARMS))}
@@ -331,17 +331,58 @@ def policy_gain(rows: Sequence[Dict[str, Any]], learner: str = "P1", n_perm: int
     tot = max(1, len(picks))
     pick_dist = {k: v / tot for k, v in pick_dist.items()}
     out = {"learner": learner, "n_tasks": len(tasks), "gain": obs, "p_value": pval, "null_mean": float(null.mean()),
-           "cost_policy_usd": cpol, "cost_fixed_usd": cfix, "n_unpriced": int(np.isnan(C).sum()), "n_perm": n_perm, "cv": {"K": CV_K, "R": R},
+           "cost_policy_usd": cpol, "cost_fixed_usd": cfix, "n_unpriced": int(np.isnan(C).sum()), "n_perm": n_perm, "cv": {"K": CV_K, "R": R}, "lambda": lam,
            "features": spec, "pick_dist": pick_dist,
            "diag_R2": "통과" if (pval < 0.05 and obs >= 0.10) else "미확인",
            "rule": "진단 전용 — 특징 순열 p 는 '특징 ⟂ 결과' 의 검정이지 '정책 이득 ≤ 0' 의 검정이 아니다 (J). 판정은 PREREG v4 의 대응 McNemar"}
     if with_ci and n_boot > 0:                              # 과제 부트스트랩, 복제마다 CV 전체 재수행
         boot_seeds = [seed * 100_003 + 500_000 + b for b in range(n_boot)]
-        jobs = [(Y, C, feats, X, learner, R, n_num, boot_seeds[i::chunks]) for i in range(chunks)]
+        jobs = [(Y, C, feats, X, learner, R, n_num, boot_seeds[i::chunks], lam) for i in range(chunks)]
         vals = np.array(_parallel(_boot_chunk, jobs, workers))
         out["ci95"] = [float(np.quantile(vals, 0.025)), float(np.quantile(vals, 0.975))]
         out["n_boot"] = n_boot
     return out
+
+
+# ── Week2-J: 동결 가능한 P2 모델 (탐색에서 학습 → JSON 으로 동결 → 확인에서 적용만) ──────────
+def fit_p2(feats: Sequence[Dict[str, Any]], Y: np.ndarray, spec: Dict[str, List[str]], lam: float = P2_LAMBDA) -> Dict[str, Any]:
+    """P2-post/pre 학습: 표준화 통계·범주 수준·계수를 전부 담은 picklable/JSON 모델. 적용은 apply_p2 (학습 없음)."""
+    X, cats = design_matrix(feats, spec=spec)
+    n_num = len(spec["num"])
+    mu, sd = X[:, :n_num].mean(axis=0), X[:, :n_num].std(axis=0) + 1e-9
+    Xs = X.copy(); Xs[:, :n_num] = (Xs[:, :n_num] - mu) / sd
+    beta = _fit_logistic_batch(np.hstack([np.ones((len(Xs), 1)), Xs]), Y, lam=lam)
+    return {"spec": {"num": list(spec["num"]), "cat": list(spec["cat"])}, "cats": cats, "mu": mu.tolist(), "sd": sd.tolist(), "lambda": lam,
+            "beta": beta.tolist(), "arms": list(ARMS)}
+
+
+def apply_p2(model: Dict[str, Any], feats: Sequence[Dict[str, Any]]) -> np.ndarray:
+    Xt, _ = design_matrix(feats, cats=model["cats"], spec=model["spec"])
+    n_num = len(model["spec"]["num"])
+    Xt[:, :n_num] = (Xt[:, :n_num] - np.array(model["mu"])) / np.array(model["sd"])
+    return np.argmax(np.hstack([np.ones((len(Xt), 1)), Xt]) @ np.array(model["beta"]).T, axis=1)
+
+
+def fit_p1(feats: Sequence[Dict[str, Any]], Y: np.ndarray, fixed_arm: int) -> Dict[str, Any]:
+    """P1 조회표: visible 범주별 최선 arm (학습 과제), 없는 범주 → 고정 arm."""
+    cat = np.array([str(f["visible"]) for f in feats])
+    return {"table": {lvl: int(np.argmax(Y[cat == lvl].mean(axis=0))) for lvl in sorted(set(cat))}, "default": int(fixed_arm)}
+
+
+def apply_p1(model: Dict[str, Any], feats: Sequence[Dict[str, Any]]) -> np.ndarray:
+    return np.array([model["table"].get(str(f["visible"]), model["default"]) for f in feats])
+
+
+def select_features(feats: Sequence[Dict[str, Any]], Y: np.ndarray, spec: Dict[str, List[str]], lam: float, max_selected: int) -> Dict[str, List[str]]:
+    """사전 등록 선택 규칙(PREREG v4 §3): 메뉴 전체로 1회 적합 → 수치 열은 arm 평균 |표준화 계수| 상위로 잘라 max_selected 열 이하 (범주 열은 유지, 열 수에 포함)."""
+    n_cat_cols = sum(len(v) for v in design_matrix(feats, spec=spec)[1].values())
+    keep_num = max(0, max_selected - n_cat_cols)
+    if len(spec["num"]) <= keep_num:
+        return {"num": list(spec["num"]), "cat": list(spec["cat"])}
+    m = fit_p2(feats, Y, spec, lam)
+    score = np.abs(np.array(m["beta"])[:, 1:1 + len(spec["num"])]).mean(axis=0)
+    top = sorted(np.argsort(-score)[:keep_num].tolist())
+    return {"num": [spec["num"][i] for i in top], "cat": list(spec["cat"])}
 
 
 # ── Week2-J: 확인 단계 판정 (PREREG v4 §4) — 학습 없음 ─────────────────────────

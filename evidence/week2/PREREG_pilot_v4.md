@@ -60,3 +60,34 @@ temp 0.2, max_tokens 4096, 시스템 프롬프트)·토큰 출처(measured)를 `
   확인 = 200×6 ≈ $8 → **≈ $9** (여유 포함). 원장 **cap $16** (`HARMONET_BUDGET_CAP=16`).
 - 중단: 예약 거부·커밋 후 초과·미측정·인프라 장애 → 부분 결과 저장(완료 arm 포함, J2), 종료 코드 2, 재개는 같은 config_hash 의 멱등 재실행.
 - 통과 시 다음(4~6주차): 같은 확인 200 자료에서 REDEREF 식 사후분포 라우터·KABB 식 부분집합 선택과 직접 비교 (재실행 없이 가능한 범위), 반사실 실측은 새 자료.
+
+<!-- config:begin (자동 생성 — scripts/prereg_render.py, 손으로 고치지 않는다) -->
+## 설정 (자동 생성 — `pilot_config_v4.json` 이 단일 출처)
+
+| 항목 | 값 |
+|---|---|
+| 설정 파일 sha256 | `918d7b381abecb32a3712f24111411eb27d6b40dabaa38177e27fdf2105aa055` |
+| 탐색 N_e | 100 = 프로브 재사용 59 + 신규 s0 41 |
+| 뒤집힘 부분집합 | 30 × k=2 (A-self, B-expert) |
+| 확인 N_c | 200 |
+| 예비(봉인) | 103 |
+| seed | 20260915 |
+| arm / k | T, A-self, A-selfxk, A-role, B-expert, B-solo / k=1 |
+| 모델 | A=claude-haiku-4-5-20251001, B=claude-sonnet-4-6, temp 0.2, max_tokens 4096 |
+| 0회차 | B-expert 1회 × 10 과제 → b_cont = 비용 중앙값 |
+| 풀 관문 | 최고 arm 성공률 ≤ 80% → 진행, 초과 → 보류 (운영 기준: 여지(1 − 최고 arm 성공률) ≥ 2 × MDE(10pp). 원 등록값 70(프로브 B 75% → unconfirmed)은 보존, 80 은 프로브 후 개정) |
+| 특징 메뉴 / 상한 | benchmark/features.FEATURE_SPECS['post'] (pre 17 + post 11 = 28 열) / ≤ 20 열 |
+| λ 메뉴 (기본) | [0.3, 1.0, 3.0] (1.0) |
+| 탐색 CV | K=5 × R=20, 부트스트랩 1000, 순열(진단) 2000 |
+| 동결 항목 | feature_subset, lambda, P2-post coef, P2-pre coef, P1 table, a_hat (탐색 최고 arm), b_cont, seed |
+| 주 판정 | d_i = y[i, pi_post(i)] − y[i, a_hat]; 정확 McNemar 단측(b = #(정책 성공, â 실패) > c = #(정책 실패, â 성공)), p = P(Bin(b+c, ½) ≥ b); α=0.05, 문턱 10pp; p < 0.05 ∧ mean d ≥ 0.10 → 통과, 그 외 미확인 |
+| CI | 대응 차이 d_i 의 과제 부트스트랩 1000 (학습 없음) |
+| 의미 | 양의 이득 증거 + 점추정의 실용 문턱 — '≥10pp 입증' 아님 |
+| 부차 | P2-post vs P2-pre 과제별 차이(대응 McNemar); P1 대응 차이; oracle(기술 통계, J6 구분); arm 별 성공률·$·거부율; 정책 선택 분포·$; 총비용 = arm + 상태 취득(s0 + 가시 검증) + 0회차 + 뒤집힘 |
+| 금지 | 확인 결과 열람 후 문턱·과제·분석 변경; 확인 집합에서 학습; s0 를 성공 여부로 선별·재생성; 히든 결과를 특징에 포함 |
+| 비용 | 탐색 ≈ $5, 확인 ≈ $9, 원장 cap $16 (과제당 6 arm ≈ $0.04 (프로브 실측), 41 s0 신규 ≈ $0.15, 뒤집힘 30×2 ≈ $0.5, 0회차 ≈ $0.2) |
+| 원장 / run_id | pilot_v4 / {'explore': 'pilot_explore', 'confirm': 'pilot_confirm'} |
+| 범위 | 결론 범위 = 이 BCB 적격 풀(403). 방법이 바뀌면 이 확인 200 은 재사용 불가 → 예비 103 |
+| 보고 항목(탐색) | stage, mode, run_id, n_tasks, pool_gate, round0, arms, flip, explore_cv, diag_perm_p, frozen, cost, stopped_reason, elapsed_s |
+| 보고 항목(확인) | stage, mode, run_id, n_tasks, frozen_hash, primary, secondary, arms, pick_dist, policy_cost, cost, stopped_reason, elapsed_s |
+<!-- config:end -->

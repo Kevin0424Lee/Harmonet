@@ -87,19 +87,10 @@ def spec_for(m: dict, n_feat: int):
 
 
 def fit_policy(g_ex: dict, spec: dict):
-    """탐색 자료에서 P2-post 계수 + 표준화 통계 + â. 반환: 적용 함수 (feats → pick)."""
-    X, cats = G.design_matrix(g_ex["feats"], spec=spec)
-    n_num = len(spec["num"])
-    mu, sd = X[:, :n_num].mean(axis=0), X[:, :n_num].std(axis=0) + 1e-9
-    Xs = X.copy(); Xs[:, :n_num] = (Xs[:, :n_num] - mu) / sd
-    beta = G._fit_logistic_batch(np.hstack([np.ones((len(Xs), 1)), Xs]), g_ex["Y"], lam=LAMBDA)
+    """탐색 자료에서 P2-post(gap_analysis.fit_p2, 파일럿과 같은 코드) + â. 반환: 적용 함수 (feats → pick)."""
+    model = G.fit_p2(g_ex["feats"], g_ex["Y"], spec, lam=LAMBDA)
     a_hat = int(np.argmax(g_ex["Y"].mean(axis=0)))
-
-    def apply(feats):
-        Xt, _ = G.design_matrix(feats, cats=cats, spec=spec)
-        Xt[:, :n_num] = (Xt[:, :n_num] - mu) / sd
-        return np.argmax(np.hstack([np.ones((len(Xt), 1)), Xt]) @ beta.T, axis=1)
-    return apply, a_hat
+    return (lambda feats: G.apply_p2(model, feats)), a_hat
 
 
 def _cell(args):

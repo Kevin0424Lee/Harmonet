@@ -124,5 +124,43 @@
   "s0 를 성공 여부로 선별·재생성",
   "히든 결과를 특징에 포함"
  ],
- "scope": "결론 범위 = 이 BCB 적격 풀(403). 방법이 바뀌면 이 확인 200 은 재사용 불가 → 예비 103"
+ "scope": "결론 범위 = 이 BCB 적격 풀(403). 방법이 바뀌면 이 확인 200 은 재사용 불가 → 예비 103",
+ "ledger_id": "pilot_v4",
+ "run_ids": {
+  "explore": "pilot_explore",
+  "confirm": "pilot_confirm"
+ },
+ "report_items": {
+  "explore": [
+   "stage",
+   "mode",
+   "run_id",
+   "n_tasks",
+   "pool_gate",
+   "round0",
+   "arms",
+   "flip",
+   "explore_cv",
+   "diag_perm_p",
+   "frozen",
+   "cost",
+   "stopped_reason",
+   "elapsed_s"
+  ],
+  "confirm": [
+   "stage",
+   "mode",
+   "run_id",
+   "n_tasks",
+   "frozen_hash",
+   "primary",
+   "secondary",
+   "arms",
+   "pick_dist",
+   "policy_cost",
+   "cost",
+   "stopped_reason",
+   "elapsed_s"
+  ]
+ }
 }

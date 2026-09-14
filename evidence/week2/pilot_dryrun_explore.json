@@ -1,0 +1,214 @@
+{
+ "stage": "explore",
+ "mode": "mock-scenario",
+ "run_id": "pilot_explore",
+ "n_tasks": 4,
+ "pool_gate": {
+  "best_arm": "B-expert",
+  "best_rate": 0.75,
+  "threshold": 0.8,
+  "decision": "진행",
+  "basis": "운영 기준: 여지(1 − 최고 arm 성공률) ≥ 2 × MDE(10pp). 원 등록값 70(프로브 B 75% → unconfirmed)은 보존, 80 은 프로브 후 개정"
+ },
+ "round0": {
+  "b_cont": 0.0087,
+  "a_call_median": 0.0029,
+  "n": 2,
+  "arm": "B-expert"
+ },
+ "arms": {
+  "T": {
+   "n": 4,
+   "hidden_pass": 0.25,
+   "refused_rate": 0.0,
+   "cost_own_cost_usd": 0.0,
+   "cost_own_n_unpriced": 0,
+   "n_calls_mean": 0.0,
+   "models": []
+  },
+  "A-self": {
+   "n": 4,
+   "hidden_pass": 0.5,
+   "refused_rate": 0.0,
+   "cost_own_cost_usd": 0.0116,
+   "cost_own_n_unpriced": 0,
+   "n_calls_mean": 1.0,
+   "models": [
+    "claude-haiku-4-5"
+   ]
+  },
+  "A-selfxk": {
+   "n": 4,
+   "hidden_pass": 0.25,
+   "refused_rate": 0.0,
+   "cost_own_cost_usd": 0.0087,
+   "cost_own_n_unpriced": 0,
+   "n_calls_mean": 0.75,
+   "models": [
+    "claude-haiku-4-5"
+   ]
+  },
+  "A-role": {
+   "n": 4,
+   "hidden_pass": 0.5,
+   "refused_rate": 0.0,
+   "cost_own_cost_usd": 0.0116,
+   "cost_own_n_unpriced": 0,
+   "n_calls_mean": 1.0,
+   "models": [
+    "claude-haiku-4-5"
+   ]
+  },
+  "B-expert": {
+   "n": 4,
+   "hidden_pass": 0.75,
+   "refused_rate": 0.0,
+   "cost_own_cost_usd": 0.0348,
+   "cost_own_n_unpriced": 0,
+   "n_calls_mean": 1.0,
+   "models": [
+    "claude-sonnet-4-6"
+   ]
+  },
+  "B-solo": {
+   "n": 4,
+   "hidden_pass": 0.5,
+   "refused_rate": 0.0,
+   "cost_own_cost_usd": 0.0348,
+   "cost_own_n_unpriced": 0,
+   "n_calls_mean": 1.0,
+   "models": [
+    "claude-sonnet-4-6"
+   ]
+  }
+ },
+ "flip": {
+  "A-self": {
+   "n_cells": 2,
+   "flip_rate": 0.0
+  },
+  "B-expert": {
+   "n_cells": 2,
+   "flip_rate": 0.0
+  }
+ },
+ "explore_cv": {
+  "lambda_menu": {
+   "0.3": {
+    "gain": 0.25,
+    "ci95": [
+     0.0,
+     0.3333333333333333
+    ],
+    "diag_perm_p": 0.848575712143928,
+    "pick_dist": {
+     "T": 0.0,
+     "A-self": 0.5,
+     "A-selfxk": 0.0,
+     "A-role": 0.0,
+     "B-expert": 0.5,
+     "B-solo": 0.0
+    }
+   },
+   "1.0": {
+    "gain": 0.25,
+    "ci95": [
+     0.0,
+     0.3333333333333333
+    ],
+    "diag_perm_p": 0.848575712143928,
+    "pick_dist": {
+     "T": 0.0,
+     "A-self": 0.5,
+     "A-selfxk": 0.0,
+     "A-role": 0.0,
+     "B-expert": 0.5,
+     "B-solo": 0.0
+    }
+   },
+   "3.0": {
+    "gain": 0.25,
+    "ci95": [
+     0.0,
+     0.3333333333333333
+    ],
+    "diag_perm_p": 0.848575712143928,
+    "pick_dist": {
+     "T": 0.0,
+     "A-self": 0.5,
+     "A-selfxk": 0.0,
+     "A-role": 0.0,
+     "B-expert": 0.5,
+     "B-solo": 0.0
+    }
+   }
+  },
+  "lambda_star": 0.3,
+  "feature_subset": {
+   "num": [
+    "prompt_chars",
+    "n_examples",
+    "lib_collections",
+    "lib_itertools",
+    "lib_scipy",
+    "lib_string",
+    "lib_math",
+    "lib_other",
+    "n_failed",
+    "artifact_chars",
+    "artifact_lines",
+    "n_functions",
+    "has_try",
+    "n_imports",
+    "s0_prompt_tokens",
+    "s0_completion_tokens"
+   ],
+   "cat": [
+    "visible",
+    "error_class"
+   ]
+  },
+  "n_features": 18,
+  "P2_post_gain": 0.25,
+  "P2_post_ci95": [
+   0.0,
+   0.3333333333333333
+  ],
+  "P2_pre_gain": 0.25,
+  "P1_gain": 0.0,
+  "note": "모델 선택용 CV — 판정 아님"
+ },
+ "diag_perm_p": {
+  "P2_post": 0.848575712143928,
+  "P2_pre": 1.0,
+  "P1": 1.0,
+  "note": "진단 — 귀무 '특징 ⟂ 결과' ≠ '정책 이득 ≤ 0'"
+ },
+ "frozen": {
+  "path": "C:\\Users\\User\\AppData\\Local\\Temp\\pilot_36qvlr2o\\arms\\pilot_explore\\frozen_policy.json",
+  "sha256": "bd83d95c37f678f3eab2b2ab8fd6daf5eb084c9e292a51dae757d00e61de92cb",
+  "a_hat": "B-expert",
+  "lambda": 0.3,
+  "commit_hash": "(동결 커밋 뒤 PREREG 에 기입)"
+ },
+ "cost": {
+  "total_spent_usd": 0.1537,
+  "source": "ledger",
+  "ledger": {
+   "cap": 16.0,
+   "spent": 0.1537,
+   "n_calls": 29,
+   "stopped_reason": null
+  },
+  "prior_stage_usd": 0.0,
+  "round0_usd": 0.0174,
+  "arms_own_usd": 0.1247,
+  "n_cells": 28,
+  "s0_built_here_usd": 0.0116,
+  "s0_imported_historical_usd": 0.0,
+  "n_unpriced": 0,
+  "check": "ledger == prior + round0 + Σ arms_own + s0_built_here"
+ },
+ "stopped_reason": null,
+ "elapsed_s": 391
+}

@@ -1,0 +1,151 @@
+{
+ "stage": "confirm",
+ "mode": "mock-scenario",
+ "run_id": "pilot_confirm",
+ "n_tasks": 2,
+ "frozen_hash": "bd83d95c37f678f3eab2b2ab8fd6daf5eb084c9e292a51dae757d00e61de92cb",
+ "primary": {
+  "n": 2,
+  "mean_d": 0.5,
+  "b_policy_only": 1,
+  "c_fixed_only": 0,
+  "p_mcnemar_onesided": 0.5,
+  "ci95": [
+   0.0,
+   1.0
+  ],
+  "verdict": "미확인",
+  "rule": "정확 McNemar 단측 p < 0.05 ∧ 평균 d ≥ 0.10 (양의 이득 증거 + 점추정의 실용 문턱; '≥10% 입증' 아님)"
+ },
+ "secondary": {
+  "P2_post_vs_P2_pre": {
+   "mean_diff": 0.5,
+   "b": 1,
+   "c": 0,
+   "p_mcnemar_onesided": 0.5
+  },
+  "P2_pre_vs_a_hat": {
+   "n": 2,
+   "mean_d": 0.0,
+   "b_policy_only": 0,
+   "c_fixed_only": 0,
+   "p_mcnemar_onesided": 1.0,
+   "ci95": null,
+   "verdict": "미확인",
+   "rule": "정확 McNemar 단측 p < 0.05 ∧ 평균 d ≥ 0.10 (양의 이득 증거 + 점추정의 실용 문턱; '≥10% 입증' 아님)"
+  },
+  "P1_vs_a_hat": {
+   "n": 2,
+   "mean_d": 0.5,
+   "b_policy_only": 1,
+   "c_fixed_only": 0,
+   "p_mcnemar_onesided": 0.5,
+   "ci95": null,
+   "verdict": "미확인",
+   "rule": "정확 McNemar 단측 p < 0.05 ∧ 평균 d ≥ 0.10 (양의 이득 증거 + 점추정의 실용 문턱; '≥10% 입증' 아님)"
+  },
+  "oracle_descriptive": {
+   "oracle_minus_fixed_insample": 0.5,
+   "note": "1회 실행 최대의 표본 내 통계 — 상한 아님 (J6)"
+  }
+ },
+ "arms": {
+  "T": {
+   "n": 2,
+   "hidden_pass": 0.5,
+   "refused_rate": 0.0,
+   "cost_own_cost_usd": 0.0,
+   "cost_own_n_unpriced": 0,
+   "n_calls_mean": 0.0,
+   "models": []
+  },
+  "A-self": {
+   "n": 2,
+   "hidden_pass": 0.0,
+   "refused_rate": 0.0,
+   "cost_own_cost_usd": 0.0058,
+   "cost_own_n_unpriced": 0,
+   "n_calls_mean": 1.0,
+   "models": [
+    "claude-haiku-4-5"
+   ]
+  },
+  "A-selfxk": {
+   "n": 2,
+   "hidden_pass": 0.5,
+   "refused_rate": 0.0,
+   "cost_own_cost_usd": 0.0029,
+   "cost_own_n_unpriced": 0,
+   "n_calls_mean": 0.5,
+   "models": [
+    "claude-haiku-4-5"
+   ]
+  },
+  "A-role": {
+   "n": 2,
+   "hidden_pass": 0.5,
+   "refused_rate": 0.0,
+   "cost_own_cost_usd": 0.0058,
+   "cost_own_n_unpriced": 0,
+   "n_calls_mean": 1.0,
+   "models": [
+    "claude-haiku-4-5"
+   ]
+  },
+  "B-expert": {
+   "n": 2,
+   "hidden_pass": 0.0,
+   "refused_rate": 0.0,
+   "cost_own_cost_usd": 0.0174,
+   "cost_own_n_unpriced": 0,
+   "n_calls_mean": 1.0,
+   "models": [
+    "claude-sonnet-4-6"
+   ]
+  },
+  "B-solo": {
+   "n": 2,
+   "hidden_pass": 0.5,
+   "refused_rate": 0.0,
+   "cost_own_cost_usd": 0.0174,
+   "cost_own_n_unpriced": 0,
+   "n_calls_mean": 1.0,
+   "models": [
+    "claude-sonnet-4-6"
+   ]
+  }
+ },
+ "pick_dist": {
+  "T": 0.0,
+  "A-self": 0.0,
+  "A-selfxk": 0.0,
+  "A-role": 0.5,
+  "B-expert": 0.5,
+  "B-solo": 0.0
+ },
+ "policy_cost": {
+  "policy_usd_per_task": 0.0058,
+  "fixed_usd_per_task": 0.0087,
+  "n_unpriced": 0
+ },
+ "cost": {
+  "total_spent_usd": 0.2088,
+  "source": "ledger",
+  "ledger": {
+   "cap": 16.0,
+   "spent": 0.2088,
+   "n_calls": 40,
+   "stopped_reason": null
+  },
+  "prior_stage_usd": 0.1537,
+  "round0_usd": 0.0,
+  "arms_own_usd": 0.0493,
+  "n_cells": 12,
+  "s0_built_here_usd": 0.0058,
+  "s0_imported_historical_usd": 0.0,
+  "n_unpriced": 0,
+  "check": "ledger == prior + round0 + Σ arms_own + s0_built_here"
+ },
+ "stopped_reason": null,
+ "elapsed_s": 117
+}
