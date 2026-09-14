@@ -1,0 +1,128 @@
+{
+ "version": "v4",
+ "status": "unapproved_draft",
+ "date": "2026-09-15",
+ "pool": {
+  "dataset": "BigCodeBench Complete",
+  "eligibility_file": "bcb_eligibility.json",
+  "n_eligible": 403,
+  "gate": {
+   "rule": "탐색 100 에서 6 arm 중 최고 성공률 점추정 ≤ threshold → 진행, 초과 → 보류 (과제 선별·문턱 상향 없음)",
+   "threshold": 0.8,
+   "basis": "운영 기준: 여지(1 − 최고 arm 성공률) ≥ 2 × MDE(10pp). 원 등록값 70(프로브 B 75% → unconfirmed)은 보존, 80 은 프로브 후 개정"
+  }
+ },
+ "sets": {
+  "explore": {
+   "file": "pilot_explore_ids_bcb.json",
+   "n": 100,
+   "probe_reuse_n": 59,
+   "new_s0_n": 41,
+   "flip_subset_n": 30,
+   "flip_arms": [
+    "A-self",
+    "B-expert"
+   ],
+   "flip_k": 2
+  },
+  "confirm": {
+   "file": "pilot_confirm_ids_bcb.json",
+   "n": 200
+  },
+  "reserve": {
+   "file": "pilot_reserve_ids_bcb.json",
+   "n": 103,
+   "sealed": true
+  },
+  "seed": 20260915
+ },
+ "arms": [
+  "T",
+  "A-self",
+  "A-selfxk",
+  "A-role",
+  "B-expert",
+  "B-solo"
+ ],
+ "k": 1,
+ "models": {
+  "A": "claude-haiku-4-5-20251001",
+  "B": "claude-sonnet-4-6",
+  "temperature": 0.2,
+  "max_tokens": 4096
+ },
+ "round0": {
+  "what": "b_cont = 탐색에서 B-expert 1회 비용 중앙값 (max_tokens 4096, 상한 없음)",
+  "n_tasks": 10,
+  "arm": "B-expert"
+ },
+ "grading": {
+  "visible": "doctest TestCases (공식 이미지)",
+  "hidden": "공식 test, D2 채점기 d2.1, post_hoc 만",
+  "image": "bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405"
+ },
+ "features": {
+  "menu": "benchmark/features.FEATURE_SPECS['post'] (pre 17 + post 11 = 28 열)",
+  "max_selected": 20,
+  "lambda_menu": [
+   0.3,
+   1.0,
+   3.0
+  ],
+  "lambda_default": 1.0,
+  "learners_explore": [
+   "P2-post",
+   "P2-pre",
+   "P1"
+  ],
+  "cv": {
+   "K": 5,
+   "R": 20
+  },
+  "n_boot_explore": 1000,
+  "n_perm_diag": 2000
+ },
+ "freeze": {
+  "items": [
+   "feature_subset",
+   "lambda",
+   "P2-post coef",
+   "P2-pre coef",
+   "P1 table",
+   "a_hat (탐색 최고 arm)",
+   "b_cont",
+   "seed"
+  ],
+  "commit_hash": null
+ },
+ "confirm_rule": {
+  "primary": "d_i = y[i, pi_post(i)] − y[i, a_hat]; 정확 McNemar 단측(b = #(정책 성공, â 실패) > c = #(정책 실패, â 성공)), p = P(Bin(b+c, ½) ≥ b)",
+  "alpha": 0.05,
+  "threshold_pp": 10,
+  "pass": "p < 0.05 ∧ mean d ≥ 0.10",
+  "else": "미확인",
+  "ci": "대응 차이 d_i 의 과제 부트스트랩 1000 (학습 없음)",
+  "meaning": "양의 이득 증거 + 점추정의 실용 문턱 — '≥10pp 입증' 아님"
+ },
+ "secondary": [
+  "P2-post vs P2-pre 과제별 차이(대응 McNemar)",
+  "P1 대응 차이",
+  "oracle(기술 통계, J6 구분)",
+  "arm 별 성공률·$·거부율",
+  "정책 선택 분포·$",
+  "총비용 = arm + 상태 취득(s0 + 가시 검증) + 0회차 + 뒤집힘"
+ ],
+ "cost_usd": {
+  "explore_estimate": 5.0,
+  "confirm_estimate": 9.0,
+  "cap": 16.0,
+  "basis": "과제당 6 arm ≈ $0.04 (프로브 실측), 41 s0 신규 ≈ $0.15, 뒤집힘 30×2 ≈ $0.5, 0회차 ≈ $0.2"
+ },
+ "forbidden": [
+  "확인 결과 열람 후 문턱·과제·분석 변경",
+  "확인 집합에서 학습",
+  "s0 를 성공 여부로 선별·재생성",
+  "히든 결과를 특징에 포함"
+ ],
+ "scope": "결론 범위 = 이 BCB 적격 풀(403). 방법이 바뀌면 이 확인 200 은 재사용 불가 → 예비 103"
+}
