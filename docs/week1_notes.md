@@ -103,6 +103,11 @@ Part A 진행 중 확정된 사실과, 2주차 설계(`docs/week2_design_draft.m
 | Claude Code | 분석기가 중복 (task, arm, rep) 을 덮어쓰고 문자열 "True" 를 참으로 해석 | `scripts/gap_analysis.py` F3 |
 | Claude Code | BigCodeBench/497 의 C0→D2 판정 뒤집힘(doctest fail/fail → pass/pass)을 "불안정 7건" 에 묶어 원인 없이 기록 — 실제는 예제가 오늘 요일에 의존 | `evidence/week2/pool_probe.md` F5 |
 
+| Claude Code | F4-3 에서 (iii) 를 "X > 27pp" 라는 이유로 제외 — 27 = 바닥 17 + 초과 10 이라 (iii) 가 정답 방향이었음 (G4 정정) | `evidence/week2/gap_power.md` §4 첫머리, `docs/week2_design_draft.md` §4 개정안 v2 |
+| Claude Code | F5 개정안이 자명 통과 영역(ρ≥0.9, σ_γ=0 에서 (i)+R1 16~20/20)에 (i) 을 주 통계량으로 배정 | `evidence/week2/gap_floor_g1.json` |
+| Fable | F5 지시에서 "결정적이면 교차 적합 = 참값" 이라 했는데 그 참값이 독립 바닥을 포함한다는 것을 놓침. 합성 검증(G1)이 잡아냄 | `evidence/week2/gap_power.md` §4 첫머리 |
+| Claude Code | G3: (iii) v2 를 격자 전체에서 돌리고 나서야 검정력 0 을 확인 — 사례 하나로 먼저 바닥 추정치(적합 30.9 vs 참 17.5)를 봤으면 격자 전에 알 수 있었음 | `evidence/week2/gap_floor_g3.md` |
+
 **패턴 (세 번째, 코덱스 지적으로 발견): "이름을 보고 구현을 읽지 않음."** A1 (validator 이름만 보고 LLM 호출 여부 미확인), A7 (하네스 종료 코드를
 통과 신호로 믿음), D2 (`n_run` 이라는 이름을 실행 수로 믿고 공식 채점기가 실행 수를 세지 않는다는 것을 읽지 않음), D5/F1 ("validate 통과" 를
 "채점됐다" 로 읽음 — exec_count 0). 다음 인프라 항목부터는 "이 이름의 값이 실제로 무엇을 세는가" 를 테스트로 먼저 고정한다. F 항목들은 전부 코덱스
@@ -161,3 +166,10 @@ Part A 진행 중 확정된 사실과, 2주차 설계(`docs/week2_design_draft.m
 - D5 보고의 "mock 스모크 3 과제 × 6 arm: 18 traces validate … eval:hidden 0" 은 맞지만, **채점은 한 건도 컨테이너에서 돌지 않았다**: MockLLM 이 코드가 아닌
   문장을 내서 18/18 이 정적 `error`(AST 단계, exec_count 0)였다. "18행 공식 이미지에서 돌았다" 는 D3 문서 문장은 틀렸고 정정했다.
   F1 에서 유효 코드 시나리오 mock(정답/오답/근접오답)으로 3 과제 × 6 arm × k=2 = 36 행을 실제 Docker 에서 돌려 기대 히든 결과와 36/36 일치.
+
+## Week2-G (2026-09-15) 예상과 달랐던 것
+- (i)+R1 은 σ_γ=0 에서도 ρ≥0.9 면 통과한다(G1). "교차 적합 = 참값" 의 참값이 독립 바닥을 포함했다.
+- (iii) v2 는 크기·편향은 맞지만(G2) 검정력이 0 이다(G3): 결정적 셀에 가산 로짓을 적합하면 p̂ 가 수축해 바닥이 관측만큼 부푼다.
+- E1 의 γ_ia(셀별 i.i.d. 지속 효과)는 ρ=1 에서 실현 운과 구별 불가 — 생성기의 "초과분" 이 학습 가능한 구조가 아니었다. 유형 수준 구조로 바꿔도 oracle 이 천장이라 안 움직인다.
+- 워커 풀 × BLAS 스레드 과다로 156×156 solve 가 2.5s — OMP/OPENBLAS 스레드 1 로 고정해 0.14s/분석.
+- δ_z=2(s0 조건부 구조)는 가산 적합의 과제 효과가 흡수한다 — σ_γ=0 에서 초과분 ≈ 0 이 δ_z 유무와 무관하게 성립해 G2 검증을 E1 그대로 할 수 있었다.
