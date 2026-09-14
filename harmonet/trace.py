@@ -44,6 +44,8 @@ class Action:
     cost_usd: Optional[float] = None       # pricing.cost_usd — 모르는 모델이면 None (flags 에 price_unknown)
     price_snapshot_id: str = ""            # 어느 가격표로 계산했는지
     flags: List[str] = field(default_factory=list)
+    input_ref: List[str] = field(default_factory=list)    # 이 행동이 읽은 파일 경로 (s0 스냅샷 등, Week2-D5)
+    output_ref: List[str] = field(default_factory=list)   # 이 행동이 쓴 파일 경로
     timestamp: float = field(default_factory=time.time)
 
     def __post_init__(self) -> None:
@@ -80,10 +82,11 @@ class TaskState:
     history: List[Action] = field(default_factory=list)
 
     def record(self, kind: str, agent_role: str, model: str, cost: Dict[str, Any], summary: str,
-               trigger: str = "none") -> Action:
+               trigger: str = "none", input_ref: Optional[List[str]] = None, output_ref: Optional[List[str]] = None,
+               flags: Optional[List[str]] = None) -> Action:
         """행동 하나를 기록하고 누적 비용을 갱신한다."""
         act = Action(kind=kind, agent_role=agent_role, model=model, cost=dict(cost), result_summary=summary[:400],
-                     trigger=trigger)
+                     trigger=trigger, input_ref=list(input_ref or []), output_ref=list(output_ref or []), flags=list(flags or []))
         self.history.append(act)
         if trigger == "eval:hidden":
             self.leak_risk = True

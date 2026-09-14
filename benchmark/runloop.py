@@ -27,9 +27,10 @@ def require_budget(budget: Optional[Budget]) -> None:
         raise RuntimeError("[runloop] 유료 백엔드는 예산 원장 없이 돌지 않는다 — HARMONET_BUDGET_CAP(USD) 와 HARMONET_BUDGET_ID 를 설정하라. 호출 0회.")
 
 
-def budgeted_generate(client, budget: Optional[Budget], prompt: str, system_prompt: str, role: str = "builder", note: str = ""
+def budgeted_generate(client, budget: Optional[Budget], prompt: str, system_prompt: str, role: Optional[str] = None, note: str = ""
                       ) -> Tuple[str, Dict[str, Any], Optional[float], int]:
-    """(output, cost_dict, cost_usd, wall_ms). 예약 실패면 BudgetStop — LLM 을 호출하지 않는다."""
+    """(output, cost_dict, cost_usd, wall_ms). 예약 실패면 BudgetStop — LLM 을 호출하지 않는다. role 은 기본 client.role (METER 태그)."""
+    role = role or getattr(client, "role", "builder")
     max_tokens = int(getattr(client, "max_tokens", None) or os.getenv("ANTHROPIC_MAX_TOKENS", "4096"))
     projected = projected_cost(getattr(client, "model", None), len(prompt) + len(system_prompt or ""), max_tokens) if budget else 0.0
     if budget and not budget.reserve(projected, note):
