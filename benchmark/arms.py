@@ -35,6 +35,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from benchmark.agents_single import _DEFAULT_SYSTEM
+from benchmark.features import ast_features, error_class
 from benchmark.hidden_guard import hidden_pass_rate
 from benchmark.runloop import InfraStop, budgeted_generate, require_budget, run_loop
 from harmonet.budget import Budget, budget_from_env
@@ -136,6 +137,7 @@ def make_s0(task_id: str, task_prompt: str, spec_visible: Dict[str, Any], client
         "artifact_chars": len(artifact), "artifact_lines": artifact.count("\n") + 1, "diag_tail": visible["evidence"][-300:],
         "build_tokens": {k: cost[k] for k in ("prompt_tokens", "completion_tokens")}, "build_cost_usd": usd, "build_wall_ms": wall,
         "prompt_chars": len(task_prompt), "budget_refused": False,
+        **{k: v for k, v in ast_features(artifact).items() if k != "ast_ok"}, "error_class": error_class(visible["evidence"][-300:]),   # I1 post 특징
     }
     (d / "decision_signals.json").write_text(json.dumps(signals, ensure_ascii=False, indent=1), encoding="utf-8")
     (d / "sha256.txt").write_text(_s0_hash(d), encoding="utf-8")

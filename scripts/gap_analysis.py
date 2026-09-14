@@ -174,14 +174,18 @@ def policy_tensor(rows: Sequence[Dict[str, Any]], arms: Sequence[str] = ARMS):
     return S[:, :, 0], C, feats, tasks
 
 
-def design_matrix(feats: Sequence[Dict[str, Any]], cats: Optional[Dict[str, List[str]]] = None):
-    """수치 특징 + 범주 one-hot (+절편). 표준화는 호출자가 학습 과제 통계로 한다. cats 는 범주 수준 목록(학습에서 고정)."""
+DEFAULT_SPEC = {"num": list(FEATURE_NUM), "cat": list(FEATURE_CAT)}     # 합성(H1) 특징. 실제 파일럿은 benchmark/features.FEATURE_SPECS["pre"|"post"]
+
+
+def design_matrix(feats: Sequence[Dict[str, Any]], cats: Optional[Dict[str, List[str]]] = None, spec: Optional[Dict[str, List[str]]] = None):
+    """수치 특징 + 범주 one-hot (+절편). 표준화는 호출자가 학습 과제 통계로 한다. cats 는 범주 수준 목록(학습에서 고정). spec = {"num": [...], "cat": [...]}."""
+    spec = spec or DEFAULT_SPEC
     if cats is None:
-        cats = {c: sorted({str(f[c]) for f in feats}) for c in FEATURE_CAT}
+        cats = {c: sorted({str(f[c]) for f in feats}) for c in spec["cat"]}
     cols = []
     for f in feats:
-        row = [float(f[k]) for k in FEATURE_NUM]
-        for c in FEATURE_CAT:
+        row = [float(f[k]) for k in spec["num"]]
+        for c in spec["cat"]:
             row += [1.0 if str(f[c]) == lvl else 0.0 for lvl in cats[c]]
         cols.append(row)
     return np.array(cols, dtype=float), cats
@@ -221,14 +225,15 @@ def policy_p1(train_idx, test_idx, Y, feats, fixed_arm):
     return np.array([choice.get(cat[i], fixed_arm) for i in test_idx])
 
 
-def policy_p2(train_idx, test_idx, Y, X, fixed_arm):
-    Xtr, Xte = _standardize(X[train_idx], X[test_idx], len(FEATURE_NUM))
+def policy_p2(train_idx, test_idx, Y, X, fixed_arm, n_num: int = len(FEATURE_NUM)):
+    Xtr, Xte = _standardize(X[train_idx], X[test_idx], n_num)
     beta = _fit_logistic_batch(Xtr, Y[train_idx])
     return np.argmax(Xte @ beta.T, axis=1)
 
 
-def _cv_gain(Y: np.ndarray, C: np.ndarray, feats, X: np.ndarray, learner: str, rng, K: int = CV_K, R: int = CV_R):
-    """K 겹 × R 셔플. 반환 (gain 평균, 정책 $ 평균, 고정 $ 평균)."""
+def _cv_gain(Y: np.ndarray, C: np.ndarray, feats, X: np.ndarray, learner: str, rng, K: int = CV_K, R: int = CV_R, n_num: int = len(FEATURE_NUM),
+             picks_out: Optional[list] = None):
+    """K 겹 × R 셔플. 반환 (gain 평균, 정책 $ 평균, 고정 $ 평균). picks_out 에 검증 과제의 (task idx, 선택 arm) 을 모은다(선택 분포 보고용)."""
     n = Y.shape[0]
     gains, cost_pol, cost_fix = [], [], []
     for _ in range(R):
@@ -238,34 +243,44 @@ def _cv_gain(Y: np.ndarray, C: np.ndarray, feats, X: np.ndarray, learner: str, r
             te = folds[f]
             tr = np.concatenate([folds[j] for j in range(K) if j != f])
             fixed = int(np.argmax(Y[tr].mean(axis=0)))
-            pick = policy_p1(tr, te, Y, feats, fixed) if learner == "P1" else policy_p2(tr, te, Y, X, fixed)
+            pick = policy_p1(tr, te, Y, feats, fixed) if learner == "P1" else policy_p2(tr, te, Y, X, fixed, n_num)
+            if picks_out is not None:
+                picks_out.extend(zip(te.tolist(), pick.tolist()))
             gains.append((Y[te, pick] - Y[te, fixed]).mean())
             cost_pol.append(np.nanmean(C[te, pick])); cost_fix.append(np.nanmean(C[te, fixed]))
     return float(np.mean(gains)), float(np.mean(cost_pol)), float(np.mean(cost_fix))
 
 
 def policy_gain(rows: Sequence[Dict[str, Any]], learner: str = "P1", n_perm: int = 2000, n_boot: int = 1000, seed: int = 0,
-                with_ci: bool = True, R: int = CV_R) -> Dict[str, Any]:
+                with_ci: bool = True, R: int = CV_R, spec: Optional[Dict[str, List[str]]] = None) -> Dict[str, Any]:
     if learner not in ("P1", "P2"):
         raise ValueError(learner)
+    spec = spec or DEFAULT_SPEC
+    n_num = len(spec["num"])
     Y, C, feats, tasks = policy_tensor(rows)
-    X, cats = design_matrix(feats)
+    X, cats = design_matrix(feats, spec=spec)
     rng = np.random.default_rng(seed)
-    obs, cpol, cfix = _cv_gain(Y, C, feats, X, learner, np.random.default_rng(seed + 1), R=R)
+    picks: list = []
+    obs, cpol, cfix = _cv_gain(Y, C, feats, X, learner, np.random.default_rng(seed + 1), R=R, n_num=n_num, picks_out=picks)
     null = np.empty(n_perm)
     for b in range(n_perm):                                 # 특징 순열(결과 고정)
         p = rng.permutation(len(tasks))
         fp = [feats[i] for i in p]
-        null[b] = _cv_gain(Y, C, fp, X[p], learner, np.random.default_rng(seed + 1), R=R)[0]
+        null[b] = _cv_gain(Y, C, fp, X[p], learner, np.random.default_rng(seed + 1), R=R, n_num=n_num)[0]
     pval = float((null >= obs).mean())
+    pick_dist = {ARMS[a]: 0 for a in range(len(ARMS))}
+    for _, a in picks:
+        pick_dist[ARMS[a]] += 1
+    tot = max(1, len(picks))
+    pick_dist = {k: v / tot for k, v in pick_dist.items()}
     out = {"learner": learner, "n_tasks": len(tasks), "gain": obs, "p_value": pval, "null_mean": float(null.mean()),
-           "cost_policy_usd": cpol, "cost_fixed_usd": cfix, "n_perm": n_perm, "cv": {"K": CV_K, "R": R},
+           "cost_policy_usd": cpol, "cost_fixed_usd": cfix, "n_perm": n_perm, "cv": {"K": CV_K, "R": R}, "features": spec, "pick_dist": pick_dist,
            "verdict": "통과" if (pval < 0.05 and obs >= 0.10) else "미확인", "rule": "R2 = p<0.05 ∧ 정책 이득 ≥ 10pp"}
     if with_ci:
         vals = np.empty(n_boot)
         for b in range(n_boot):                             # 과제 부트스트랩, 복제마다 CV 전체 재수행
             idx = rng.integers(0, len(tasks), len(tasks))
-            vals[b] = _cv_gain(Y[idx], C[idx], [feats[i] for i in idx], X[idx], learner, np.random.default_rng(seed + 2 + b), R=R)[0]
+            vals[b] = _cv_gain(Y[idx], C[idx], [feats[i] for i in idx], X[idx], learner, np.random.default_rng(seed + 2 + b), R=R, n_num=n_num)[0]
         out["ci95"] = [float(np.quantile(vals, 0.025)), float(np.quantile(vals, 0.975))]
         out["n_boot"] = n_boot
     return out
