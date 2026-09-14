@@ -10,6 +10,11 @@
 | 동결 커밋 해시 | (탐색 뒤 기입 — §3) |
 | 코덱스 검토 | (미기입) |
 
+## 0. 실행 순서 (고정, K6)
+K 완료 → **코덱스 재검토** → `APPROVAL.json` 작성(stage=explore: 검토자·검토 참조·config_hash·추출기 버전·ID 집합 해시·status=approved) → **탐색 100 실행**
+(`--backend anthropic --stage explore`) → **동결 커밋**(frozen_policy.json + sha256) → `APPROVAL.json` 갱신(stage=confirm: freeze_commit·policy_hash·pool_gate="진행") →
+**확인 200 실행**(`--stage confirm`, 별도 호출 — 실제 백엔드에서 `--stage all` 은 코드가 거부) → **분석 1회** → 보고. 각 단계의 게이트는 `scripts/approval.py` 가 값 단위로 대조한다.
+
 ## 1. 두 단계, 두 자료
 
 | | 탐색 (학습·동결) | 확인 (판정) |

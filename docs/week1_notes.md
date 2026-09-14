@@ -124,6 +124,14 @@ Part A 진행 중 확정된 사실과, 2주차 설계(`docs/week2_design_draft.m
 | Claude Code | 재시도 비용 은폐 — `llm._retry_sync` 가 클라이언트 안에서 최대 3회 재호출하는데 원장은 1건만 기록. J2 에서 시도마다 예약·확정 (재시도 2회 후 성공 → 원장 3건) | `benchmark/runloop.py` `budgeted_generate`, `harmonet/llm.py` `generate_once` |
 | Claude Code | result.json 재사용 키 누락 — 모델·설정·채점기·특징 추출기 버전이 바뀌어도 옛 결과를 그대로 재사용. s0 해시도 artifact+prompt_context 만 덮음. J2 config_hash·전체 파일 해시 | `benchmark/arms.py` `config_hash`, `_s0_hash` |
 | Claude Code | BudgetStop 시 현재 과제의 완료 arm 행이 부분 결과에서 빠짐 (InfraStop 만 partial 처리). J2 | `benchmark/arms.py` `run_task_all_arms`, `benchmark/runloop.py` |
+| Fable | J5 실행 게이트를 "설정 파일 해시 일치" 로 정의 — 해시 일치는 승인이 아니다. 승인 기록(검토자·검토 참조·동결 커밋·정책 해시·ID 집합 해시·관문 판정)을 값 단위로 대조해야 한다. K1 APPROVAL.json (2026-09-15, 코덱스 지적) | `scripts/approval.py`, `evidence/week2/APPROVAL.json` |
+| Fable | J2 "시도마다 예약·확정" 을 지시하면서 SDK(anthropic) 자체 재시도(max_retries 기본 2)를 인지하지 못함 — runloop 아래에서 원장에 안 보이는 HTTP 호출이 생길 수 있었다. K2 max_retries=0 (코덱스 지적) | `harmonet/llm.py` AnthropicClient |
+| Claude Code | J5 게이트가 검증 없이 통과할 수 있었음 — 승인 파일 없이 설정 해시만 맞으면 실제 백엔드 실행 가능, `--stage all` 로 탐색·동결·확인을 한 호출에 돌릴 수 있었음. K1 (코덱스 지적) | `scripts/pilot_dryrun.py` gate_common |
+| Claude Code | J2 재시도가 `llm._retry_sync` 만 우회하고 SDK 내부 재시도는 남겨 둠 → HTTP 요청 수 ≠ 원장 건수. K2 모의 429 재현으로 3 == 3 확인 (코덱스 지적) | `tests/test_budget_runloop.py::test_sdk_http_429_twice_then_success_gives_three_ledger_entries` |
+| Claude Code | 실패 시도 비용 미귀속 — J2 는 실패 시도를 `commit(projected, projected)` 로 unknown_cost=False 인 채 예약액을 지출로 확정(과금 여부 불명인데 확정, 요금 없음 확실한 429 도 과대 차감). K2 (b)/(c) 분리 (코덱스 지적) | `benchmark/runloop.py` classify_failure |
+| Claude Code | s0 가져오기 대상을 탐색 100 전체로 둠 — 프로브에 없는 신규 41 은 가져올 수 없다. K3 source 필드로 59/41 분기 (코덱스 지적) | `benchmark/s0_import.py` prepare, `pilot_explore_ids_bcb.json` sources |
+| Claude Code | J4 손실 분해 기준선 불일치 — "베이즈 − truth(π̂−â)" 는 베이즈(참 최선 고정 기준)와 truth(탐색 선택 â 기준)의 기준선이 달라 음수가 나옴(alt_5pp/f=6/seed=8: −3.96pp). K4 두 열로 분리, 코덱스 재계산 +3.29pp 재현 (코덱스 지적) | `scripts/pilot_power_v4.py`, `evidence/week2/pilot_power_v4.md` 검산 |
+| Claude Code | J4 시뮬레이션이 "탐색 절차 포함" 이라 하면서 특징 선택·λ 선택·풀 관문을 흉내내지 않음 (f 고정, λ 고정). K4 전체 절차 포함 — 풀 관문이 합성 기저에서 대부분 보류 (코덱스 지적) | `evidence/week2/pilot_power_v4.md` vs `pilot_power_v4_j4.md` |
 
 **패턴 (세 번째, 코덱스 지적으로 발견): "이름을 보고 구현을 읽지 않음."** A1 (validator 이름만 보고 LLM 호출 여부 미확인), A7 (하네스 종료 코드를
 통과 신호로 믿음), D2 (`n_run` 이라는 이름을 실행 수로 믿고 공식 채점기가 실행 수를 세지 않는다는 것을 읽지 않음), D5/F1 ("validate 통과" 를
@@ -219,3 +227,14 @@ Part A 진행 중 확정된 사실과, 2주차 설계(`docs/week2_design_draft.m
   누수를 못 잡는다. N=200 에서는 차이가 거의 사라진다(+0.1pp).
 - v4 파일럿 dry-run(탐색 4 / 확인 2, mock, 실제 Docker 채점): 두 단계 391s + 117s, 총지출 원장 $0.2088 = 탐색 $0.1537 + 확인 $0.0551, 검산 일치. 판정 미확인(N=2, b=1 c=0 p=0.5) — 배관 점검용.
 - 15pp 참 이득은 v3 생성기 기저(BETA)에서 도달 불가(천장 ≈ 14pp) — 기저를 평탄화한 변형에서 Δ 를 맞췄다. "효과 크기 축" 이 생성기 구조에 묶여 있다는 것을 다시 확인.
+
+## Week2-K (2026-09-15) 기록·예상과 달랐던 것
+- **실행 순서 고정** (`PREREG_pilot_v4.md` §0): K 완료 → 코덱스 재검토 → `APPROVAL.json`(stage=explore, 탐색 실행 승인) → 탐색 100 실행 → 동결 커밋 → `APPROVAL.json` 갱신
+  (stage=confirm, freeze_commit·policy_hash 기입 = 확인 실행 승인) → 확인 200 실행 → 분석 1회. 실제 백엔드에서 `--stage all` 은 코드가 거부한다.
+- **풀 관문이 합성에서 대부분 '보류'.** 생성기 v3 의 B-expert 기저(BETA 0.8, u~N(0,1))가 최고 arm 성공률 ≈ 80% 를 만들어 K4 복제의 55~95% 가 관문에 걸린다.
+  실제 풀(프로브 B-solo 75%)에 대한 진술이 아니지만, "관문 통과 조건 아래의 판정 성질" 을 보려면 '관문 무시' 열이 필요했다 — 관문 무시 시 참 이득 [10,15)pp 구간 통과 25/34.
+- **λ 선택은 거의 항상 0.3.** 메뉴 {0.3, 1, 3} 에서 CV 는 f 와 무관하게 0.3 을 고른다(alt_10pp 19/20) — 정책 이득 CV 는 약한 정규화를 선호한다. 특징 수는 이 결과로 줄이지 않는다(K5).
+- **max_selected 20 은 f=20 부터 작동**: 범주 열(visible 2 + error_kind 3 = 5 one-hot)이 상한에 들어가 선택 열 수 17 로 잘린다. 실제 메뉴 28(pre 17 + post 11) 에서는 post 의 범주 2열이
+  visible·error_class 로 최대 2+9 one-hot 을 차지할 수 있어 수치 열이 ≤ 9 개까지 줄 수 있다 — 탐색에서 확인할 것 (사전 등록 규칙은 그대로).
+- 코덱스 재계산값 +3.29pp 는 J4 정책(λ=1 고정)에서 정확히 재현됐고, K4 절차(λ*=0.3)에서는 +3.54pp — 같은 seed 라도 절차가 다르면 손실이 다르다.
+- s0 준비 dry-run(실제 ID 파일 100, 가져오기 59 + mock 생성 41, 실제 docker 가시 검증 100회): 7분 15초, 실패 0. 가져오기의 원본 대조 10항목 전부 통과.

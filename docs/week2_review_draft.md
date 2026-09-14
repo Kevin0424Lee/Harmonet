@@ -75,4 +75,5 @@
    (H4 재기술: B 상한 = 정책 이득의 여지 1 − 최선 고정 성공률에 대한 운영 기준.)
 2. **설계 v4 — 2단계 동결** (`docs/week2_design_draft.md` §4 v4, `evidence/week2/PREREG_pilot_v4.md`; v3 의 R2 는 코덱스가 판정 규칙으로 승인하지 않아 진단으로 강등) — **코덱스 검토 대기.**
    풀 관문(최고 arm ≤ 80%, 운영 기준)은 탐색 100 자료에서 판정하며, 원 등록값 70 과 프로브 unconfirmed 판정은 보존한다. 합성 검정력(J4): 참 10pp 에서 관측 통과율 3/20 (f=6), 15pp 에서 15/20 — 낮다.
-3. 둘이 오면 `PREREG_pilot_v4.md` 의 기입란을 채우고 탐색 → 동결 커밋 → 확인 순으로 실행한다 (`scripts/pilot_dryrun.py --backend anthropic --stage explore`). 그 전에는 유료 호출 0.
+3. 순서 고정(K6): 둘이 오면 → `APPROVAL.json`(탐색 승인) → 탐색 100 → 동결 커밋 → `APPROVAL.json` 갱신(확인 승인) → 확인 200 → 분석 1회. 승인 파일은 값 단위로 대조된다(K1).
+   그 전에는 유료 호출 0.
