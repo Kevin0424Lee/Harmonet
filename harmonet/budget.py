@@ -29,9 +29,10 @@ _IS_WIN = os.name == "nt"
 class BudgetStop(RuntimeError):
     """예산 때문에 멈춘다. reason: "budget"(예약 거부, 호출 안 함) | "cap_exceeded_post"(커밋 후 spent > cap) | "unknown_cost"(호출 예외, 비용 미상)."""
 
-    def __init__(self, msg: str, reason: str = "budget"):
+    def __init__(self, msg: str, reason: str = "budget", partial: Optional[Dict[str, Any]] = None):
         super().__init__(msg)
         self.reason = reason
+        self.partial = partial                            # J2: 중단 시점까지 끝난 arm 행 (run_task_all_arms 가 채움)
 
 
 class _Locked:

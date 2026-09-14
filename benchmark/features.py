@@ -18,6 +18,7 @@ from typing import Any, Dict, List, Sequence
 
 LIB_VOCAB = ("pandas", "numpy", "matplotlib", "random", "sklearn", "collections", "re", "itertools", "scipy", "string", "os", "math")   # 적격 403 빈도 상위 12
 ERROR_VOCAB = ("AssertionError", "TypeError", "ValueError", "AttributeError", "KeyError", "NameError", "ImportError", "IndexError")  # 상위 8 + other
+FEATURES_VERSION = "features-i1"          # result.json 재사용 키(J2)에 들어간다 — 특징 정의가 바뀌면 올린다
 P2_CONFIG = {"standardize": True, "l2_lambda": 1.0, "irls_iters": 8, "cv_k": 5, "cv_r": 20, "n_perm": 2000, "n_boot": 1000}
 
 PRE_NUM = ("prompt_chars", "n_examples", "n_args", "mentions_return") + tuple(f"lib_{l}" for l in LIB_VOCAB) + ("lib_other",)

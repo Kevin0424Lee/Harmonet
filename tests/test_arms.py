@@ -30,7 +30,7 @@ def _scenario(tmp: Path, tokens=None) -> Path:
     return p
 
 
-def _run(tmp: Path, run_id: str, k: int = 2, cap: str = "5") -> dict:
+def _run(tmp: Path, run_id: str, k: int = 2, cap: str = "5", b_cont: str = "0.05") -> dict:
     ids = tmp / "ids.json"; ids.write_text(json.dumps({"ids": list(CORRECT)}), encoding="utf-8")
     env = dict(os.environ, HARMONET_LLM_BACKEND="mock-scenario", HARMONET_MOCK_SCENARIO=str(_scenario(tmp)),
                HARMONET_MODEL_BUILDER="claude-sonnet-4-6", HARMONET_MODEL_REVIEWER="claude-haiku-4-5", HARMONET_ALLOW_NO_REDIS="1",
@@ -38,7 +38,7 @@ def _run(tmp: Path, run_id: str, k: int = 2, cap: str = "5") -> dict:
                HARMONET_TRACE_DIR=str(tmp / "traces"), PYTHONIOENCODING="utf-8")
     out = tmp / f"{run_id}.json"
     p = subprocess.run([sys.executable, "-X", "utf8", "-m", "benchmark.arms", "--pool", "mbppplus", "--ids", str(ids), "--output", str(out),
-                        "--b-cont", "0.05", "--a-call-median", "0.02", "--k", str(k)], cwd=str(ROOT), env=env, capture_output=True, text=True)
+                        "--b-cont", b_cont, "--a-call-median", "0.02", "--k", str(k)], cwd=str(ROOT), env=env, capture_output=True, text=True)
     assert p.returncode == 0, p.stdout[-1500:] + p.stderr[-1500:]
     return json.loads(out.read_text(encoding="utf-8"))
 
@@ -136,3 +136,32 @@ def test_budget_stop_is_distinct_from_refused(tmp_path, monkeypatch):
     with pytest.raises(BudgetStop):
         A._call(c, b, "p" * 300, "s", remaining_usd=0.05, note="t")
     assert c.calls == 0 and b.state()["stopped_reason"] == "budget"
+
+
+# ── Week2-J2 ──────────────────────────────────────────────────────────
+def _ledger_calls(tmp: Path, run_id: str) -> int:
+    return json.loads((tmp / "budget" / run_id / "budget.json").read_text(encoding="utf-8"))["n_calls"]
+
+
+def test_result_reuse_keyed_by_config_hash_and_s0_hash_covers_all_files(tmp_path):
+    """같은 설정 재실행 → 호출 0; 설정(b_cont)이 바뀌면 config_hash 불일치 → arm 재실행(호출 증가). s0 해시는 decision_signals.json 도 덮는다."""
+    d1 = _run(tmp_path, "j2", k=1)
+    n1 = _ledger_calls(tmp_path, "j2")
+    assert all(r["config_hash"] == d1["rows"][0]["config_hash"] for r in d1["rows"])
+    _run(tmp_path, "j2", k=1)
+    assert _ledger_calls(tmp_path, "j2") == n1
+    d3 = _run(tmp_path, "j2", k=1, b_cont="0.06")
+    assert _ledger_calls(tmp_path, "j2") > n1 and d3["rows"][0]["config_hash"] != d1["rows"][0]["config_hash"]
+    sig = tmp_path / "arms" / "j2" / "Mbpp_2" / "s0" / "decision_signals.json"
+    sig.write_text(sig.read_text(encoding="utf-8").replace("{", "{\"tampered\": 1, ", 1), encoding="utf-8")
+    with pytest.raises(AssertionError, match="해시 불일치"):
+        _run(tmp_path, "j2", k=1, b_cont="0.06")
+
+
+def test_max_tokens_rule_uses_counted_tokens_not_chars():
+    """chars/3 폐기: 같은 잔여 예산에서 max_tokens 는 count_tokens 실측 × 1.10 으로만 정해진다."""
+    from harmonet.pricing import price_for
+    e, _ = price_for("claude-haiku-4-5")
+    n_in = 1000
+    mt = A._max_tokens_for("claude-haiku-4-5", 0.01, n_in)
+    assert mt == int((0.01 - n_in * 1.10 * e["input"] / 1e6) / (e["output"] / 1e6))

@@ -5,6 +5,8 @@ benchmark/runloop.py — 러너 공통 실행 루프 (Week2-D1). bcb_g1 / mbpppl
   1. 유료 백엔드(HARMONET_LLM_BACKEND != mock)는 예산 원장(HARMONET_BUDGET_CAP) 없이는 돌지 않는다 → RuntimeError, 호출 0회.
   2. 호출 전 예약: projected = count_tokens 실측 입력 × 1.10 + max_tokens × 출력단가 (F2). 세지 못하면 호출 안 함. 예약 실패 → BudgetStop("budget").
      호출 예외 → 예약액을 지출로 확정(unknown_cost) → BudgetStop("unknown_cost"). 커밋 후 spent > cap → BudgetStop("cap_exceeded_post").
+     재시도(J2): 429/503/timeout 류는 최대 MAX_ATTEMPTS 회 — **시도마다** 예약·확정한다(실패 시도는 예약액을 지출로 확정, 원장 1건씩; 과금 여부를 모르므로
+     보수적). 클라이언트 자체 재시도(llm._retry_sync)는 우회한다(generate_once) — 원장에 안 보이는 호출은 없다.
      어느 경우든 부분 결과 저장(stopped_reason) → 종료 코드 2.
   3. 호출 후 실측 가산. 행의 cost_usd 가 None(미측정) → 저장 후 중단(stopped_reason="unpriced") → 종료 코드 2.
   4. 채점 인프라 장애(결과에 infra=True) → 저장 후 즉시 중단(stopped_reason="infra") → 종료 코드 2. 후보 원인 aborted 는 계속 진행.
@@ -16,11 +18,13 @@ import time
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from harmonet.budget import Budget, BudgetStop, projected_cost
+from harmonet.llm import _is_retryable
 from harmonet.pricing import cost_usd
 from harmonet.trace import meter_delta, model_used
 from harmonet.usage import METER
 
 EXIT_STOPPED = 2
+MAX_ATTEMPTS, RETRY_BASE_DELAY_S = 3, 2.0
 
 
 class InfraStop(RuntimeError):
@@ -45,17 +49,26 @@ def budgeted_generate(client, budget: Optional[Budget], prompt: str, system_prom
     projected = 0.0
     if budget:
         projected = projected_cost(getattr(client, "model", None), input_tokens(client, prompt, system_prompt), max_tokens)
-        if not budget.reserve(projected, note):
+    call = getattr(client, "generate_once", None) or client.generate      # 클라이언트 내부 재시도 우회 — 시도마다 원장에 남긴다 (J2)
+    for attempt in range(1, MAX_ATTEMPTS + 1):
+        if budget and not budget.reserve(projected, f"{note} (attempt {attempt})" if attempt > 1 else note):
             raise BudgetStop(f"예산 상한: projected ${projected:.4f} 를 더하면 cap ${budget.cap} 초과 ({budget.path})", "budget")
-    before = METER.snapshot(role)
-    t0 = time.perf_counter()
-    try:
-        output = client.generate(prompt, system_prompt=system_prompt)
-    except BaseException as exc:
-        if budget:                                        # $0 확정 금지: 예약액을 지출로 확정하고 이후 호출 중단 (F2)
-            budget.commit(projected, None, note + " (call raised: " + type(exc).__name__ + ")", unknown_cost=True)
-            raise BudgetStop(f"호출 예외로 비용 미상 — 예약액 ${projected:.4f} 확정, 중단: {exc}", "unknown_cost") from exc
-        raise
+        before = METER.snapshot(role)
+        t0 = time.perf_counter()
+        try:
+            output = call(prompt, system_prompt=system_prompt)
+            break
+        except BaseException as exc:
+            if budget and _is_retryable(exc) and attempt < MAX_ATTEMPTS:
+                budget.commit(projected, projected, f"{note} (attempt {attempt} failed, retry: {type(exc).__name__})")   # 예약액 확정(과금 여부 미상 → 보수)
+                delay = RETRY_BASE_DELAY_S * 2 ** (attempt - 1)
+                print(f"[runloop] 재시도 {attempt}/{MAX_ATTEMPTS} ({delay:.0f}s): {str(exc)[:80]}", flush=True)
+                time.sleep(delay)
+                continue
+            if budget:                                    # $0 확정 금지: 예약액을 지출로 확정하고 이후 호출 중단 (F2)
+                budget.commit(projected, None, note + " (call raised: " + type(exc).__name__ + ")", unknown_cost=True)
+                raise BudgetStop(f"호출 예외로 비용 미상 — 예약액 ${projected:.4f} 확정, 중단: {exc}", "unknown_cost") from exc
+            raise
     wall = int((time.perf_counter() - t0) * 1000)
     cost = meter_delta(before, METER.snapshot(role), wall_ms=wall)
     usd = cost_usd(model_used(role, client), cost)[0]
@@ -89,6 +102,8 @@ def run_loop(ids: List[str], run_task: Callable[[str], Dict[str, Any]], write: C
             r = run_task(tid)
         except BudgetStop as e:
             stopped = e.reason                            # budget | cap_exceeded_post | unknown_cost
+            if getattr(e, "partial", None):               # J2: 현재 과제에서 이미 끝난 arm 행은 부분 결과에 포함
+                rows.append(e.partial)
             print(f"[{label}] {k}/{len(ids)} {tid}: {e}", flush=True)
             break
         except InfraStop as e:

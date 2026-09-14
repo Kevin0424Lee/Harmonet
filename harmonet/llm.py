@@ -362,11 +362,15 @@ class AnthropicClient(LLMClient):
         r = self.client.messages.count_tokens(model=kw["model"], system=kw["system"], messages=kw["messages"])
         return int(r.input_tokens)
 
-    @_retry_sync(max_retries=3, base_delay=2.0)
-    def generate(self, prompt: str, system_prompt: Optional[str] = None) -> str:
+    def generate_once(self, prompt: str, system_prompt: Optional[str] = None) -> str:
+        """재시도 없는 1회 호출. 예산 원장 경로(runloop.budgeted_generate)는 시도마다 예약·확정해야 하므로 이것을 쓴다 (J2)."""
         response = self.client.messages.create(**self._msg_kwargs(prompt, self._build_system_blocks(system_prompt)))
         METER.record_from_response(response, role=self.role)
         return response.content[0].text
+
+    @_retry_sync(max_retries=3, base_delay=2.0)
+    def generate(self, prompt: str, system_prompt: Optional[str] = None) -> str:
+        return self.generate_once(prompt, system_prompt)
 
     def _msg_kwargs(self, prompt: str, system_blocks) -> dict:
         kwargs = {

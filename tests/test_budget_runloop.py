@@ -188,3 +188,60 @@ def test_timeout_kills_and_removes_container(monkeypatch):
     assert r["outcome"] == "timeout" and r["passed"] is False and r["infra"] is False
     ps = subprocess.run(["docker", "ps", "-a", "--filter", f"name={r['container']}", "--format", "{{.Names}}"], capture_output=True, text=True)
     assert ps.stdout.strip() == "", ps.stdout
+
+
+# ── Week2-J2 ──────────────────────────────────────────────────────────
+class _Flaky(_Client):
+    """앞 n 회는 재시도 가능 오류(429), 그 다음 성공."""
+
+    def __init__(self, fail_first: int):
+        super().__init__()
+        self.fail_first = fail_first
+
+    def generate_once(self, prompt, system_prompt=None):
+        self.calls += 1
+        if self.calls <= self.fail_first:
+            raise RuntimeError("429 rate_limit_error: slow down")
+        return "ok"
+
+    def generate(self, prompt, system_prompt=None):        # 클라이언트 자체 재시도 경로 — budgeted_generate 는 이걸 쓰면 안 된다
+        raise AssertionError("budgeted_generate 가 generate_once 대신 generate 를 썼다")
+
+
+def test_retry_reserves_and_commits_every_attempt(tmp_path, monkeypatch):
+    """재시도 2회 후 성공 → 원장 3건(실패 시도 2건은 예약액 확정, 성공 1건 실측), 예약 잔액 0, 중단 사유 없음."""
+    _fixed_cost(monkeypatch, 0.10, actual=0.07)
+    monkeypatch.setattr(RL.time, "sleep", lambda s: None)
+    b = Budget(tmp_path / "budget.json", 1.0)
+    c = _Flaky(2)
+    out, cost, usd, wall = RL.budgeted_generate(c, b, "p", "s", note="t")
+    st = b.state()
+    assert c.calls == 3 and st["n_calls"] == 3 and st["stopped_reason"] is None and st["reserved"] == 0.0
+    assert abs(st["spent"] - (0.10 + 0.10 + 0.07)) < 1e-9
+    assert [e["event"] for e in st["log"]] == ["commit"] * 3 and "attempt 1 failed" in st["log"][0]["note"]
+
+
+def test_retry_exhausted_commits_unknown_cost(tmp_path, monkeypatch):
+    _fixed_cost(monkeypatch, 0.10)
+    monkeypatch.setattr(RL.time, "sleep", lambda s: None)
+    b = Budget(tmp_path / "budget.json", 1.0)
+    c = _Flaky(99)
+    with pytest.raises(BudgetStop) as e:
+        RL.budgeted_generate(c, b, "p", "s")
+    st = b.state()
+    assert e.value.reason == "unknown_cost" and c.calls == RL.MAX_ATTEMPTS and st["n_calls"] == RL.MAX_ATTEMPTS and abs(st["spent"] - 0.30) < 1e-9
+
+
+def test_budget_stop_partial_rows_are_saved(tmp_path):
+    """BudgetStop 에 partial 이 실려 오면 run_loop 가 부분 결과에 포함한다 (J2)."""
+    b = Budget(tmp_path / "budget.json", 1.0)
+    saved = {}
+
+    def run_task(tid):
+        if tid == "t2":
+            raise BudgetStop("cap", "budget", partial={"task_id": "t2", "rows": [{"arm": "T"}], "cost_usd": 0.0, "line": "BUDGET STOP"})
+        return {"task_id": tid, "cost_usd": 0.0, "line": ""}
+
+    with pytest.raises(SystemExit) as e:
+        RL.run_loop(["t1", "t2", "t3"], run_task, lambda rows, stopped: saved.update(rows=rows, stopped=stopped), b)
+    assert e.value.code == 2 and saved["stopped"] == "budget" and [r["task_id"] for r in saved["rows"]] == ["t1", "t2"]

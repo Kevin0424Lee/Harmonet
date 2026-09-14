@@ -37,8 +37,9 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple
 from benchmark.agents_single import _DEFAULT_SYSTEM
 from benchmark.features import ast_features, error_class
 from benchmark.hidden_guard import hidden_pass_rate
-from benchmark.runloop import InfraStop, budgeted_generate, require_budget, run_loop
-from harmonet.budget import Budget, budget_from_env
+from benchmark.features import FEATURES_VERSION
+from benchmark.runloop import InfraStop, budgeted_generate, input_tokens, require_budget, run_loop
+from harmonet.budget import INPUT_MARGIN, Budget, BudgetStop, budget_from_env
 from harmonet.llm import get_llm_client
 from harmonet.pricing import price_for, sum_cost
 from harmonet.trace import NO_COST, TaskState, model_used, verify_cost
@@ -62,12 +63,12 @@ def _revise_prompt(task_prompt: str, artifact: str, visible: Dict[str, Any]) -> 
             "Return the full corrected solution as one fenced python code block.")
 
 
-def _max_tokens_for(model: Optional[str], remaining_usd: float, prompt_chars: int) -> int:
-    """§3 호출 규칙: floor((잔여 − 입력 비용) / 출력 단가). 입력 토큰은 chars/3 (보수적)."""
+def _max_tokens_for(model: Optional[str], remaining_usd: float, n_input_tokens: int) -> int:
+    """§3 호출 규칙: floor((잔여 − 입력 비용) / 출력 단가). 입력 토큰은 count_tokens 실측 × 1.10 (F2 경로, chars/3 폐기 — J2)."""
     entry, sid = price_for(model)
     if entry is None:
         raise RuntimeError(f"[arms] 모델 {model!r} 가격이 {sid} 에 없다")
-    input_usd = prompt_chars / 3.0 * entry["input"] / 1e6
+    input_usd = n_input_tokens * INPUT_MARGIN * entry["input"] / 1e6
     if entry["output"] <= 0:
         return 4096                                       # $0 모델(mock): 상한 규칙 적용 불가 → 기본값 (거부 없음)
     return int(math.floor((remaining_usd - input_usd) / (entry["output"] / 1e6)))
@@ -75,7 +76,7 @@ def _max_tokens_for(model: Optional[str], remaining_usd: float, prompt_chars: in
 
 def _call(client, budget, prompt, system, remaining_usd, note) -> Tuple[Optional[str], Dict[str, Any], Optional[float], int, int, bool]:
     """max_tokens 규칙 → 예산 원장 예약 → 호출. (output|None, cost, usd, wall, max_tokens, refused)."""
-    mt = _max_tokens_for(getattr(client, "model", None), remaining_usd, len(prompt) + len(system))
+    mt = _max_tokens_for(getattr(client, "model", None), remaining_usd, input_tokens(client, prompt, system))
     if mt < MIN_MAX_TOKENS:
         return None, dict(NO_COST), 0.0, 0, mt, True
     mt = min(mt, int(os.getenv("ANTHROPIC_MAX_TOKENS", "4096")))
@@ -99,10 +100,22 @@ def _safe(name: str) -> str:
 
 
 def _s0_hash(d: Path) -> str:
+    """s0 스냅샷 해시 = 후보 + 가시 검증 결과 + 결정 신호 + 설정(prompt_context: 프롬프트·모델·시스템 프롬프트·spec) 전부 (J2: 앞의 둘만 있던 것을 확장)."""
     h = hashlib.sha256()
-    for n in ("artifact.py", "prompt_context.json"):
-        h.update((d / n).read_bytes())
+    for n in S0_FILES:
+        h.update(n.encode()); h.update((d / n).read_bytes())
     return h.hexdigest()
+
+
+def config_hash(clients: Dict[str, Any], cfg: Dict[str, Any], pool: str) -> str:
+    """result.json 재사용 키 (J2): 모델 A/B·온도·max_tokens 상한·arm 설정(b_cont 등)·채점기 버전·특징 추출기 버전·풀. 불일치 → 재실행."""
+    from benchmark.bcb_eligibility import checker_version   # 호스트에는 bigcodebench 가 없어 텍스트에서 읽는다
+    from harmonet.verify import BCB_IMAGE_DEFAULT
+    key = {"model_a": getattr(clients["A"], "model", None), "model_b": getattr(clients["B"], "model", None),
+           "temperature": os.getenv("ANTHROPIC_TEMPERATURE"), "max_tokens_cap": os.getenv("ANTHROPIC_MAX_TOKENS", "4096"),
+           "cfg": {k: v for k, v in cfg.items() if k not in ("k", "config_hash")}, "pool": pool, "checker": checker_version(), "bcb_image": os.getenv("HARMONET_BCB_IMAGE", BCB_IMAGE_DEFAULT),
+           "features": FEATURES_VERSION}
+    return hashlib.sha256(json.dumps(key, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
 
 
 # ── s0 스냅샷 ────────────────────────────────────────────────────────────
@@ -145,6 +158,10 @@ def make_s0(task_id: str, task_prompt: str, spec_visible: Dict[str, Any], client
     return d, True
 
 
+def task_id_of(s0_dir: Path) -> str:
+    return json.loads((s0_dir / "prompt_context.json").read_text(encoding="utf-8"))["task_id"]
+
+
 def load_s0(d: Path) -> Dict[str, Any]:
     return {"artifact": (d / "artifact.py").read_text(encoding="utf-8").rstrip("\n"),
             "visible": json.loads((d / "verify_visible.json").read_text(encoding="utf-8")),
@@ -157,8 +174,11 @@ def run_arm(arm: str, rep: int, s0_dir: Path, spec_full: Dict[str, Any], clients
             budget: Optional[Budget], run_id: str) -> Dict[str, Any]:
     arm_dir = s0_dir.parent / _safe(arm) / f"rep{rep}"
     done = arm_dir / "result.json"
-    if done.exists():                                       # 멱등: 이미 끝난 (arm, rep) 은 건너뛴다
-        return json.loads(done.read_text(encoding="utf-8"))
+    if done.exists():                                       # 멱등: 같은 config_hash 로 끝난 (arm, rep) 만 건너뛴다 (J2). 다르면 재실행(덮어씀)
+        prev = json.loads(done.read_text(encoding="utf-8"))
+        if prev.get("config_hash") == cfg["config_hash"]:
+            return prev
+        print(f"[arms] {task_id_of(s0_dir)} {arm} rep{rep}: config_hash 불일치 ({str(prev.get('config_hash'))[:8]} != {cfg['config_hash'][:8]}) → 재실행", flush=True)
     s0 = load_s0(s0_dir)                                   # 디스크에서 재개 — 메모리 상태 재사용 금지
     task_id, ctx = s0["ctx"]["task_id"], s0["ctx"]
     spec_visible = ctx["spec_visible"]
@@ -238,7 +258,7 @@ def run_arm(arm: str, rep: int, s0_dir: Path, spec_full: Dict[str, Any], clients
            "cost_usd": state.cost_so_far["cost_usd"], "b_cont": b_cont,
            "models": sorted({a.model for a in state.history if a.model != "none" and "replayed_from_s0" not in a.flags}),
            "infra": bool(hidden.get("infra") or visible.get("infra")), "hidden_exposed": spec_full.get("hidden_exposed"),
-           "trace_path": str(trace_path), "s0_dir": str(s0_dir)}
+           "trace_path": str(trace_path), "s0_dir": str(s0_dir), "config_hash": cfg["config_hash"]}
     done.write_text(json.dumps(row, ensure_ascii=False, indent=1), encoding="utf-8")
     return row
 
@@ -260,6 +280,11 @@ def run_task_all_arms(task_id: str, task_prompt: str, spec_full: Dict[str, Any],
     except InfraStop as e:                                  # 부분 결과를 실어 위로 (저장 후 중단)
         e.partial = {"task_id": task_id, "order": order, "rows": rows, "shared_s0_cost": ctx["build_cost_usd"], "s0_created": created,
                      "cost_usd": sum_cost(rows)["cost_usd"] if rows else 0.0, "infra": True, "line": "INFRA STOP"}
+        raise
+    except BudgetStop as e:                                 # J2: 이 과제에서 이미 끝난 arm 행도 부분 결과에 포함 (원장에는 이미 있는 비용)
+        if rows:
+            e.partial = {"task_id": task_id, "order": order, "rows": rows, "shared_s0_cost": ctx["build_cost_usd"], "s0_created": created,
+                         "cost_usd": sum_cost(rows)["cost_usd"], "infra": False, "line": f"BUDGET STOP after {len(rows)} arm rows"}
         raise
     return {"task_id": task_id, "order": order, "rows": rows, "shared_s0_cost": ctx["build_cost_usd"], "s0_created": created,
             "cost_usd": sum_cost(rows)["cost_usd"], "infra": any(r["infra"] for r in rows),
@@ -313,6 +338,7 @@ def main() -> int:
         print("[preflight]", bcb_preflight(), flush=True)
     cfg = {"b_cont": args.b_cont, "a_call_median": args.a_call_median, "k_max": args.k_max, "stop_on_visible_pass": True,
            "min_max_tokens": MIN_MAX_TOKENS, "k": args.k}
+    cfg["config_hash"] = config_hash(clients, cfg, args.pool)   # k 는 키에 안 넣는다: 뒤집힘 부분집합(k=2)이 주 실행(k=1)의 rep1 을 재사용해야 한다
     root = Path(os.getenv("HARMONET_ARMS_ROOT") or (Path(__file__).resolve().parent.parent / "evidence" / "week2")) / run_id
     out = Path(args.output)
 
