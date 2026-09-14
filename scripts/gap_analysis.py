@@ -344,6 +344,28 @@ def policy_gain(rows: Sequence[Dict[str, Any]], learner: str = "P1", n_perm: int
     return out
 
 
+# ── Week2-J: 확인 단계 판정 (PREREG v4 §4) — 학습 없음 ─────────────────────────
+def mcnemar_exact_onesided(b: int, c: int) -> float:
+    """정확 McNemar 단측: b = #(정책 성공 ∧ â 실패), c = #(정책 실패 ∧ â 성공). p = P(Bin(b+c, ½) ≥ b). 불일치 쌍 0 → p = 1."""
+    from scipy.stats import binom
+    n = b + c
+    return 1.0 if n == 0 else float(binom.sf(b - 1, n, 0.5))
+
+
+def confirm_test(Y: np.ndarray, pick: np.ndarray, a_hat: int, n_boot: int = 1000, seed: int = 0, alpha: float = 0.05, threshold: float = DELTA) -> Dict[str, Any]:
+    """확인 집합 주 판정: d_i = Y[i, pick_i] − Y[i, â]. 통과 ⇔ p < α ∧ 평균 d ≥ threshold. CI = d_i 과제 부트스트랩 (재표집만, 학습 없음)."""
+    yp, yf = Y[np.arange(len(Y)), pick], Y[:, a_hat]
+    d = yp - yf
+    b, c = int(((yp == 1) & (yf == 0)).sum()), int(((yp == 0) & (yf == 1)).sum())
+    p = mcnemar_exact_onesided(b, c)
+    rng = np.random.default_rng(seed)
+    boots = np.array([d[rng.integers(0, len(d), len(d))].mean() for _ in range(n_boot)]) if n_boot > 0 else np.array([])
+    return {"n": int(len(d)), "mean_d": float(d.mean()), "b_policy_only": b, "c_fixed_only": c, "p_mcnemar_onesided": p,
+            "ci95": [float(np.quantile(boots, 0.025)), float(np.quantile(boots, 0.975))] if n_boot > 0 else None,
+            "verdict": "통과" if (p < alpha and d.mean() >= threshold) else "미확인",
+            "rule": f"정확 McNemar 단측 p < {alpha} ∧ 평균 d ≥ {threshold:.2f} (양의 이득 증거 + 점추정의 실용 문턱; '≥{threshold:.0%} 입증' 아님)"}
+
+
 # ── 합성 검증 ────────────────────────────────────────────────────────────
 def synth_rows(n_tasks: int, k: int, seed: int, interaction: float = 0.0, base: float = 0.5, deterministic: bool = False, cost=0.01):
     """arm 별 기저 성공률 + (interaction > 0 이면) 과제별로 하나의 arm 이 +interaction 만큼 잘 푸는 상호작용."""

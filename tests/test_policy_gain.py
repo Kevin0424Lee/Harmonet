@@ -85,3 +85,15 @@ def test_perm_pvalue_is_count_plus_one_over_B_plus_one():
     rows = PG.rows_from(PG.generate(40, 3, 0.0, 1.0))
     r = G.policy_gain(rows, "P1", n_perm=9, n_boot=0, seed=0, with_ci=False, R=1)
     assert r["p_value"] >= 1 / 10 and abs(r["p_value"] * 10 - round(r["p_value"] * 10)) < 1e-9
+
+
+# ── Week2-J4: 확인 단계 판정 (정확 McNemar 단측, 학습 없음) ─────────────
+def test_mcnemar_exact_onesided_and_confirm_rule():
+    assert abs(G.mcnemar_exact_onesided(8, 1) - 10 / 512) < 1e-12 and G.mcnemar_exact_onesided(0, 0) == 1.0
+    Y = np.zeros((40, 6)); Y[:, 4] = 1                      # â = B-expert 전부 성공
+    Y[:30, 4] = 0; Y[:30, 1] = 1                             # 30 과제는 A-self 만 성공
+    pick = np.where(np.arange(40) < 30, 1, 4)
+    r = G.confirm_test(Y, pick, a_hat=4, n_boot=50, seed=0)
+    assert r["b_policy_only"] == 30 and r["c_fixed_only"] == 0 and r["mean_d"] == 0.75 and r["verdict"] == "통과"
+    r2 = G.confirm_test(Y, np.full(40, 4), a_hat=4, n_boot=0)
+    assert r2["mean_d"] == 0.0 and r2["p_mcnemar_onesided"] == 1.0 and r2["verdict"] == "미확인" and r2["ci95"] is None
