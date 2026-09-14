@@ -82,6 +82,18 @@ Part A 진행 중 확정된 사실과, 2주차 설계(`docs/week2_design_draft.m
 | Fable | C3 §4 "참값은 보수적 gap 과 낙관적 gap 사이" — 근거 없는 괄호 주장. A0c 에서 삭제, 판정은 통과/미확인 둘로 | `docs/week2_design_draft.md` §4 |
 | Claude Code | HumanEval+ 제외 사유를 "천장(96.3%)"으로 씀 — 96.3% 는 HumanEval 결과이고 HumanEval+ 제외 사유는 164개 표본 조건 미달 | `evidence/week2/pool_probe.md` (A0c 정정) |
 | Claude Code | 노출 가드가 True 로 해석되지 않는 값을 전부 False 로 취급 — `{"hidden_exposed": "unknown"}` 이 히든 1.0 (코덱스 재현). A0c 에서 명시적 False 만 허용 | `benchmark/hidden_guard.py`, `tests/test_hidden_guard.py` |
+| Fable | B 단독 상한 70% 를 유도 없이 A 창을 복사해 사전 등록함 (유도값은 80%: B 실패율 ≥ 2×MDE). 결과 뒤 문턱을 옮기지 않은 것은 맞으나 유래를 처음부터 적었어야 함 (2026-09-14, 코덱스 지적) | `evidence/week2/pool_probe.md` 프로브 4, `docs/week2_review_draft.md` §3-2 |
+| Fable | 재검토 초안에서 "가시 신호가 약하다" 단정 — 조건부 표(가시 실패→히든 실패 A 9/12, B 5/6)를 보면 실패 예측력은 있음. D4 에서 표로 대체 | `docs/week2_review_draft.md` §3-4 |
+| Fable | "규칙 변경 시 새 프로브 60 필수" — 과함. 프로브는 성공률 추정용이고 새로 추정할 양이 없으면 기존 60 은 탐색 자료로 두고 확인 자료에서 평가하면 됨 | `docs/week2_review_draft.md` §4 |
+| Fable | BCB 채점 결과의 n_run 이 "모듈 호출 수"(항상 1)인 것을 확인하지 않고 실행 수처럼 읽음 | `evidence/week2/bcb_source.md`, D2 이전 `harmonet/bcb_harness.py` |
+| Claude Code | BCB 하네스 n_run = 테스트 모듈 호출 수. 공식 untrusted_check 는 실행된 테스트 수를 검사하지 않으므로 TestCase.run 을 no-op 으로 바꾼 후보가 pass (코덱스 지적, D2 에서 재현·수정: expected_tests 클린 프로세스 계수 + testsRun 검사 + 사전 바인딩) | `harmonet/bcb_check.py`, `tests/test_bcb_adversarial.py` |
+| Claude Code | 누적 예산을 강제하지 않음 — 사전 등록 "상한 $1" 이 코드 어디에도 없었고 사후 합산만 함. D1 에서 원장·예약·중단 | `harmonet/budget.py`, `benchmark/runloop.py` |
+| Claude Code | 채점 인프라 장애(docker 데몬·이미지) 시에도 다음 모델 호출을 계속함 — 후보 원인 aborted 와 구분 없음. D1 에서 infra 플래그 + 사전 점검 + 즉시 중단 | `harmonet/verify.py` `_run_bcb_harness`, `benchmark/runloop.py` |
+| Claude Code | 타임아웃 시 docker CLI 만 죽이고 컨테이너는 정리하지 않음 (Windows 에서는 CLI kill 로 파이프도 안 닫혀 컨테이너 종료까지 대기). D1 에서 named container + docker kill + rm -f | `harmonet/verify.py`, `tests/test_budget_runloop.py` |
+
+**패턴 (세 번째, 코덱스 지적으로 발견): "이름을 보고 구현을 읽지 않음."** A1 (validator 이름만 보고 LLM 호출 여부 미확인), A7 (하네스 종료 코드를
+통과 신호로 믿음), D2 (`n_run` 이라는 이름을 실행 수로 믿고 공식 채점기가 실행 수를 세지 않는다는 것을 읽지 않음). 다음 인프라 항목부터는
+"이 이름의 값이 실제로 무엇을 세는가" 를 테스트로 먼저 고정한다.
 
 ## Week2-A0 LiveCodeBench 로더·stdio 하네스
 - 데이터는 HF `livecodebench/code_generation_lite` revision `0fe84c3912ea0c4d4a78037083943e8f0c4dd505` 의 jsonl 을 직접 받는다
