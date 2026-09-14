@@ -49,3 +49,23 @@ def test_crossfit_known_case():
     S = np.zeros((2, 6, 2)); S[0, 1, :] = 1; S[1, 2, :] = 1
     gap, diffs, fixed = G.crossfit_gap(S)
     assert abs(gap - 0.5) < 1e-12 and G.insample_gap(S) == 0.5
+
+
+def test_duplicate_cell_rejected():
+    rows = G.synth_rows(3, 2, 0)
+    rows.append(dict(rows[0]))
+    with pytest.raises(ValueError, match="중복"):
+        G.tensor(rows)
+
+
+def test_string_hidden_pass_rejected():
+    rows = G.synth_rows(3, 2, 0)
+    rows[0]["hidden_pass"] = "True"
+    with pytest.raises(ValueError, match="bool"):
+        G.tensor(rows)
+    rows[0]["hidden_pass"] = 1
+    with pytest.raises(ValueError, match="bool"):
+        G.tensor(rows)
+    del rows[0]["hidden_pass"]
+    with pytest.raises(ValueError, match="hidden_pass"):
+        G.tensor(rows)

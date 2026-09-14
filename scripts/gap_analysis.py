@@ -1,8 +1,8 @@
 """
 scripts/gap_analysis.py — 교차 적합 gap 분석 (Week2-D6, 설계 §4). 풀 무관. 유료 호출 0.
 
-입력 행: {"task_id", "arm", "rep"(1..k), "passed"(bool), "cost_usd"(float|None), "budget_refused"(bool)}
-  → 텐서 S[task, arm, rep] ∈ {0,1}.
+입력 행: {"task_id", "arm", "rep"(1..k), "hidden_pass"(bool 만), "cost_usd"(float|None), "budget_refused"(bool)} (benchmark/arms.py 출력과 동일)
+  → 텐서 S[task, arm, rep] ∈ {0,1}. 중복 (task, arm, rep) 은 예외, hidden_pass 가 bool 이 아니면("True"/"False" 문자열 포함) 예외 (F3).
 
 통계량:
   - arm 별 성공률 / $ 평균(미측정이 하나라도 있으면 None) / 거부율.
@@ -33,13 +33,31 @@ ARMS = ("T", "A-self", "A-selfxk", "A-role", "B-expert", "B-solo")
 DELTA = 0.10
 
 
+def _hidden_pass(r: Dict[str, Any]) -> bool:
+    """hidden_pass 는 bool 만 받는다 (F3). 문자열 "True"/"False"·0/1·None 은 예외 — hidden_guard 와 같은 방침(조용한 해석 금지)."""
+    if "hidden_pass" not in r:
+        raise ValueError(f"행에 hidden_pass 가 없다: {r.get('task_id')}/{r.get('arm')}/{r.get('rep')}")
+    v = r["hidden_pass"]
+    if not isinstance(v, bool):
+        raise ValueError(f"hidden_pass 는 bool 이어야 한다, {v!r} ({type(v).__name__}) — {r.get('task_id')}/{r.get('arm')}/{r.get('rep')}")
+    return v
+
+
 def tensor(rows: Sequence[Dict[str, Any]], arms: Sequence[str] = ARMS):
+    seen = set()
+    for r in rows:                                                  # F3: 중복 (task, arm, rep) 은 덮어쓰지 않고 예외
+        key = (r["task_id"], r["arm"], int(r["rep"]))
+        if key in seen:
+            raise ValueError(f"중복 행: task={key[0]} arm={key[1]} rep={key[2]} — 같은 셀을 두 번 채울 수 없다")
+        seen.add(key)
+        if r["arm"] not in arms:
+            raise ValueError(f"알 수 없는 arm {r['arm']!r}")
     tasks = sorted({r["task_id"] for r in rows})
     reps = sorted({int(r["rep"]) for r in rows})
     S = np.full((len(tasks), len(arms), len(reps)), np.nan)
     ti, ai, ri = {t: i for i, t in enumerate(tasks)}, {a: i for i, a in enumerate(arms)}, {k: i for i, k in enumerate(reps)}
     for r in rows:
-        S[ti[r["task_id"]], ai[r["arm"]], ri[int(r["rep"])]] = 1.0 if r["passed"] else 0.0
+        S[ti[r["task_id"]], ai[r["arm"]], ri[int(r["rep"])]] = 1.0 if _hidden_pass(r) else 0.0
     if np.isnan(S).any():
         missing = int(np.isnan(S).sum())
         raise ValueError(f"불완전한 설계: {missing} 칸이 비어 있다 (과제×arm×반복 전부 있어야 한다)")
@@ -89,7 +107,7 @@ def per_arm(rows: Sequence[Dict[str, Any]], arms=ARMS) -> Dict[str, Any]:
         if not r:
             continue
         costs = [x.get("cost_usd") for x in r]
-        out[a] = {"n": len(r), "success": sum(bool(x["passed"]) for x in r) / len(r),
+        out[a] = {"n": len(r), "success": sum(_hidden_pass(x) for x in r) / len(r),
                   "cost_usd_mean": None if any(c is None for c in costs) else float(np.mean(costs)),
                   "n_unpriced": sum(c is None for c in costs), "refused_rate": sum(bool(x.get("budget_refused")) for x in r) / len(r)}
     return out
@@ -126,7 +144,7 @@ def synth_rows(n_tasks: int, k: int, seed: int, interaction: float = 0.0, base: 
             outcome_det = rng.random() < p
             for rep in range(1, k + 1):
                 passed = outcome_det if deterministic else (rng.random() < p)
-                rows.append({"task_id": f"s{t}", "arm": arm, "rep": rep, "passed": bool(passed), "cost_usd": cost, "budget_refused": False})
+                rows.append({"task_id": f"s{t}", "arm": arm, "rep": rep, "hidden_pass": bool(passed), "cost_usd": cost, "budget_refused": False})
     return rows
 
 
@@ -169,8 +187,8 @@ def synthetic(n_boot: int = 10000, seeds: int = 20, n_tasks: int = 300, k: int =
         b_gaps.append({"crossfit_gap": r["crossfit_gap"], "estimand": est, "oracle_gap": oracle_gap(n_tasks, s, 0.10), "ci95": r["ci95"]})
         b_cover += r["ci95"][0] <= est <= r["ci95"][1]
     c = analyze(synth_rows(50, k, 0, 0.0, deterministic=True), 200, seed=0)
-    d = per_arm([{"task_id": "x", "arm": "T", "rep": 1, "passed": True, "cost_usd": None, "budget_refused": False},
-                 {"task_id": "y", "arm": "T", "rep": 1, "passed": True, "cost_usd": 0.1, "budget_refused": False}])
+    d = per_arm([{"task_id": "x", "arm": "T", "rep": 1, "hidden_pass": True, "cost_usd": None, "budget_refused": False},
+                 {"task_id": "y", "arm": "T", "rep": 1, "hidden_pass": True, "cost_usd": 0.1, "budget_refused": False}])
     return {"a_no_interaction_pass_rate": a_pass / seeds, "a_seeds": seeds, "a_criterion": "≤ 0.08",
             "b_coverage": b_cover / seeds, "b_criterion": "≥ 0.90 (CI 가 교차 적합 추정 대상을 포함)", "b_examples": b_gaps[:3],
             "b_note": "estimand = 같은 P 에서 데이터를 거듭 뽑았을 때의 교차 적합 gap 기대값. k=3 의 잡음 선택 때문에 oracle gap 보다 작다 — 10pp 문턱은 이 값에 적용된다",
