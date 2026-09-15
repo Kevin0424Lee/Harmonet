@@ -30,16 +30,17 @@ def _scenario(tmp: Path, tokens=None) -> Path:
     return p
 
 
-def _run(tmp: Path, run_id: str, k: int = 2, cap: str = "5", b_cont: str = "0.05") -> dict:
+def _run(tmp: Path, run_id: str, k: int = 2, cap: str = "5", b_cont: str = "0.05", arms: str = None, extra_env: dict = None, expect_rc: int = 0) -> dict:
     ids = tmp / "ids.json"; ids.write_text(json.dumps({"ids": list(CORRECT)}), encoding="utf-8")
     env = dict(os.environ, HARMONET_LLM_BACKEND="mock-scenario", HARMONET_MOCK_SCENARIO=str(_scenario(tmp)),
                HARMONET_MODEL_BUILDER="claude-sonnet-4-6", HARMONET_MODEL_REVIEWER="claude-haiku-4-5", HARMONET_ALLOW_NO_REDIS="1",
                HARMONET_TRACE_RUN_ID=run_id, HARMONET_BUDGET_CAP=cap, HARMONET_BUDGET_ROOT=str(tmp / "budget"), HARMONET_ARMS_ROOT=str(tmp / "arms"),
-               HARMONET_TRACE_DIR=str(tmp / "traces"), PYTHONIOENCODING="utf-8")
+               HARMONET_TRACE_DIR=str(tmp / "traces"), PYTHONIOENCODING="utf-8", **(extra_env or {}))
     out = tmp / f"{run_id}.json"
     p = subprocess.run([sys.executable, "-X", "utf8", "-m", "benchmark.arms", "--pool", "mbppplus", "--ids", str(ids), "--output", str(out),
-                        "--b-cont", b_cont, "--a-call-median", "0.02", "--k", str(k)], cwd=str(ROOT), env=env, capture_output=True, text=True)
-    assert p.returncode == 0, p.stdout[-1500:] + p.stderr[-1500:]
+                        "--b-cont", b_cont, "--a-call-median", "0.02", "--k", str(k)] + (["--arms", arms] if arms else []), cwd=str(ROOT), env=env,
+                       capture_output=True, text=True)
+    assert p.returncode == expect_rc, p.stdout[-1500:] + p.stderr[-1500:]
     return json.loads(out.read_text(encoding="utf-8"))
 
 
@@ -125,7 +126,7 @@ class _Client:
 def test_max_tokens_rule_refuses_below_256_without_calling():
     c = _Client()
     out, cost, usd, wall, mt, status = A._call(c, None, "p" * 300, "s", remaining_usd=0.001, note="t")
-    assert status == "refused" and out is None and c.calls == 0 and mt < A.MIN_MAX_TOKENS
+    assert status == "refused" and out is None and c.calls == 0 and mt[-1] < A.MIN_MAX_TOKENS
 
 
 def test_budget_stop_is_distinct_from_refused(tmp_path, monkeypatch):

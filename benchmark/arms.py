@@ -38,7 +38,7 @@ from benchmark.agents_single import _DEFAULT_SYSTEM
 from benchmark.features import ast_features, error_class
 from benchmark.hidden_guard import hidden_pass_rate
 from benchmark.features import FEATURES_VERSION
-from benchmark.runloop import CallAborted, InfraStop, budgeted_generate, input_tokens, require_budget, run_loop
+from benchmark.runloop import ArmBudget, CallAborted, InfraStop, _attempt_totals, budgeted_generate, input_tokens, require_budget, run_loop
 from harmonet.budget import INPUT_MARGIN, Budget, BudgetStop, budget_from_env
 from harmonet.llm import get_llm_client
 from harmonet.pricing import price_for, sum_cost
@@ -74,25 +74,23 @@ def _max_tokens_for(model: Optional[str], remaining_usd: float, n_input_tokens: 
     return int(math.floor((remaining_usd - input_usd) / (entry["output"] / 1e6)))
 
 
-def _call(client, budget, prompt, system, remaining_usd, note, unknown_counter=None) -> Tuple[Optional[str], Dict[str, Any], Optional[float], int, int, str]:
-    """max_tokens 규칙 → 예산 원장 예약 → 호출. (output|None, cost, usd, wall, max_tokens, status ∈ {"ok", "refused", "aborted_unknown_cost"}).
-    aborted_unknown_cost (K2 (c) 2회): 출력 없음이지만 usd 는 확정된 예약액 — arm 비용·잔여 예산에 반영한다."""
-    mt = _max_tokens_for(getattr(client, "model", None), remaining_usd, input_tokens(client, prompt, system))
-    if mt < MIN_MAX_TOKENS:
-        return None, dict(NO_COST), 0.0, 0, mt, "refused"
-    mt = min(mt, int(os.getenv("ANTHROPIC_MAX_TOKENS", "4096")))
-    old = getattr(client, "max_tokens", None)
-    client.max_tokens = mt
+def _call(client, budget, prompt, system, remaining_usd, note, unknown_counter=None) -> Tuple[Optional[str], Dict[str, Any], Optional[float], int, list, str]:
+    """max_tokens 규칙 → 예산 원장 예약 → 호출. (output|None, cost, usd, wall, max_tokens 목록(시도별), status).
+    status ∈ {"ok", "refused", "refused_after_attempts", "aborted_unknown_cost"}. L1: 시도마다 arm 잔여로 max_tokens 재계산(ArmBudget); (c) 예약액은 arm 잔여에 즉시 반영.
+    refused_after_attempts = 불명 시도 뒤 잔여 부족 — 출력 없음, usd 는 확정된 예약액. BudgetStop(전체 cap 등)은 시도 기록을 실은 채 위로 간다 (L5)."""
+    n_in = input_tokens(client, prompt, system)
+    model = getattr(client, "model", None)
+    ab = ArmBudget(remaining_usd, lambda r: _max_tokens_for(model, r, n_in), MIN_MAX_TOKENS, int(os.getenv("ANTHROPIC_MAX_TOKENS", "4096")))
     try:
-        out, cost, usd, wall = budgeted_generate(client, budget, prompt, system, note=note, unknown_counter=unknown_counter)
+        out, cost, usd, wall = budgeted_generate(client, budget, prompt, system, note=note, unknown_counter=unknown_counter, arm=ab)
     except CallAborted as e:
-        cost = {**NO_COST, "llm_calls": len(e.attempts), "attempts": e.attempts, "n_unknown_attempts": sum(a["unknown_cost"] for a in e.attempts),
-                "unknown_reserved_usd": round(e.usd, 10), "source": "measured"}
-        return None, cost, e.usd, 0, mt, "aborted_unknown_cost"
-    finally:
-        if old is not None:
-            client.max_tokens = old
-    return out, cost, usd, wall, mt, "ok"
+        tot = _attempt_totals(e.attempts)
+        cost = {**NO_COST, "llm_calls": len(e.attempts), "attempts": e.attempts, "n_unknown_attempts": tot["n_unknown_attempts"],
+                "unknown_reserved_usd": tot["unknown_reserved_usd"], "measured_usd": 0.0, "source": "measured" if e.attempts else "none"}
+        mts = [x["max_tokens"] for x in e.attempts] + ([ab.max_tokens()] if e.reason == "arm_budget" else [])
+        status = "aborted_unknown_cost" if e.reason == "unknown_cost_x2" else ("refused_after_attempts" if e.attempts else "refused")
+        return None, cost, tot["unknown_reserved_usd"], 0, mts, status
+    return out, cost, usd, wall, [x["max_tokens"] for x in cost["attempts"]], "ok"
 
 
 def _check_infra(result: Dict[str, Any], where: str) -> None:
@@ -198,26 +196,39 @@ def run_arm(arm: str, rep: int, s0_dir: Path, spec_full: Dict[str, Any], clients
     b_cont = float(cfg["b_cont"])
     remaining = b_cont + ((ctx["build_cost_usd"] or 0.0) if arm == "B-solo" else 0.0)
     spent, n_calls, refused, calls_max_tokens, n_attempts, n_unknown, aborted = 0.0, 0, False, [], 0, 0, False
+    measured_spent, unknown_spent, attempt_log = 0.0, 0.0, []                     # L1-7: 실측 / 보수적 귀속 분리, L5: 시도 기록
     unknown_counter = unknown_counter if unknown_counter is not None else {"n": 0}
 
-    def step(kind: str, client, prompt: str, system: str, trigger: str, note: str) -> bool:
-        nonlocal artifact, visible, remaining, spent, n_calls, refused, n_attempts, n_unknown, aborted
-        out, cost, usd, wall, mt, status = _call(client, budget, prompt, system, remaining, note, unknown_counter)
-        calls_max_tokens.append(mt)
-        if status == "refused":
-            refused = True
-            state.record(kind, client.role, model_used(client.role, client), NO_COST, f"budget_refused: max_tokens={mt} < {MIN_MAX_TOKENS}",
-                         trigger=trigger, flags=["budget_refused"])
-            return False
-        n_attempts += int(cost.get("llm_calls", 1)); n_unknown += int(cost.get("n_unknown_attempts", 0))   # 모든 시도를 arm 호출 수·비용에 반영 (K2)
+    def _book(cost, usd):
+        nonlocal spent, remaining, n_attempts, n_unknown, measured_spent, unknown_spent
+        n_attempts += int(cost.get("llm_calls", 0)); n_unknown += int(cost.get("n_unknown_attempts", 0))   # 모든 시도를 arm 호출 수·비용에 반영 (K2)
+        measured_spent += cost.get("measured_usd") or 0.0; unknown_spent += cost.get("unknown_reserved_usd") or 0.0
         spent += usd or 0.0
         remaining -= usd or 0.0
+        attempt_log.extend(cost.get("attempts", []))
+
+    def step(kind: str, client, prompt: str, system: str, trigger: str, note: str) -> bool:
+        nonlocal artifact, visible, n_calls, refused, aborted
+        try:
+            out, cost, usd, wall, mts, status = _call(client, budget, prompt, system, remaining, note, unknown_counter)
+        except BudgetStop as e:                           # L5: 성공 없이 끝난 시도도 arm 장부에 남긴 뒤 위로
+            _book({**_attempt_totals(e.attempts), "llm_calls": len(e.attempts), "attempts": e.attempts}, e.usd)
+            raise
+        calls_max_tokens.extend(mts)
+        _book(cost, usd)
+        if status in ("refused", "refused_after_attempts"):   # L1-4: 최소 출력 예산 미달 → 추가 호출 없이 기존 종료 규칙
+            refused = True
+            state.record(kind, client.role, model_used(client.role, client), cost if status == "refused_after_attempts" else NO_COST,
+                         f"budget_refused({status}): max_tokens={mts[-1] if mts else '?'} < {MIN_MAX_TOKENS}, attempts={len(cost.get('attempts', []))}",
+                         trigger=trigger, flags=["budget_refused", status])
+            return False
         if status == "aborted_unknown_cost":              # (c) 2회: 이 arm 은 더 호출하지 않고 기존 산출물로 종료
             aborted = True
             state.record(kind, client.role, model_used(client.role, client), cost, f"aborted_unknown_cost: {cost['attempts']}", trigger=trigger,
                          flags=["aborted_unknown_cost"])
             return False
         n_calls += 1
+        mt = mts[-1]
         report: Dict[str, str] = {}
         new_artifact = extract_artifact(out, "code", report=report)
         p = arm_dir / f"artifact_{n_calls}.py"
@@ -233,33 +244,45 @@ def run_arm(arm: str, rep: int, s0_dir: Path, spec_full: Dict[str, Any], clients
         return True
 
     A, B = clients["A"], clients["B"]
-    if arm == "T":
-        pass
-    elif arm == "A-self":
-        step("self_revise", A, _revise_prompt(ctx["task_prompt"], artifact, visible), _DEFAULT_SYSTEM, "verify:visible", f"{task_id} A-self r{rep}")
-    elif arm == "A-selfxk":
-        k = int(math.floor(b_cont / float(cfg["a_call_median"]))) if float(cfg["a_call_median"]) > 0 else 1
-        k = max(1, min(k, int(cfg.get("k_max", 8))))
-        for i in range(k):
-            if cfg.get("stop_on_visible_pass", True) and visible["passed"]:
-                break
-            if not step("self_revise", A, _revise_prompt(ctx["task_prompt"], artifact, visible), _DEFAULT_SYSTEM, "verify:visible",
-                        f"{task_id} A-selfxk r{rep} {i + 1}/{k}"):
-                break
-    elif arm == "A-role":
-        step("expert_review", A, _revise_prompt(ctx["task_prompt"], artifact, visible), REVIEWER_SYSTEM, "verify:visible", f"{task_id} A-role r{rep}")
-    elif arm == "B-expert":
-        step("expert_review", B, _revise_prompt(ctx["task_prompt"], artifact, visible), REVIEWER_SYSTEM, "verify:visible", f"{task_id} B-expert r{rep}")
-    elif arm == "B-solo":
-        artifact, visible = "", {"outcome": "none"}
-        step("build", B, ctx["task_prompt"], _DEFAULT_SYSTEM, "none", f"{task_id} B-solo r{rep}")
-        if refused:
-            artifact, visible = s0["artifact"], s0["visible"]   # 규칙: 호출 못 하면 기존(s0) 산출물 제출
-    else:
-        raise ValueError(arm)
+    try:
+        if arm == "T":
+            pass
+        elif arm == "A-self":
+            step("self_revise", A, _revise_prompt(ctx["task_prompt"], artifact, visible), _DEFAULT_SYSTEM, "verify:visible", f"{task_id} A-self r{rep}")
+        elif arm == "A-selfxk":
+            k = int(math.floor(b_cont / float(cfg["a_call_median"]))) if float(cfg["a_call_median"]) > 0 else 1
+            k = max(1, min(k, int(cfg.get("k_max", 8))))
+            for i in range(k):
+                if cfg.get("stop_on_visible_pass", True) and visible["passed"]:
+                    break
+                if not step("self_revise", A, _revise_prompt(ctx["task_prompt"], artifact, visible), _DEFAULT_SYSTEM, "verify:visible",
+                            f"{task_id} A-selfxk r{rep} {i + 1}/{k}"):
+                    break
+        elif arm == "A-role":
+            step("expert_review", A, _revise_prompt(ctx["task_prompt"], artifact, visible), REVIEWER_SYSTEM, "verify:visible", f"{task_id} A-role r{rep}")
+        elif arm == "B-expert":
+            step("expert_review", B, _revise_prompt(ctx["task_prompt"], artifact, visible), REVIEWER_SYSTEM, "verify:visible", f"{task_id} B-expert r{rep}")
+        elif arm == "B-solo":
+            artifact, visible = "", {"outcome": "none"}
+            step("build", B, ctx["task_prompt"], _DEFAULT_SYSTEM, "none", f"{task_id} B-solo r{rep}")
+            if refused:
+                artifact, visible = s0["artifact"], s0["visible"]   # 규칙: 호출 못 하면 기존(s0) 산출물 제출
+        else:
+            raise ValueError(arm)
+    except BudgetStop as e:                               # L5: 미완료 arm — 완료 행과 구분해 기록, result.json 은 쓰지 않는다(재개 시 재실행)
+        inc = {"task_id": task_id, "arm": arm, "rep": rep, "incomplete": True, "stop_reason": e.reason, "n_calls_done": n_calls, "n_attempts": n_attempts,
+               "n_unknown_attempts": n_unknown, "measured_usd": round(measured_spent, 10), "unknown_reserved_usd": round(unknown_spent, 10),
+               "cost_usd": round(spent, 10), "attempts": attempt_log, "max_tokens": calls_max_tokens, "b_cont": b_cont, "config_hash": cfg["config_hash"],
+               "s0_dir": str(s0_dir), "t": time.time()}
+        inc_path = arm_dir / f"incomplete_{int(inc['t'] * 1000)}.json"
+        inc_path.write_text(json.dumps(inc, ensure_ascii=False, indent=1), encoding="utf-8")
+        inc["path"] = str(inc_path)
+        e.incomplete = inc
+        raise
     state.artifact = artifact
     state.verification = visible
-    state.record("terminate", arm, "none", NO_COST, f"{arm} rep{rep}: n_calls={n_calls} attempts={n_attempts} unknown={n_unknown} refused={refused} aborted={aborted} spent=${spent:.5f}")
+    state.record("terminate", arm, "none", NO_COST, f"{arm} rep{rep}: n_calls={n_calls} attempts={n_attempts} unknown={n_unknown} refused={refused} aborted={aborted} "
+                 f"spent=${spent:.5f} (measured ${measured_spent:.5f} + unknown_reserved ${unknown_spent:.5f})")
     hidden = score_hidden(artifact, spec_full)              # 종료 후에만
     state.set_score(hidden)
     trace_path = state.save(f"{run_id}/rep{rep}")
@@ -268,7 +291,8 @@ def run_arm(arm: str, rep: int, s0_dir: Path, spec_full: Dict[str, Any], clients
            "outcome": hidden["outcome"], "hidden_level": hidden["level"], "hidden_sandbox": hidden["sandbox"], "hidden_exec_count": hidden["exec_count"],
            "visible_outcome": visible["outcome"], "n_calls": n_calls, "n_attempts": n_attempts, "n_unknown_attempts": n_unknown, "aborted_unknown_cost": aborted,
            "budget_refused": refused, "max_tokens": calls_max_tokens,
-           "cost_usd": state.cost_so_far["cost_usd"], "b_cont": b_cont,
+           "cost_usd": state.cost_so_far["cost_usd"], "cost_measured_usd": round(measured_spent, 10), "cost_unknown_reserved_usd": round(unknown_spent, 10),
+           "attempts": attempt_log, "b_cont": b_cont,
            "models": sorted({a.model for a in state.history if a.model != "none" and "replayed_from_s0" not in a.flags}),
            "infra": bool(hidden.get("infra") or visible.get("infra")), "hidden_exposed": spec_full.get("hidden_exposed"),
            "trace_path": str(trace_path), "s0_dir": str(s0_dir), "config_hash": cfg["config_hash"]}
@@ -279,7 +303,21 @@ def run_arm(arm: str, rep: int, s0_dir: Path, spec_full: Dict[str, Any], clients
 def run_task_all_arms(task_id: str, task_prompt: str, spec_full: Dict[str, Any], clients, cfg, budget, root: Path, run_id: str, seed: int,
                       k: int, arms: Sequence[str] = ARMS) -> Dict[str, Any]:
     spec_visible = {kk: v for kk, v in spec_full.items() if kk != "hidden_tests"}
-    s0_dir, created = make_s0(task_id, task_prompt, spec_visible, clients["A"], budget, root)
+    try:
+        s0_dir, created = make_s0(task_id, task_prompt, spec_visible, clients["A"], budget, root)
+    except BudgetStop as e:                                 # L5: s0 생성 중 중단 — arm 이 아니어도 시도 기록·비용 보존 (s0/incomplete_*.json)
+        inc0 = None
+        if getattr(e, "attempts", None):
+            tot = _attempt_totals(e.attempts)
+            d = root / _safe(task_id) / "s0"; d.mkdir(parents=True, exist_ok=True)
+            inc0 = {"task_id": task_id, "arm": "s0", "rep": 0, "incomplete": True, "stop_reason": e.reason, "n_calls_done": 0, "n_attempts": len(e.attempts),
+                    "n_unknown_attempts": tot["n_unknown_attempts"], "measured_usd": 0.0, "unknown_reserved_usd": tot["unknown_reserved_usd"],
+                    "cost_usd": tot["unknown_reserved_usd"], "attempts": e.attempts, "max_tokens": [a.get("max_tokens") for a in e.attempts], "t": time.time()}
+            p0 = d / f"incomplete_{int(inc0['t'] * 1000)}.json"; p0.write_text(json.dumps(inc0, ensure_ascii=False, indent=1), encoding="utf-8")
+            inc0["path"] = str(p0); e.incomplete = inc0
+        e.partial = {"task_id": task_id, "order": [], "rows": [], "incomplete_arms": [inc0] if inc0 else [], "shared_s0_cost": 0.0, "s0_created": False,
+                     "cost_usd": 0.0, "infra": False, "line": f"BUDGET STOP ({e.reason}) at s0"}
+        raise
     ctx = json.loads((s0_dir / "prompt_context.json").read_text(encoding="utf-8"))
     order = list(ARMS)
     random.Random(f"{seed}:{task_id}").shuffle(order)      # 과제별 무작위, 반복마다 같은 순서, seed 기록
@@ -292,17 +330,27 @@ def run_task_all_arms(task_id: str, task_prompt: str, spec_full: Dict[str, Any],
             for arm in order:
                 rows.append(run_arm(arm, rep, s0_dir, spec_full, clients, cfg, budget, run_id, unknown_counter))
     except InfraStop as e:                                  # 부분 결과를 실어 위로 (저장 후 중단)
-        e.partial = {"task_id": task_id, "order": order, "rows": rows, "shared_s0_cost": ctx["build_cost_usd"], "s0_created": created,
+        e.partial = {"task_id": task_id, "order": order, "rows": rows, "shared_s0_cost": ctx["build_cost_usd"], "s0_created": created, "s0_dir": str(s0_dir),
                      "cost_usd": sum_cost(rows)["cost_usd"] if rows else 0.0, "infra": True, "line": "INFRA STOP"}
         raise
-    except BudgetStop as e:                                 # J2: 이 과제에서 이미 끝난 arm 행도 부분 결과에 포함 (원장에는 이미 있는 비용)
-        if rows:
-            e.partial = {"task_id": task_id, "order": order, "rows": rows, "shared_s0_cost": ctx["build_cost_usd"], "s0_created": created,
-                         "cost_usd": sum_cost(rows)["cost_usd"], "infra": False, "line": f"BUDGET STOP after {len(rows)} arm rows"}
+    except BudgetStop as e:                                 # J2/L5: 완료 arm 행 + 미완료 arm 의 시도 기록을 부분 결과에 (원장에는 이미 있는 비용)
+        inc = [e.incomplete] if getattr(e, "incomplete", None) else []
+        e.partial = {"task_id": task_id, "order": order, "rows": rows, "incomplete_arms": inc, "shared_s0_cost": ctx["build_cost_usd"], "s0_created": created, "s0_dir": str(s0_dir),
+                     "cost_usd": sum_cost(rows)["cost_usd"] if rows else 0.0, "infra": False,
+                     "line": f"BUDGET STOP ({e.reason}) after {len(rows)} arm rows, incomplete {[i['arm'] for i in inc]}"}
         raise
-    return {"task_id": task_id, "order": order, "rows": rows, "shared_s0_cost": ctx["build_cost_usd"], "s0_created": created,
+    return {"task_id": task_id, "order": order, "rows": rows, "shared_s0_cost": ctx["build_cost_usd"], "s0_created": created, "s0_dir": str(s0_dir),
             "cost_usd": sum_cost(rows)["cost_usd"], "infra": any(r["infra"] for r in rows),
             "line": " ".join(f"{r['arm']}r{r['rep']}={'P' if r['hidden_pass'] else r['outcome'][:1]}" for r in rows)}
+
+
+def incomplete_episodes(root: Path) -> List[Dict[str, Any]]:
+    """run 루트 아래 모든 incomplete_*.json (미완료 arm 에피소드). 완료 행(result.json)과 구분되며 분석 입력이 아니다 — 원장 대조용 (L5)."""
+    out = []
+    for p in sorted(list(root.glob("*/*/rep*/incomplete_*.json")) + list(root.glob("*/s0/incomplete_*.json"))):
+        d = json.loads(p.read_text(encoding="utf-8")); d["path"] = str(p)
+        out.append(d)
+    return out
 
 
 def summarize(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
@@ -311,7 +359,9 @@ def summarize(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
         a = [r for r in rows if r["arm"] == arm]
         if a:
             out[arm] = {"n": len(a), "hidden_pass": hidden_pass_rate(a, arm), "refused_rate": sum(r["budget_refused"] for r in a) / len(a),
-                        **{"cost_own_" + kk: v for kk, v in sum_cost(a).items()}, "n_calls_mean": sum(r["n_calls"] for r in a) / len(a),
+                        **{"cost_own_" + kk: v for kk, v in sum_cost(a).items()},
+                        "cost_measured_usd": round(sum(r.get("cost_measured_usd", 0.0) for r in a), 8), "cost_unknown_reserved_usd": round(sum(r.get("cost_unknown_reserved_usd", 0.0) for r in a), 8),
+                        "n_calls_mean": sum(r["n_calls"] for r in a) / len(a), "n_attempts_mean": sum(r.get("n_attempts", r["n_calls"]) for r in a) / len(a),
                         "models": sorted({m for r in a for m in r["models"]})}
     return out
 
@@ -361,12 +411,18 @@ def main() -> int:
         shared = {t["task_id"]: t["shared_s0_cost"] for t in task_rows}
         shared_total = None if any(v is None for v in shared.values()) else round(sum(shared.values()), 8)
         own = sum_cost(flat)
-        total = None if (own["cost_usd"] is None or shared_total is None) else round(own["cost_usd"] + shared_total, 8)
+        incomplete = incomplete_episodes(root)                # L5: 이 실행 + 이전 실행(재개)의 미완료 arm 에피소드 전부 — 파일 하나 = 에피소드 하나 (이중 계상 없음)
+        inc_usd = round(sum(i["cost_usd"] for i in incomplete), 8)
+        total = None if (own["cost_usd"] is None or shared_total is None) else round(own["cost_usd"] + shared_total + inc_usd, 8)
         out.write_text(json.dumps({"run_id": run_id, "config": cfg, "seed": args.seed, "pool": args.pool, "ids_file": args.ids,
                                    "stopped_reason": stopped, "summary": summarize(flat) if flat else {},
                                    "cost": {"arms_own_usd": own["cost_usd"], "n_unpriced": own["n_unpriced"], "shared_s0_cost_total": shared_total,
+                                            "incomplete_usd": inc_usd, "n_incomplete": len(incomplete),
+                                            "measured_usd": round(sum(r.get("cost_measured_usd", 0.0) for r in flat) + sum(i["measured_usd"] for i in incomplete), 8),
+                                            "unknown_reserved_usd": round(sum(r.get("cost_unknown_reserved_usd", 0.0) for r in flat) + sum(i["unknown_reserved_usd"] for i in incomplete), 8),
                                             "total_spent_usd": total},
-                                   "shared_s0_cost": shared, "task_order": {t["task_id"]: t["order"] for t in task_rows}, "rows": flat},
+                                   "shared_s0_cost": shared, "s0_dirs": {t["task_id"]: t.get("s0_dir") for t in task_rows},
+                                   "task_order": {t["task_id"]: t["order"] for t in task_rows}, "rows": flat, "incomplete_arms": incomplete},
                                   ensure_ascii=False, indent=1), encoding="utf-8")
         with out.with_suffix(".csv").open("w", newline="", encoding="utf-8") as f:
             w = csv.DictWriter(f, fieldnames=["task_id", "arm", "rep", "hidden_pass", "outcome", "visible_outcome", "n_calls", "budget_refused",

@@ -33,6 +33,9 @@ class BudgetStop(RuntimeError):
         super().__init__(msg)
         self.reason = reason
         self.partial = partial                            # J2: 중단 시점까지 끝난 arm 행 (run_task_all_arms 가 채움)
+        self.attempts: list = []                          # L5: 이 중단을 일으킨 호출의 시도 기록 (runloop.budgeted_generate 가 채움)
+        self.usd: float = 0.0                             # L5: 그 시도들에서 확정된 예약액 합
+        self.incomplete: Optional[Dict[str, Any]] = None  # L5: 미완료 arm 기록 (arms.run_arm 이 채움)
 
 
 class _Locked:

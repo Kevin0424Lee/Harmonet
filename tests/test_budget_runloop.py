@@ -308,3 +308,67 @@ def test_sdk_http_429_twice_then_success_gives_three_ledger_entries(tmp_path, mo
     assert hits["messages"] == 3 == st["n_calls"] and hits["count"] == 1
     assert st["unbilled_failed_calls"] == 2 and [e["actual"] for e in st["log"]][:2] == [0.0, 0.0] and st["log"][2]["actual"] == usd
     assert abs(st["spent"] - usd) < 1e-12 and abs(usd - (330 * 0 + 300 * 1.0 + 20 * 5.0) / 1e6) < 1e-12   # haiku $1/$5 per M
+
+
+# ── Week2-L1: 재시도까지 arm 별 예산 적용 ─────────────────────────────────
+from benchmark.arms import MIN_MAX_TOKENS, _max_tokens_for   # noqa: E402
+from harmonet.usage import METER                             # noqa: E402
+
+HAIKU_IN, HAIKU_OUT = 1.0 / 1e6, 5.0 / 1e6            # prices: claude-haiku-4-5 $1 / $5 per M
+
+
+class _ArmClient(_Client):
+    """timeout 을 fail_first 회 낸 뒤 성공(300/100 토큰 실측)."""
+
+    def __init__(self, fail_first=0):
+        super().__init__(); self.fail_first = fail_first
+
+    def generate_once(self, prompt, system_prompt=None):
+        self.calls += 1
+        if self.calls <= self.fail_first:
+            raise TimeoutError("read timed out")
+        METER.record(300, 100, estimated=False, role=self.role, model=self.model)
+        return "ok"
+
+
+def _arm(remaining):
+    return RL.ArmBudget(remaining, lambda r: _max_tokens_for("claude-haiku-4-5", r, 300), MIN_MAX_TOKENS, 4096)
+
+
+def test_l1_timeout_then_arm_budget_exhausted_makes_no_further_call(tmp_path, monkeypatch):
+    """코덱스 재현: arm 잔여 $0.00512, timeout → 잔여 0 → 다음 시도 max_tokens < 256 → 추가 호출 0, 귀속 $0.00512 (성공 없음, status refused_after_attempts)."""
+    monkeypatch.setattr(RL.time, "sleep", lambda s: None)
+    b = Budget(tmp_path / "budget.json", 1.0)
+    c = _ArmClient(fail_first=1)
+    arm = _arm(0.00512)
+    mt1 = min(int((0.00512 - 330 * HAIKU_IN) / HAIKU_OUT), 4096)                    # 958
+    p1 = 330 * HAIKU_IN + mt1 * HAIKU_OUT                                             # ≈ 0.00512
+    with pytest.raises(RL.CallAborted) as e:
+        RL.budgeted_generate(c, b, "p", "s", arm=arm)
+    st = b.state()
+    assert e.value.reason == "arm_budget" and c.calls == 1 and st["n_calls"] == 1
+    assert abs(e.value.usd - p1) < 1e-12 and abs(st["spent"] - p1) < 1e-12 and abs(arm.remaining_usd - (0.00512 - p1)) < 1e-12
+    assert [a["max_tokens"] for a in e.value.attempts] == [mt1] and e.value.attempts[0]["unknown_cost"] and arm.max_tokens() < MIN_MAX_TOKENS
+    # arms._call 경로: 출력 없음, usd 는 확정 예약액, 후속 호출 0
+    import benchmark.arms as A
+    c2 = _ArmClient(fail_first=1); b2 = Budget(tmp_path / "b2.json", 1.0)
+    out, cost, usd, wall, mts, status = A._call(c2, b2, "p", "s", 0.00512, "t")
+    assert status == "refused_after_attempts" and out is None and c2.calls == 1 and abs(usd - p1) < 1e-12 and cost["measured_usd"] == 0.0
+    assert abs(cost["unknown_reserved_usd"] - p1) < 1e-12 and mts[0] == mt1 and mts[1] < MIN_MAX_TOKENS
+
+
+def test_l1_timeout_with_enough_remaining_recomputes_max_tokens_and_matches_ledger(tmp_path, monkeypatch):
+    """arm 잔여 $0.03: 시도1 max_tokens 4096(상한) 예약 P1 → timeout → 잔여 −P1 → 시도2 max_tokens 재계산(작아짐) → 성공 실측 M. usd = P1 + M == 원장 spent, 실측/귀속 분리."""
+    monkeypatch.setattr(RL.time, "sleep", lambda s: None)
+    b = Budget(tmp_path / "budget.json", 1.0)
+    c = _ArmClient(fail_first=1)
+    arm = _arm(0.03)
+    out, cost, usd, wall = RL.budgeted_generate(c, b, "p", "s", arm=arm)
+    p1 = 330 * HAIKU_IN + 4096 * HAIKU_OUT
+    mt2 = int((0.03 - p1 - 330 * HAIKU_IN) / HAIKU_OUT)
+    m = 300 * HAIKU_IN + 100 * HAIKU_OUT
+    st = b.state()
+    assert [a["max_tokens"] for a in cost["attempts"]] == [4096, mt2] and mt2 < 4096
+    assert abs(cost["unknown_reserved_usd"] - p1) < 1e-12 and abs(cost["measured_usd"] - m) < 1e-12 and abs(usd - (p1 + m)) < 1e-12
+    assert abs(st["spent"] - usd) < 1e-12 and st["n_calls"] == 2 == c.calls and st["unknown_cost_calls"] == 1 and st["stopped_reason"] is None
+    assert abs(arm.remaining_usd - (0.03 - p1 - m)) < 1e-12

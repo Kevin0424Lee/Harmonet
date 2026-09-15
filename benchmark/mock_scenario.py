@@ -46,7 +46,7 @@ class ScenarioMockClient:
         self._a, self._b = role_a, role_b
         self.sc = json.loads(Path(scenario_path).read_text(encoding="utf-8"))
         self.calls: Counter = Counter()
-        self.max_tokens = 4096
+        self.max_tokens = int(os.getenv("ANTHROPIC_MAX_TOKENS", "4096"))   # 실제 클라이언트와 같은 규칙
 
     def _side(self) -> str:
         if self.model == self._a:
@@ -76,9 +76,9 @@ class ScenarioMockClient:
         # K2 재현용: HARMONET_MOCK_FAIL_SCRIPT="429,timeout,..." — 프로세스 안 첫 호출들부터 순서대로 실패시킨다 (숫자 = HTTP 응답, timeout = 응답 없음)
         fail = os.environ.get("HARMONET_MOCK_FAIL_SCRIPT")
         if fail:
-            steps = [x for x in fail.split(",") if x]
+            steps = fail.split(",")                        # 위치 = 호출 순서; "ok"/"" = 정상
             n = _FAIL_STATE["n"]; _FAIL_STATE["n"] += 1
-            if n < len(steps):
+            if n < len(steps) and steps[n] not in ("", "ok"):
                 if steps[n] == "timeout":
                     raise TimeoutError("[mock-scenario] simulated timeout")
                 raise _HttpError(int(steps[n]))

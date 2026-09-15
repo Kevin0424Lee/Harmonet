@@ -32,11 +32,22 @@ MAX_ATTEMPTS, RETRY_BASE_DELAY_S, MAX_UNKNOWN_PER_TASK = 3, 2.0, 2
 
 
 class CallAborted(RuntimeError):
-    """같은 과제에서 처리 여부 불명 실패(c)가 MAX_UNKNOWN_PER_TASK 회 — 이 arm 은 더 호출하지 않는다. usd = 확정된 예약액 합, attempts = 시도 기록."""
+    """이 arm 은 더 호출하지 않는다. reason: "unknown_cost_x2" (같은 과제에서 (c) MAX_UNKNOWN_PER_TASK 회) | "arm_budget" (arm 잔여 예산으로 최소 출력 예산 미달, L1).
+    usd = 이 호출에서 확정된 예약액 합, attempts = 시도 기록 (성공 없이 끝난 시도도 보존, L5)."""
 
-    def __init__(self, msg: str, usd: float, attempts: list):
+    def __init__(self, msg: str, usd: float, attempts: list, reason: str = "unknown_cost_x2"):
         super().__init__(msg)
-        self.usd, self.attempts = usd, attempts
+        self.usd, self.attempts, self.reason = usd, attempts, reason
+
+
+class ArmBudget:
+    """arm 별 잔여 예산 (L1): 시도 직전마다 max_tokens = max_tokens_fn(remaining) 을 다시 계산하고, (c) 시도의 예약액·성공 실측을 즉시 차감한다."""
+
+    def __init__(self, remaining_usd: float, max_tokens_fn: Callable[[float], int], min_max_tokens: int, cap_tokens: int):
+        self.remaining_usd, self.max_tokens_fn, self.min_max_tokens, self.cap_tokens = float(remaining_usd), max_tokens_fn, int(min_max_tokens), int(cap_tokens)
+
+    def max_tokens(self) -> int:
+        return min(int(self.max_tokens_fn(self.remaining_usd)), self.cap_tokens)
 
 
 def classify_failure(exc: BaseException) -> str:
@@ -61,66 +72,97 @@ def require_budget(budget: Optional[Budget]) -> None:
         raise RuntimeError("[runloop] 유료 백엔드는 예산 원장 없이 돌지 않는다 — HARMONET_BUDGET_CAP(USD) 와 HARMONET_BUDGET_ID 를 설정하라. 호출 0회.")
 
 
+def _attempt_totals(attempts: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """시도 기록 → 성공 실측 / 불명 시도의 보수적 예약 귀속 / 합계 (L1-7: 귀속액을 실측 청구액으로 표기하지 않는다)."""
+    measured = [a["usd"] for a in attempts if a["kind"] == "success"]
+    unknown = [a["usd"] for a in attempts if a["unknown_cost"]]
+    m = None if any(v is None for v in measured) else round(sum(measured), 10)
+    u = round(sum(unknown), 10)
+    return {"measured_usd": m, "unknown_reserved_usd": u, "cost_usd": None if m is None else round(m + u, 10),
+            "n_attempts": len(attempts), "n_unknown_attempts": len(unknown), "n_unbilled_failed": sum(bool(a.get("attempt_failed_unbilled")) for a in attempts)}
+
+
 def budgeted_generate(client, budget: Optional[Budget], prompt: str, system_prompt: str, role: Optional[str] = None, note: str = "",
-                      unknown_counter: Optional[Dict[str, int]] = None) -> Tuple[str, Dict[str, Any], Optional[float], int]:
+                      unknown_counter: Optional[Dict[str, int]] = None, arm: Optional[ArmBudget] = None) -> Tuple[str, Dict[str, Any], Optional[float], int]:
     """(output, cost_dict, cost_usd, wall_ms). 예약 실패면 BudgetStop — LLM 을 호출하지 않는다. role 은 기본 client.role (METER 태그).
-    cost_usd = 성공 시도 실측 + (c) 시도의 확정 예약액 (arm 비용·잔여 예산·원장이 같은 수를 본다). cost_dict["attempts"] 에 시도별 귀속 기록.
+    cost_usd = 성공 시도 실측 + (c) 시도의 확정 예약액; cost_dict 에 measured_usd / unknown_reserved_usd / attempts(시도별, max_tokens 포함) 를 따로 둔다.
+    arm(ArmBudget, L1): 모든 시도 직전에 전체 원장 **과** arm 잔여를 함께 검사 — max_tokens 를 갱신된 잔여로 다시 계산, 최소 출력 예산 미달이면 CallAborted("arm_budget").
+    어떤 중단(예약 거부·재시도 소진·치명적 오류·불명 2회·arm 예산)이든 그때까지의 시도 기록·확정 비용을 예외에 실어 보낸다 (L5).
     unknown_counter = 과제 수준 (c) 카운터({"n": k}); 없으면 이 호출만 센다."""
     role = role or getattr(client, "role", "builder")
-    max_tokens = int(getattr(client, "max_tokens", None) or os.getenv("ANTHROPIC_MAX_TOKENS", "4096"))
-    projected = 0.0
-    if budget:
-        projected = projected_cost(getattr(client, "model", None), input_tokens(client, prompt, system_prompt), max_tokens)
-    call = getattr(client, "generate_once", None) or client.generate      # 클라이언트 내부 재시도 우회 — 시도마다 원장에 남긴다 (J2)
+    call = getattr(client, "generate_once", None) or client.generate      # 클라이언트 내부 재시도 우회 — 시도마다 원장에 남긴다 (J2); SDK 재시도 0 (K2)
     unknown_counter = unknown_counter if unknown_counter is not None else {"n": 0}
     attempts: List[Dict[str, Any]] = []
-    unknown_usd = 0.0
-    for attempt in range(1, MAX_ATTEMPTS + 1):
-        if budget and not budget.reserve(projected, f"{note} (attempt {attempt})" if attempt > 1 else note):
-            raise BudgetStop(f"예산 상한: projected ${projected:.4f} 를 더하면 cap ${budget.cap} 초과 ({budget.path})", "budget")
-        before = METER.snapshot(role)
-        t0 = time.perf_counter()
-        try:
-            output = call(prompt, system_prompt=system_prompt)
-            break
-        except BaseException as exc:
-            kind = classify_failure(exc)
-            tag = f"{note} (attempt {attempt} {kind}: {type(exc).__name__} {getattr(exc, 'status_code', '')})"
-            if kind == "unknown":                         # (c) 예약액 확정, unknown_cost=True — 중단은 규칙(과제당 2회)으로
-                if budget:
-                    budget.commit(projected, None, tag, unknown_cost=True, stop=False)
-                unknown_usd += projected
-                unknown_counter["n"] += 1
-                attempts.append({"attempt": attempt, "kind": kind, "usd": projected, "unknown_cost": True, "exc": type(exc).__name__})
-                if unknown_counter["n"] >= MAX_UNKNOWN_PER_TASK:
-                    raise CallAborted(f"같은 과제에서 처리 여부 불명 실패 {unknown_counter['n']}회 — 이 arm 중단 ({exc})", unknown_usd, attempts) from exc
-            else:                                         # (b) 요금 없음 확실: actual 0, 예약 해제, 호출 수 포함
-                if budget:
-                    budget.commit(projected, 0.0, tag, attempt_failed_unbilled=True)
-                attempts.append({"attempt": attempt, "kind": kind, "usd": 0.0, "unknown_cost": False, "attempt_failed_unbilled": True,
-                                 "status": getattr(exc, "status_code", None), "exc": type(exc).__name__})
-                if kind == "unbilled_fatal":
-                    raise BudgetStop(f"호출 실패(HTTP {getattr(exc, 'status_code', '?')}, 요금 없음) — 재시도 없이 중단: {exc}", "call_failed") from exc
-            if attempt < MAX_ATTEMPTS:
-                delay = RETRY_BASE_DELAY_S * 2 ** (attempt - 1)
-                print(f"[runloop] 재시도 {attempt}/{MAX_ATTEMPTS} ({kind}, {delay:.0f}s): {str(exc)[:80]}", flush=True)
-                time.sleep(delay)
-                continue
-            raise BudgetStop(f"호출 {MAX_ATTEMPTS}회 전부 실패 ({kind}) — 중단: {exc}", "call_failed" if kind != "unknown" else "unknown_cost") from exc
-    wall = int((time.perf_counter() - t0) * 1000)
-    cost = meter_delta(before, METER.snapshot(role), wall_ms=wall)
-    measured = cost_usd(model_used(role, client), cost)[0]
-    attempts.append({"attempt": len(attempts) + 1, "kind": "success", "usd": measured, "unknown_cost": False})
-    cost["attempts"] = attempts
-    cost["n_unknown_attempts"] = sum(a["unknown_cost"] for a in attempts)
-    cost["unknown_reserved_usd"] = round(unknown_usd, 10)
-    cost["llm_calls"] = len(attempts)                     # HTTP 시도 수 == 원장 건수
-    usd = None if measured is None else round(measured + unknown_usd, 10)
-    if budget:
-        st = budget.commit(projected, measured, note)
-        if st["stopped_reason"] == "cap_exceeded_post":
-            raise BudgetStop(f"커밋 후 spent ${st['spent']:.4f} > cap ${st['cap']} — 중단 (사후 장치)", "cap_exceeded_post")
-    return output or "", cost, usd, wall
+    n_in = input_tokens(client, prompt, system_prompt) if budget else 0
+    old_mt = getattr(client, "max_tokens", None)
+
+    def _stop(msg: str, reason: str, cause: BaseException = None):
+        e = BudgetStop(msg, reason)
+        e.attempts, e.usd = attempts, _attempt_totals(attempts)["unknown_reserved_usd"]
+        if cause is not None:
+            e.__cause__ = cause
+        return e
+
+    try:
+        for attempt in range(1, MAX_ATTEMPTS + 1):
+            if arm is not None:                               # L1: arm 잔여로 max_tokens 재계산, 미달이면 추가 호출 없음
+                mt = arm.max_tokens()
+                if mt < arm.min_max_tokens:
+                    raise CallAborted(f"arm 잔여 ${arm.remaining_usd:.5f} 로 max_tokens={mt} < {arm.min_max_tokens} — 추가 호출 없음", _attempt_totals(attempts)["unknown_reserved_usd"],
+                                      attempts, reason="arm_budget")
+                client.max_tokens = mt
+            else:
+                mt = int(getattr(client, "max_tokens", None) or os.getenv("ANTHROPIC_MAX_TOKENS", "4096"))
+            projected = projected_cost(getattr(client, "model", None), n_in, mt) if budget else 0.0
+            if budget and not budget.reserve(projected, f"{note} (attempt {attempt})" if attempt > 1 else note):
+                raise _stop(f"예산 상한(전체 원장): projected ${projected:.4f} 를 더하면 cap ${budget.cap} 초과 ({budget.path})", "budget")
+            before = METER.snapshot(role)
+            t0 = time.perf_counter()
+            try:
+                output = call(prompt, system_prompt=system_prompt)
+            except BaseException as exc:
+                kind = classify_failure(exc)
+                tag = f"{note} (attempt {attempt} {kind}: {type(exc).__name__} {getattr(exc, 'status_code', '')})"
+                if kind == "unknown":                         # (c) 예약액 확정, unknown_cost=True — arm 잔여에도 즉시 반영 (L1-2)
+                    if budget:
+                        budget.commit(projected, None, tag, unknown_cost=True, stop=False)
+                    if arm is not None:
+                        arm.remaining_usd -= projected
+                    unknown_counter["n"] += 1
+                    attempts.append({"attempt": attempt, "kind": kind, "usd": projected, "unknown_cost": True, "max_tokens": mt, "exc": type(exc).__name__})
+                    if unknown_counter["n"] >= MAX_UNKNOWN_PER_TASK:
+                        raise CallAborted(f"같은 과제에서 처리 여부 불명 실패 {unknown_counter['n']}회 — 이 arm 중단 ({exc})",
+                                          _attempt_totals(attempts)["unknown_reserved_usd"], attempts, reason="unknown_cost_x2") from exc
+                else:                                         # (b) 요금 없음 확실: actual 0, 예약 해제, 호출 수 포함
+                    if budget:
+                        budget.commit(projected, 0.0, tag, attempt_failed_unbilled=True)
+                    attempts.append({"attempt": attempt, "kind": kind, "usd": 0.0, "unknown_cost": False, "attempt_failed_unbilled": True, "max_tokens": mt,
+                                     "status": getattr(exc, "status_code", None), "exc": type(exc).__name__})
+                    if kind == "unbilled_fatal":
+                        raise _stop(f"호출 실패(HTTP {getattr(exc, 'status_code', '?')}, 요금 없음) — 재시도 없이 중단: {exc}", "call_failed", exc)
+                if attempt < MAX_ATTEMPTS:
+                    delay = RETRY_BASE_DELAY_S * 2 ** (attempt - 1)
+                    print(f"[runloop] 재시도 {attempt}/{MAX_ATTEMPTS} ({kind}, {delay:.0f}s): {str(exc)[:80]}", flush=True)
+                    time.sleep(delay)
+                    continue
+                raise _stop(f"호출 {MAX_ATTEMPTS}회 전부 실패 ({kind}) — 중단: {exc}", "call_failed" if kind != "unknown" else "unknown_cost", exc)
+            wall = int((time.perf_counter() - t0) * 1000)
+            cost = meter_delta(before, METER.snapshot(role), wall_ms=wall)
+            measured = cost_usd(model_used(role, client), cost)[0]
+            attempts.append({"attempt": attempt, "kind": "success", "usd": measured, "unknown_cost": False, "max_tokens": mt})
+            tot = _attempt_totals(attempts)
+            cost.update({"attempts": attempts, "n_unknown_attempts": tot["n_unknown_attempts"], "unknown_reserved_usd": tot["unknown_reserved_usd"],
+                         "measured_usd": measured, "llm_calls": len(attempts)})     # HTTP 시도 수 == 원장 건수
+            if arm is not None and measured is not None:
+                arm.remaining_usd -= measured
+            if budget:
+                st = budget.commit(projected, measured, note)
+                if st["stopped_reason"] == "cap_exceeded_post":
+                    raise _stop(f"커밋 후 spent ${st['spent']:.4f} > cap ${st['cap']} — 중단 (사후 장치)", "cap_exceeded_post")
+            return output or "", cost, tot["cost_usd"], wall
+    finally:
+        if old_mt is not None:
+            client.max_tokens = old_mt
 
 
 def input_tokens(client, prompt: str, system_prompt: Optional[str]) -> int:
@@ -146,7 +188,7 @@ def run_loop(ids: List[str], run_task: Callable[[str], Dict[str, Any]], write: C
             r = run_task(tid)
         except BudgetStop as e:
             stopped = e.reason                            # budget | cap_exceeded_post | unknown_cost | call_failed
-            if getattr(e, "partial", None):               # J2: 현재 과제에서 이미 끝난 arm 행은 부분 결과에 포함
+            if getattr(e, "partial", None):               # J2/L5: 현재 과제에서 이미 끝난 arm 행 + 미완료 arm 의 시도 기록을 부분 결과에 포함
                 rows.append(e.partial)
             print(f"[{label}] {k}/{len(ids)} {tid}: {e}", flush=True)
             break
