@@ -2,6 +2,17 @@
  "stage": "explore",
  "mode": "mock-scenario",
  "run_id": "pilot_explore",
+ "effective_env": {
+  "HARMONET_BCB_IMAGE": "bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405",
+  "HARMONET_BCB_TIMEOUT_S": "241.0",
+  "HARMONET_BCB_MARGIN_S": "90",
+  "ANTHROPIC_MAX_TOKENS": "4096",
+  "ANTHROPIC_TEMPERATURE": "0.2",
+  "HARMONET_BUDGET_CAP": "16.0",
+  "HARMONET_BUDGET_ID": "pilot_v4",
+  "HARMONET_MODEL_BUILDER": "claude-haiku-4-5",
+  "HARMONET_MODEL_REVIEWER": "claude-sonnet-4-6"
+ },
  "n_tasks": 4,
  "pool_gate": {
   "best_arm": "B-expert",
@@ -295,8 +306,8 @@
   "note": "진단 — 귀무 '특징 ⟂ 결과' ≠ '정책 이득 ≤ 0'"
  },
  "frozen": {
-  "path": "C:\\Users\\User\\AppData\\Local\\Temp\\pilot_w0ryy78t\\arms\\pilot_explore\\frozen_policy.json",
-  "sha256": "d0d8c6159a4a5d6b3231b09e610f890c2e958c34605b99680ad81f10cd78ab32",
+  "path": "C:\\Users\\User\\AppData\\Local\\Temp\\pilot_c600ilak\\arms\\pilot_explore\\frozen_policy.json",
+  "sha256": "5f9b609c5b6aa445978ba83e5e6c89bbeab5d2b53e28fa74a4336d029d4ec562",
   "a_hat": "B-expert",
   "lambda": 0.3,
   "lambda_pre": 0.3,
@@ -328,5 +339,5 @@
   "check": "ledger == prior + round0 + Σ arms_own + s0_built_here + incomplete"
  },
  "stopped_reason": null,
- "elapsed_s": 492
+ "elapsed_s": 510
 }

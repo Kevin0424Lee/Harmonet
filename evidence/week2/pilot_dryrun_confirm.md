@@ -1,5 +1,6 @@
-# 파일럿 보고 — confirm (mock-scenario, run_id=pilot_confirm, N=2, 118s)
+# 파일럿 보고 — confirm (mock-scenario, run_id=pilot_confirm, N=2, 119s)
 
+- 실효 설정(env, 단일 출처 = pilot_config_v4.json): {"HARMONET_BCB_IMAGE": "bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405", "HARMONET_BCB_TIMEOUT_S": "241.0", "HARMONET_BCB_MARGIN_S": "90", "ANTHROPIC_MAX_TOKENS": "4096", "ANTHROPIC_TEMPERATURE": "0.2", "HARMONET_BUDGET_CAP": "16.0", "HARMONET_BUDGET_ID": "pilot_v4", "HARMONET_MODEL_BUILDER": "claude-haiku-4-5", "HARMONET_MODEL_REVIEWER": "claude-sonnet-4-6"}
 ## 판정: **미확인** — 평균 d = +50.0pp (b=1, c=0, McNemar 단측 p=0.5000, CI95 [0.0, 100.0]); 정확 McNemar 단측 p < 0.05 ∧ 평균 d ≥ 0.10 (양의 이득 증거 + 점추정의 실용 문턱; '≥10% 입증' 아님)
 - 부차: post−pre +50.0pp (p 0.500); P2-pre vs â +0.0pp; P1 vs â +50.0pp; oracle(기술) 50.0pp
 - 정책 선택 분포: T 0%, A-self 0%, A-selfxk 0%, A-role 50%, B-expert 50%, B-solo 0%; arm 만: 정책 $0.0058 / 고정 $0.0087; 배포(정책 = arm + s0 $0.0029): 정책 $0.0087 / 고정 B-expert $0.0116(+s0) (과제당)

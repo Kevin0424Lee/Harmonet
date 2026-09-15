@@ -1,9 +1,10 @@
-# 파일럿 보고 — explore (mock-scenario, run_id=pilot_explore, N=4, 492s)
+# 파일럿 보고 — explore (mock-scenario, run_id=pilot_explore, N=4, 510s)
 
+- 실효 설정(env, 단일 출처 = pilot_config_v4.json): {"HARMONET_BCB_IMAGE": "bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405", "HARMONET_BCB_TIMEOUT_S": "241.0", "HARMONET_BCB_MARGIN_S": "90", "ANTHROPIC_MAX_TOKENS": "4096", "ANTHROPIC_TEMPERATURE": "0.2", "HARMONET_BUDGET_CAP": "16.0", "HARMONET_BUDGET_ID": "pilot_v4", "HARMONET_MODEL_BUILDER": "claude-haiku-4-5", "HARMONET_MODEL_REVIEWER": "claude-sonnet-4-6"}
 - 풀 관문: 최고 arm B-expert 75.0% (문턱 80%) → **진행**
 - 0회차: b_cont $0.0087, a_call_median $0.0029 (n=2)
 - 탐색 CV(모델 선택용): λ*=0.3, 특징 18열, P2-post +25.0pp CI [0.0, 0.3333333333333333], P2-pre +25.0pp, P1 +0.0pp; 순열 p(진단) 0.849
-- 동결: â=B-expert, sha256 d0d8c6159a4a, 커밋 해시 (동결 커밋 뒤 PREREG 에 기입)
+- 동결: â=B-expert, sha256 5f9b609c5b6a, 커밋 해시 (동결 커밋 뒤 PREREG 에 기입)
 - 뒤집힘: {"A-self": {"n_cells": 2, "flip_rate": 0.0}, "B-expert": {"n_cells": 2, "flip_rate": 0.0}}
 
 | arm | 히든 성공률 | 거부율 | arm 단독 $ | 호출 수 평균 |

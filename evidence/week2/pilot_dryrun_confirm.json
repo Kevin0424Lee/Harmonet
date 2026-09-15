@@ -2,8 +2,19 @@
  "stage": "confirm",
  "mode": "mock-scenario",
  "run_id": "pilot_confirm",
+ "effective_env": {
+  "HARMONET_BCB_IMAGE": "bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405",
+  "HARMONET_BCB_TIMEOUT_S": "241.0",
+  "HARMONET_BCB_MARGIN_S": "90",
+  "ANTHROPIC_MAX_TOKENS": "4096",
+  "ANTHROPIC_TEMPERATURE": "0.2",
+  "HARMONET_BUDGET_CAP": "16.0",
+  "HARMONET_BUDGET_ID": "pilot_v4",
+  "HARMONET_MODEL_BUILDER": "claude-haiku-4-5",
+  "HARMONET_MODEL_REVIEWER": "claude-sonnet-4-6"
+ },
  "n_tasks": 2,
- "frozen_hash": "d0d8c6159a4a5d6b3231b09e610f890c2e958c34605b99680ad81f10cd78ab32",
+ "frozen_hash": "5f9b609c5b6aa445978ba83e5e6c89bbeab5d2b53e28fa74a4336d029d4ec562",
  "primary": {
   "n": 2,
   "mean_d": 0.5,
@@ -149,7 +160,7 @@
   "fixed_deploy_usd_per_task": 0.0116,
   "fixed_arm": "B-expert",
   "fixed_deploy_includes_s0": true,
-  "visible_verify_wall_ms_per_task": 3684.5,
+  "visible_verify_wall_ms_per_task": 3830.0,
   "n_unpriced": 0,
   "note": "policy_deploy = 선택 arm + s0 (post 정책은 B-solo 를 골라도 s0 를 이미 지불); fixed_deploy = 고정 arm + s0 (고정 B-solo 만 자기 호출); 실험 총지출은 cost(원장); 가시 검증은 wall_ms"
  },
@@ -179,5 +190,5 @@
   "check": "ledger == prior + round0 + Σ arms_own + s0_built_here + incomplete"
  },
  "stopped_reason": null,
- "elapsed_s": 118
+ "elapsed_s": 119
 }
