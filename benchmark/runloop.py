@@ -31,13 +31,25 @@ EXIT_STOPPED = 2
 MAX_ATTEMPTS, RETRY_BASE_DELAY_S, MAX_UNKNOWN_PER_TASK = 3, 2.0, 2
 
 
+def _attempt_totals(attempts: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """시도 기록 → 성공 실측 / 불명 시도의 보수적 예약 귀속 / 합계 (L1-7: 귀속액을 실측 청구액으로 표기하지 않는다)."""
+    measured = [a["usd"] for a in attempts if a["kind"] == "success"]
+    unknown = [a["usd"] for a in attempts if a["unknown_cost"]]
+    m = None if any(v is None for v in measured) else round(sum(measured), 10)
+    u = round(sum(unknown), 10)
+    return {"measured_usd": m, "unknown_reserved_usd": u, "cost_usd": None if m is None else round(m + u, 10),
+            "n_attempts": len(attempts), "n_unknown_attempts": len(unknown), "n_unbilled_failed": sum(bool(a.get("attempt_failed_unbilled")) for a in attempts)}
+
+
 class CallAborted(RuntimeError):
     """이 arm 은 더 호출하지 않는다. reason: "unknown_cost_x2" (같은 과제에서 (c) MAX_UNKNOWN_PER_TASK 회) | "arm_budget" (arm 잔여 예산으로 최소 출력 예산 미달, L1).
     usd = 이 호출에서 확정된 예약액 합, attempts = 시도 기록 (성공 없이 끝난 시도도 보존, L5)."""
 
     def __init__(self, msg: str, usd: float, attempts: list, reason: str = "unknown_cost_x2"):
         super().__init__(msg)
-        self.usd, self.attempts, self.reason = usd, attempts, reason
+        self.attempts, self.reason = attempts, reason
+        tot = _attempt_totals(attempts)                     # M3: 예외 비용은 공통 집계 — cost_usd = 실측 + 불명 예약 귀속 (usd 인자는 호환용, 집계값이 우선)
+        self.usd, self.measured_usd, self.unknown_reserved_usd = tot["cost_usd"], tot["measured_usd"], tot["unknown_reserved_usd"]
 
 
 class ArmBudget:
@@ -72,16 +84,6 @@ def require_budget(budget: Optional[Budget]) -> None:
         raise RuntimeError("[runloop] 유료 백엔드는 예산 원장 없이 돌지 않는다 — HARMONET_BUDGET_CAP(USD) 와 HARMONET_BUDGET_ID 를 설정하라. 호출 0회.")
 
 
-def _attempt_totals(attempts: List[Dict[str, Any]]) -> Dict[str, Any]:
-    """시도 기록 → 성공 실측 / 불명 시도의 보수적 예약 귀속 / 합계 (L1-7: 귀속액을 실측 청구액으로 표기하지 않는다)."""
-    measured = [a["usd"] for a in attempts if a["kind"] == "success"]
-    unknown = [a["usd"] for a in attempts if a["unknown_cost"]]
-    m = None if any(v is None for v in measured) else round(sum(measured), 10)
-    u = round(sum(unknown), 10)
-    return {"measured_usd": m, "unknown_reserved_usd": u, "cost_usd": None if m is None else round(m + u, 10),
-            "n_attempts": len(attempts), "n_unknown_attempts": len(unknown), "n_unbilled_failed": sum(bool(a.get("attempt_failed_unbilled")) for a in attempts)}
-
-
 def budgeted_generate(client, budget: Optional[Budget], prompt: str, system_prompt: str, role: Optional[str] = None, note: str = "",
                       unknown_counter: Optional[Dict[str, int]] = None, arm: Optional[ArmBudget] = None) -> Tuple[str, Dict[str, Any], Optional[float], int]:
     """(output, cost_dict, cost_usd, wall_ms). 예약 실패면 BudgetStop — LLM 을 호출하지 않는다. role 은 기본 client.role (METER 태그).
@@ -98,7 +100,8 @@ def budgeted_generate(client, budget: Optional[Budget], prompt: str, system_prom
 
     def _stop(msg: str, reason: str, cause: BaseException = None):
         e = BudgetStop(msg, reason)
-        e.attempts, e.usd = attempts, _attempt_totals(attempts)["unknown_reserved_usd"]
+        tot = _attempt_totals(attempts)                     # M3: cap_exceeded_post 처럼 성공 실측이 이미 확정된 뒤의 중단도 실측을 잃지 않는다
+        e.attempts, e.usd, e.measured_usd, e.unknown_reserved_usd = attempts, tot["cost_usd"], tot["measured_usd"], tot["unknown_reserved_usd"]
         if cause is not None:
             e.__cause__ = cause
         return e

@@ -110,11 +110,12 @@ def spend_report(env: dict, outs: list, round0_usd: float, prior_usd: float = 0.
                 s0_hist += c or 0.0
     n_unpriced = sum(v is None for v in cells.values())
     inc = {i["path"]: i for o in outs for i in o.get("incomplete_arms", [])}          # L5: 미완료 arm 에피소드 (경로로 유일 — 이중 계상 없음)
-    inc_usd = round(sum(i["cost_usd"] for i in inc.values()), 10)
+    _sum = lambda vals: (None if any(v is None for v in vals) else round(sum(vals), 10))   # M3: None 은 0 이 아니다
+    inc_usd = _sum([i["cost_usd"] for i in inc.values()])
     by_cell = {(r["task_id"], r["arm"], r["rep"]): r for o in outs for r in o["rows"]}   # 실측/귀속도 셀 중복 제거 (뒤집힘 실행의 rep1 재사용)
-    measured = round(sum((r.get("cost_measured_usd") or 0.0) for r in by_cell.values()) + sum(i["measured_usd"] for i in inc.values()), 10)
-    unknown = round(sum((r.get("cost_unknown_reserved_usd") or 0.0) for r in by_cell.values()) + sum(i["unknown_reserved_usd"] for i in inc.values()), 10)
-    expected = None if (own is None or s0_here is None) else prior_usd + round0_usd + own + s0_here + inc_usd
+    measured = _sum([r.get("cost_measured_usd", 0.0) for r in by_cell.values()] + [i["measured_usd"] for i in inc.values()])
+    unknown = _sum([r.get("cost_unknown_reserved_usd", 0.0) for r in by_cell.values()] + [i["unknown_reserved_usd"] for i in inc.values()])
+    expected = None if (own is None or s0_here is None or inc_usd is None) else prior_usd + round0_usd + own + s0_here + inc_usd
     if expected is not None and abs(expected - led["spent"]) > 1e-6:
         raise RuntimeError(f"[pilot] 보고서 총지출 {expected:.8f} != 원장 총지출 {led['spent']:.8f} (prior {prior_usd}, round0 {round0_usd}, arm {own}, s0 {s0_here}, incomplete {inc_usd})")
     rep = {"total_spent_usd": led["spent"], "source": "ledger", "ledger": {"cap": led["cap"], "spent": led["spent"], "n_calls": led["n_calls"], "stopped_reason": led["stopped_reason"],

@@ -206,3 +206,22 @@ def test_l5_incomplete_arm_recorded_and_ledger_matches(tmp_path):
     d2 = _run(tmp_path, "l5", k=1, cap="0.022", arms="B-expert", extra_env={"ANTHROPIC_MAX_TOKENS": "1024"}, expect_rc=2)
     led2 = json.loads((tmp_path / "budget" / "l5" / "budget.json").read_text(encoding="utf-8"))
     assert len(d2["incomplete_arms"]) == 2 and abs(d2["cost"]["total_spent_usd"] - led2["spent"]) < 1e-9 and led2["spent"] == led["spent"]
+
+
+# ── Week2-M3: arm/s0 미완료 기록도 실측을 잃지 않는다 (cap_exceeded_post) ────────
+def test_m3_cap_exceeded_post_incomplete_records_match_ledger(tmp_path):
+    """max_tokens 256 이라 실측(완성 500 토큰) > 예약. cap 0.010: s0(sonnet) 실측 $0.0135 > cap → s0 미완료 기록 measured 0.0135 == 원장.
+    cap 0.016: s0 뒤 B-expert 실측 $0.0045(1000/700 토큰) 로 초과 → arm 미완료 기록 measured 0.0045, 원장 == s0 + incomplete."""
+    import pilot_dryrun as PD
+    d = _run(tmp_path, "m3s0", k=1, cap="0.010", arms="B-expert", extra_env={"ANTHROPIC_MAX_TOKENS": "256"}, expect_rc=2)
+    led = json.loads((tmp_path / "budget" / "m3s0" / "budget.json").read_text(encoding="utf-8"))
+    inc = d["incomplete_arms"][0]
+    assert d["stopped_reason"] == "cap_exceeded_post" and inc["arm"] == "s0" and abs(inc["measured_usd"] - 0.0135) < 1e-9 and inc["unknown_reserved_usd"] == 0.0
+    assert abs(inc["cost_usd"] - led["spent"]) < 1e-9 and abs(d["cost"]["total_spent_usd"] - led["spent"]) < 1e-9 and d["rows"] == []
+    d2 = _run(tmp_path, "m3arm", k=1, cap="0.016", arms="B-expert", extra_env={"ANTHROPIC_MAX_TOKENS": "256"}, expect_rc=2)
+    led2 = json.loads((tmp_path / "budget" / "m3arm" / "budget.json").read_text(encoding="utf-8"))
+    inc2 = d2["incomplete_arms"][0]
+    assert inc2["arm"] == "B-expert" and inc2["stop_reason"] == "cap_exceeded_post" and abs(inc2["measured_usd"] - 0.0045) < 1e-9 and inc2["cost_usd"] == inc2["measured_usd"]
+    assert abs(led2["spent"] - (d2["cost"]["shared_s0_cost_total"] + inc2["cost_usd"])) < 1e-9
+    rep = PD.spend_report({"HARMONET_BUDGET_ROOT": str(tmp_path / "budget"), "HARMONET_BUDGET_ID": "m3arm"}, [d2], 0.0)
+    assert abs(rep["arms_measured_usd"] - 0.0045) < 1e-9 and rep["arms_unknown_reserved_usd"] == 0.0 and rep["total_spent_usd"] == led2["spent"]

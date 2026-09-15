@@ -202,8 +202,10 @@ def run_arm(arm: str, rep: int, s0_dir: Path, spec_full: Dict[str, Any], clients
     def _book(cost, usd):
         nonlocal spent, remaining, n_attempts, n_unknown, measured_spent, unknown_spent
         n_attempts += int(cost.get("llm_calls", 0)); n_unknown += int(cost.get("n_unknown_attempts", 0))   # 모든 시도를 arm 호출 수·비용에 반영 (K2)
-        measured_spent += cost.get("measured_usd") or 0.0; unknown_spent += cost.get("unknown_reserved_usd") or 0.0
-        spent += usd or 0.0
+        m = cost.get("measured_usd")
+        measured_spent = None if (m is None and cost.get("llm_calls", 0)) or measured_spent is None else measured_spent + (m or 0.0)   # M3: None 은 0 이 아니다
+        unknown_spent += cost.get("unknown_reserved_usd") or 0.0
+        spent = None if (usd is None or spent is None) else spent + usd
         remaining -= usd or 0.0
         attempt_log.extend(cost.get("attempts", []))
 
@@ -211,7 +213,7 @@ def run_arm(arm: str, rep: int, s0_dir: Path, spec_full: Dict[str, Any], clients
         nonlocal artifact, visible, n_calls, refused, aborted
         try:
             out, cost, usd, wall, mts, status = _call(client, budget, prompt, system, remaining, note, unknown_counter)
-        except BudgetStop as e:                           # L5: 성공 없이 끝난 시도도 arm 장부에 남긴 뒤 위로
+        except BudgetStop as e:                           # L5/M3: 성공 없이 끝난 시도(또는 성공 확정 뒤 cap 초과)도 arm 장부에 남긴 뒤 위로 — 같은 집계 함수
             _book({**_attempt_totals(e.attempts), "llm_calls": len(e.attempts), "attempts": e.attempts}, e.usd)
             raise
         calls_max_tokens.extend(mts)
@@ -271,8 +273,9 @@ def run_arm(arm: str, rep: int, s0_dir: Path, spec_full: Dict[str, Any], clients
             raise ValueError(arm)
     except BudgetStop as e:                               # L5: 미완료 arm — 완료 행과 구분해 기록, result.json 은 쓰지 않는다(재개 시 재실행)
         inc = {"task_id": task_id, "arm": arm, "rep": rep, "incomplete": True, "stop_reason": e.reason, "n_calls_done": n_calls, "n_attempts": n_attempts,
-               "n_unknown_attempts": n_unknown, "measured_usd": round(measured_spent, 10), "unknown_reserved_usd": round(unknown_spent, 10),
-               "cost_usd": round(spent, 10), "attempts": attempt_log, "max_tokens": calls_max_tokens, "b_cont": b_cont, "config_hash": cfg["config_hash"],
+               "n_unknown_attempts": n_unknown, "measured_usd": None if measured_spent is None else round(measured_spent, 10),
+               "unknown_reserved_usd": round(unknown_spent, 10), "cost_usd": None if spent is None else round(spent, 10),
+               "attempts": attempt_log, "max_tokens": calls_max_tokens, "b_cont": b_cont, "config_hash": cfg["config_hash"],
                "s0_dir": str(s0_dir), "t": time.time()}
         inc_path = arm_dir / f"incomplete_{int(inc['t'] * 1000)}.json"
         inc_path.write_text(json.dumps(inc, ensure_ascii=False, indent=1), encoding="utf-8")
@@ -282,7 +285,7 @@ def run_arm(arm: str, rep: int, s0_dir: Path, spec_full: Dict[str, Any], clients
     state.artifact = artifact
     state.verification = visible
     state.record("terminate", arm, "none", NO_COST, f"{arm} rep{rep}: n_calls={n_calls} attempts={n_attempts} unknown={n_unknown} refused={refused} aborted={aborted} "
-                 f"spent=${spent:.5f} (measured ${measured_spent:.5f} + unknown_reserved ${unknown_spent:.5f})")
+                 f"spent={spent} (measured {measured_spent} + unknown_reserved {unknown_spent:.5f})")
     hidden = score_hidden(artifact, spec_full)              # 종료 후에만
     state.set_score(hidden)
     trace_path = state.save(f"{run_id}/rep{rep}")
@@ -291,7 +294,8 @@ def run_arm(arm: str, rep: int, s0_dir: Path, spec_full: Dict[str, Any], clients
            "outcome": hidden["outcome"], "hidden_level": hidden["level"], "hidden_sandbox": hidden["sandbox"], "hidden_exec_count": hidden["exec_count"],
            "visible_outcome": visible["outcome"], "n_calls": n_calls, "n_attempts": n_attempts, "n_unknown_attempts": n_unknown, "aborted_unknown_cost": aborted,
            "budget_refused": refused, "max_tokens": calls_max_tokens,
-           "cost_usd": state.cost_so_far["cost_usd"], "cost_measured_usd": round(measured_spent, 10), "cost_unknown_reserved_usd": round(unknown_spent, 10),
+           "cost_usd": state.cost_so_far["cost_usd"], "cost_measured_usd": None if measured_spent is None else round(measured_spent, 10),
+           "cost_unknown_reserved_usd": round(unknown_spent, 10),
            "attempts": attempt_log, "b_cont": b_cont,
            "models": sorted({a.model for a in state.history if a.model != "none" and "replayed_from_s0" not in a.flags}),
            "infra": bool(hidden.get("infra") or visible.get("infra")), "hidden_exposed": spec_full.get("hidden_exposed"),
@@ -311,8 +315,8 @@ def run_task_all_arms(task_id: str, task_prompt: str, spec_full: Dict[str, Any],
             tot = _attempt_totals(e.attempts)
             d = root / _safe(task_id) / "s0"; d.mkdir(parents=True, exist_ok=True)
             inc0 = {"task_id": task_id, "arm": "s0", "rep": 0, "incomplete": True, "stop_reason": e.reason, "n_calls_done": 0, "n_attempts": len(e.attempts),
-                    "n_unknown_attempts": tot["n_unknown_attempts"], "measured_usd": 0.0, "unknown_reserved_usd": tot["unknown_reserved_usd"],
-                    "cost_usd": tot["unknown_reserved_usd"], "attempts": e.attempts, "max_tokens": [a.get("max_tokens") for a in e.attempts], "t": time.time()}
+                    "n_unknown_attempts": tot["n_unknown_attempts"], "measured_usd": tot["measured_usd"], "unknown_reserved_usd": tot["unknown_reserved_usd"],
+                    "cost_usd": tot["cost_usd"], "attempts": e.attempts, "max_tokens": [a.get("max_tokens") for a in e.attempts], "t": time.time()}
             p0 = d / f"incomplete_{int(inc0['t'] * 1000)}.json"; p0.write_text(json.dumps(inc0, ensure_ascii=False, indent=1), encoding="utf-8")
             inc0["path"] = str(p0); e.incomplete = inc0
         e.partial = {"task_id": task_id, "order": [], "rows": [], "incomplete_arms": [inc0] if inc0 else [], "shared_s0_cost": 0.0, "s0_created": False,
@@ -344,6 +348,12 @@ def run_task_all_arms(task_id: str, task_prompt: str, spec_full: Dict[str, Any],
             "line": " ".join(f"{r['arm']}r{r['rep']}={'P' if r['hidden_pass'] else r['outcome'][:1]}" for r in rows)}
 
 
+def _sum_or_none(vals) -> Optional[float]:
+    """None(실측 미상)이 하나라도 있으면 합계도 None — 조용히 0 으로 바꾸지 않는다 (M3)."""
+    vals = list(vals)
+    return None if any(v is None for v in vals) else round(sum(vals), 10)
+
+
 def incomplete_episodes(root: Path) -> List[Dict[str, Any]]:
     """run 루트 아래 모든 incomplete_*.json (미완료 arm 에피소드). 완료 행(result.json)과 구분되며 분석 입력이 아니다 — 원장 대조용 (L5)."""
     out = []
@@ -360,7 +370,7 @@ def summarize(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
         if a:
             out[arm] = {"n": len(a), "hidden_pass": hidden_pass_rate(a, arm), "refused_rate": sum(r["budget_refused"] for r in a) / len(a),
                         **{"cost_own_" + kk: v for kk, v in sum_cost(a).items()},
-                        "cost_measured_usd": round(sum(r.get("cost_measured_usd", 0.0) for r in a), 8), "cost_unknown_reserved_usd": round(sum(r.get("cost_unknown_reserved_usd", 0.0) for r in a), 8),
+                        "cost_measured_usd": _sum_or_none(r.get("cost_measured_usd", 0.0) for r in a), "cost_unknown_reserved_usd": _sum_or_none(r.get("cost_unknown_reserved_usd", 0.0) for r in a),
                         "n_calls_mean": sum(r["n_calls"] for r in a) / len(a), "n_attempts_mean": sum(r.get("n_attempts", r["n_calls"]) for r in a) / len(a),
                         "models": sorted({m for r in a for m in r["models"]})}
     return out
@@ -412,14 +422,14 @@ def main() -> int:
         shared_total = None if any(v is None for v in shared.values()) else round(sum(shared.values()), 8)
         own = sum_cost(flat)
         incomplete = incomplete_episodes(root)                # L5: 이 실행 + 이전 실행(재개)의 미완료 arm 에피소드 전부 — 파일 하나 = 에피소드 하나 (이중 계상 없음)
-        inc_usd = round(sum(i["cost_usd"] for i in incomplete), 8)
-        total = None if (own["cost_usd"] is None or shared_total is None) else round(own["cost_usd"] + shared_total + inc_usd, 8)
+        inc_usd = _sum_or_none(i["cost_usd"] for i in incomplete)
+        total = None if (own["cost_usd"] is None or shared_total is None or inc_usd is None) else round(own["cost_usd"] + shared_total + inc_usd, 8)
         out.write_text(json.dumps({"run_id": run_id, "config": cfg, "seed": args.seed, "pool": args.pool, "ids_file": args.ids,
                                    "stopped_reason": stopped, "summary": summarize(flat) if flat else {},
                                    "cost": {"arms_own_usd": own["cost_usd"], "n_unpriced": own["n_unpriced"], "shared_s0_cost_total": shared_total,
                                             "incomplete_usd": inc_usd, "n_incomplete": len(incomplete),
-                                            "measured_usd": round(sum(r.get("cost_measured_usd", 0.0) for r in flat) + sum(i["measured_usd"] for i in incomplete), 8),
-                                            "unknown_reserved_usd": round(sum(r.get("cost_unknown_reserved_usd", 0.0) for r in flat) + sum(i["unknown_reserved_usd"] for i in incomplete), 8),
+                                            "measured_usd": _sum_or_none([r.get("cost_measured_usd", 0.0) for r in flat] + [i["measured_usd"] for i in incomplete]),
+                                            "unknown_reserved_usd": _sum_or_none([r.get("cost_unknown_reserved_usd", 0.0) for r in flat] + [i["unknown_reserved_usd"] for i in incomplete]),
                                             "total_spent_usd": total},
                                    "shared_s0_cost": shared, "s0_dirs": {t["task_id"]: t.get("s0_dir") for t in task_rows},
                                    "task_order": {t["task_id"]: t["order"] for t in task_rows}, "rows": flat, "incomplete_arms": incomplete},

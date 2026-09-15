@@ -422,3 +422,37 @@ def test_l5_two_unknown_failures_abort_with_records(tmp_path, monkeypatch):
         RL.budgeted_generate(c, b, "p", "s", arm=_arm(0.5))
     assert e.value.reason == "unknown_cost_x2" and len(e.value.attempts) == 2 and c.calls == 2 and _ledger_matches(b, e.value.attempts)
     assert abs(e.value.usd - sum(a["usd"] for a in e.value.attempts)) < 1e-12 and b.state()["unknown_cost_calls"] == 2
+
+
+# ── Week2-M3: 성공 응답 이후 cap 초과 — 실측 비용을 예외에 보존 ─────────────
+def test_m3_cap_exceeded_post_keeps_measured_cost_in_exception(tmp_path, monkeypatch):
+    """코덱스 경계조건: 예약 $0.02, 실측 $0.02628 > cap $0.025 → cap_exceeded_post. 예외 usd == 실측 == 원장 spent (이전엔 usd 0)."""
+    _fixed_cost(monkeypatch, 0.02, actual=0.02628)
+    b = Budget(tmp_path / "budget.json", 0.025); c = _Client()
+    with pytest.raises(BudgetStop) as e:
+        RL.budgeted_generate(c, b, "p", "s")
+    st = b.state()
+    assert e.value.reason == "cap_exceeded_post" and c.calls == 1 and st["n_calls"] == 1
+    assert abs(e.value.usd - 0.02628) < 1e-12 and abs(e.value.measured_usd - 0.02628) < 1e-12 and e.value.unknown_reserved_usd == 0.0
+    assert abs(st["spent"] - e.value.usd) < 1e-12 and [a["kind"] for a in e.value.attempts] == ["success"]
+    # timeout → 성공(실측 큰 값) → cap 초과: 실측 + 불명 귀속 둘 다 보존
+    monkeypatch.setattr(RL.time, "sleep", lambda s: None)
+    b2 = Budget(tmp_path / "b2.json", 0.045); c2 = _Client()
+    calls = {"n": 0}
+
+    def gen(prompt, system_prompt=None):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            raise TimeoutError("t")
+        return "ok"
+    c2.generate_once = gen
+    with pytest.raises(BudgetStop) as e2:
+        RL.budgeted_generate(c2, b2, "p", "s")
+    assert e2.value.reason == "cap_exceeded_post" and abs(e2.value.usd - (0.02 + 0.02628)) < 1e-12
+    assert abs(e2.value.measured_usd - 0.02628) < 1e-12 and abs(e2.value.unknown_reserved_usd - 0.02) < 1e-12 and abs(b2.state()["spent"] - e2.value.usd) < 1e-12
+    assert RL._attempt_totals(e2.value.attempts)["cost_usd"] == e2.value.usd
+
+
+def test_m3_none_measured_is_not_zero():
+    tot = RL._attempt_totals([{"attempt": 1, "kind": "unknown", "usd": 0.01, "unknown_cost": True}, {"attempt": 2, "kind": "success", "usd": None, "unknown_cost": False}])
+    assert tot["measured_usd"] is None and tot["cost_usd"] is None and tot["unknown_reserved_usd"] == 0.01

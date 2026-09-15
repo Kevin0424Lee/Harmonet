@@ -34,7 +34,9 @@ class BudgetStop(RuntimeError):
         self.reason = reason
         self.partial = partial                            # J2: 중단 시점까지 끝난 arm 행 (run_task_all_arms 가 채움)
         self.attempts: list = []                          # L5: 이 중단을 일으킨 호출의 시도 기록 (runloop.budgeted_generate 가 채움)
-        self.usd: float = 0.0                             # L5: 그 시도들에서 확정된 예약액 합
+        self.usd: Optional[float] = 0.0                   # L5/M3: 그 시도들의 비용 합 = 실측 + 불명 예약 귀속 (None = 실측 미상)
+        self.measured_usd: Optional[float] = 0.0          # M3: 성공 시도 실측 합
+        self.unknown_reserved_usd: float = 0.0            # M3: 불명 시도의 보수적 예약 귀속 합
         self.incomplete: Optional[Dict[str, Any]] = None  # L5: 미완료 arm 기록 (arms.run_arm 이 채움)
 
 
