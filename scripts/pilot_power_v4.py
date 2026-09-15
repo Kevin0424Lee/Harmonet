@@ -87,17 +87,13 @@ def spec_for(m: dict, n_feat: int):
     return {"num": NUM5 + (["difficulty"] if m["difficulty"] else []) + [f"noise_{j}" for j in range(n_noise)], "cat": CAT2}
 
 
-def fit_policy(g_ex: dict, menu: dict, rows_ex, fcfg: dict, seed: int, R: int):
-    """탐색 절차 그대로 (K4 = pilot_dryrun.explore_stage 와 같은 규칙): 메뉴에서 특징 선택(≤ max_selected) → λ 메뉴 CV 선택 → P2-post 학습 → â = 탐색 최고 arm.
-    반환 (apply, a_hat, lambda*, subset, cv gains)."""
-    subset = G.select_features(g_ex["feats"], g_ex["Y"], menu, fcfg["lambda_default"], fcfg["max_selected"])
-    cv = {}
-    for lam in fcfg["lambda_menu"]:
-        cv[lam] = G.policy_gain(rows_ex, "P2", n_perm=0, n_boot=0, seed=seed, spec=subset, with_ci=False, R=R, lam=lam)["gain"]
-    lam_star = max(fcfg["lambda_menu"], key=lambda l: cv[l])
-    model = G.fit_p2(g_ex["feats"], g_ex["Y"], subset, lam=lam_star)
-    a_hat = int(np.argmax(g_ex["Y"].mean(axis=0)))
-    return (lambda feats: G.apply_p2(model, feats)), a_hat, lam_star, subset, cv
+def fit_policy(g_ex: dict, menu: dict, rows_ex, fcfg: dict, seed: int, R: int = None):
+    """탐색 절차 = gap_analysis.explore_fit (실행기 pilot_dryrun.tune_policy 와 **같은 함수**, L3): nested CV 로 λ 선택 → 탐색 전체에서 특징 선택 → 재적합.
+    K·R·λ 메뉴·특징 상한은 fcfg(설정 파일)에서. 반환 (apply, a_hat, lambda*, subset, cv gains). R 인자는 호환용 — 무시하고 설정값을 쓴다."""
+    Y, C, feats, tasks = G.policy_tensor(rows_ex)                  # 실행기와 같은 입력 경로(rows → policy_tensor) — 행 순서까지 같아야 계수가 비트 단위로 같다
+    fit = G.explore_fit(rows_ex, feats, Y, menu, fcfg, seed)
+    a_hat = int(np.argmax(Y.mean(axis=0)))
+    return (lambda feats: G.apply_p2(fit["model"], feats)), a_hat, fit["lambda"], fit["subset"], {k: v["gain"] for k, v in fit["cv"].items()}
 
 
 def _cell(args):
@@ -137,7 +133,8 @@ def summarize(res):
         n = len(rs)
         has_b = key[0] != "null_b"
         cells.append({"mode": key[0], "n_feat": key[1], "seeds": n, "pass": PG.fmt_rate(sum(r["pass"] for r in rs), n),
-                      "pass_ignoring_gate": PG.fmt_rate(sum(r["pass_ignoring_gate"] for r in rs), n), "gate_hold": sum(r["gate_hold"] for r in rs), "p_lt_05": sum(r["p"] < 0.05 for r in rs),
+                      "pass_ignoring_gate": PG.fmt_rate(sum(r["pass_ignoring_gate"] for r in rs), n), "gate_hold": sum(r["gate_hold"] for r in rs),
+                      "pass_given_gate_passed": PG.fmt_rate(sum(r["pass"] for r in rs if not r["gate_hold"]), n - sum(r["gate_hold"] for r in rs)) if n > sum(r["gate_hold"] for r in rs) else "—", "p_lt_05": sum(r["p"] < 0.05 for r in rs),
                       "mean_d": float(np.mean([r["mean_d"] for r in rs])), "truth": float(np.mean([r["truth"] for r in rs])),
                       "bias": float(np.mean([r["bias"] for r in rs])), "bias_sd": float(np.std([r["bias"] for r in rs], ddof=1)),
                       "bayes": float(np.nanmean([r["bayes"] for r in rs])) if has_b else None,
@@ -156,8 +153,10 @@ def by_truth_bin(res):
         rs = [r for r in res if lo <= r["truth"] < hi]
         n = len(rs)
         label = "< 0pp" if lo < 0 else (f"≥ {100 * lo:.0f}pp" if hi >= 1 else f"[{100 * lo:.0f}, {100 * hi:.0f})pp")
-        out.append({"bin": label, "n": n, "pass": PG.fmt_rate(sum(r["pass"] for r in rs), n) if n else "—",
-                    "pass_ignoring_gate": PG.fmt_rate(sum(r["pass_ignoring_gate"] for r in rs), n) if n else "—", "gate_hold": sum(r["gate_hold"] for r in rs),
+        ng = n - sum(r["gate_hold"] for r in rs)
+        cnt = lambda x, d: f"{x}/{d} ({100 * x / d:.0f}%)" if d else "—"       # 합산 행은 같은 seed 기저를 f 마다 재사용 → 독립 이항 시행이 아니다: 건수·비율만, CI 없음 (L6)
+        out.append({"bin": label, "n": n, "pass": cnt(sum(r["pass"] for r in rs), n), "pass_ignoring_gate": cnt(sum(r["pass_ignoring_gate"] for r in rs), n),
+                    "pass_given_gate_passed": cnt(sum(r["pass"] for r in rs if not r["gate_hold"]), ng), "gate_hold": sum(r["gate_hold"] for r in rs),
                     "mean_d": float(np.mean([r["mean_d"] for r in rs])) if n else None, "truth": float(np.mean([r["truth"] for r in rs])) if n else None,
                     "bias": float(np.mean([r["bias"] for r in rs])) if n else None})
     return out
@@ -169,7 +168,7 @@ def main() -> int:
     ap.add_argument("--null-seeds", type=int, default=60, help="귀무 셀은 더 많이 — '≤ 8%' 를 정확 이항 구간으로 보려면 0/20 [0,17] 로는 부족")
     ap.add_argument("--workers", type=int, default=14)
     ap.add_argument("--out", required=True)
-    ap.add_argument("--R", type=int, default=5, help="λ 선택 CV 의 셔플 수 (설정 기본 20 은 느려서 합성에선 5)")
+    ap.add_argument("--R", type=int, default=None, help="(L3) 무시 — K·R 은 설정 파일 features.cv 에서 읽는다")
     args = ap.parse_args()
     t0 = time.time()
     calib = {}
@@ -181,6 +180,7 @@ def main() -> int:
     M = modes(calib)
     cfg = json.loads((Path(__file__).resolve().parent.parent / "evidence" / "week2" / "pilot_config_v4.json").read_text(encoding="utf-8"))
     fcfg, gate_thr = cfg["features"], cfg["pool"]["gate"]["threshold"]
+    args.R = fcfg["cv"]["R"]
     jobs = [(name, m, f, i, fcfg, args.R, gate_thr) for name, m in M.items() for f in FEATS for i in range(args.null_seeds if name.startswith("null") else args.seeds)]
     with Pool(args.workers) as pool:
         res = pool.map(_cell, jobs, chunksize=2)
@@ -191,29 +191,32 @@ def main() -> int:
                       "max_selected": fcfg["max_selected"], "lambda_menu": fcfg["lambda_menu"], "gate_threshold": gate_thr, "cv_R": args.R},
            "cells": cells, "by_truth_bin": bins, "raw": res, "elapsed_s": round(time.time() - t0)}
     Path(args.out + ".json").write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
-    md = ["# 설계 v4 전체 절차 검정력·귀무 크기·편향 분해 (합성, Week2-K4)", "",
-          f"탐색 {N_EXPLORE}: 특징 메뉴(정보 5 + 잡음, 메뉴 크기 f) → select_features(≤{fcfg['max_selected']}) → λ ∈ {fcfg['lambda_menu']} CV(K5×R{args.R}) 선택 → P2-post 학습 → "
+    md = ["# 설계 v4 전체 절차 검정력·귀무 크기·편향 분해 (합성, Week2-L3/L6 — 현행 사전 등록 절차)", "",
+          f"탐색 {N_EXPLORE}: 특징 메뉴(정보 5 + 잡음, 메뉴 크기 f) → **nested CV**(겹 안 select_features ≤{fcfg['max_selected']}, K{fcfg['cv']['K']}×R{fcfg['cv']['R']}) 로 λ ∈ {fcfg['lambda_menu']} 선택 → "
+          f"탐색 전체에서 특징 선택 → 재적합 (gap_analysis.explore_fit, 실행기와 같은 함수) → "
           f"â = 탐색 최고 arm; 풀 관문 최고 arm ≤ {gate_thr:.0%} (초과 → 보류 = 통과 아님). 확인 {N_CONFIRM}: 대응 McNemar 단측 p<0.05 ∧ 평균 d ≥ 10pp. "
           f"seed {args.seeds} (귀무 {args.null_seeds}), 정확 이항 95% 구간. '통과' = **해당 조건에서 관측된 통과율**. ρ 축 없음(k=1).", "",
-          "## 결과 축 = 학습된 정책의 참 이득 (π̂ − â, N=5000) 구간 — 생성 조건과 무관하게 모음", "",
-          "| 참 이득 구간 | n | 통과 (관문 포함) | 통과 (관문 무시) | 관문 보류 | 평균 d(200) | 참 이득 평균 | 편향 |", "|---|---|---|---|---|---|---|---|"]
+          "## 결과 축 = 학습된 정책의 참 이득 (π̂ − â, N=5000 몬테카를로 근사) 구간 — 생성 조건과 무관하게 모음 (기술적 건수·비율; f 별로 같은 seed 기저를 재사용하므로 독립 시행이 아니다 → CI 없음)", "",
+          "| 참 이득 구간 | n | (a) 전체 절차 통과 | (b) 관문 제거 절차 통과 | (c) 관문 통과 복제 한정 확인 판정 통과 | 관문 보류 | 평균 d(200) | 참 이득 평균 | 편향 |", "|---|---|---|---|---|---|---|---|---|"]
     fmt = lambda v: "" if v is None else f"{100 * v:+.1f}pp"
     for b in bins:
-        md.append(f"| {b['bin']} | {b['n']} | {b['pass']} | {b['pass_ignoring_gate']} | {b['gate_hold']} | {fmt(b['mean_d'])} | {fmt(b['truth'])} | {fmt(b['bias'])} |")
-    md += ["", "## 생성 조건별 (베이즈 목표값은 조건 열)", "",
-           "| 모드 | 메뉴 f | 통과 (관문 포함) | 통과 (관문 무시) | 관문 보류 | p<.05 | 평균 d | 참 이득(π̂−â) | 편향 (sd) | 베이즈−참최선 | 정책 학습 손실 | 고정 선택 손실 | λ* 분포 | 선택 열 수 | â 분포 |",
-           "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
+        md.append(f"| {b['bin']} | {b['n']} | {b['pass']} | {b['pass_ignoring_gate']} | {b['pass_given_gate_passed']} | {b['gate_hold']} | {fmt(b['mean_d'])} | {fmt(b['truth'])} | {fmt(b['bias'])} |")
+    md += ["", "## 생성 조건별 (조건마다 독립 seed → 정확 이항 95% 구간; 베이즈 목표값은 조건 열)", "",
+           "| 모드 | 메뉴 f | (a) 전체 절차 통과 | (b) 관문 제거 통과 | (c) 관문 통과 한정 통과 | 관문 보류 | p<.05 | 평균 d | 참 이득(π̂−â) | 편향 (sd) | 베이즈−참최선 | 정책 학습 손실 | 고정 선택 손실 | λ* 분포 | 선택 열 수 | â 분포 |",
+           "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
     for c in cells:
         bay = "—" if c["bayes"] is None else f"{100 * c['bayes']:.1f}pp"
         lp = "—" if c["loss_policy"] is None else f"{100 * c['loss_policy']:+.1f}pp"
-        md.append(f"| {c['mode']} | {c['n_feat']} | {c['pass']} | {c['pass_ignoring_gate']} | {c['gate_hold']} | {c['p_lt_05']} | {100 * c['mean_d']:+.1f}pp | {100 * c['truth']:+.1f}pp | "
+        md.append(f"| {c['mode']} | {c['n_feat']} | {c['pass']} | {c['pass_ignoring_gate']} | {c['pass_given_gate_passed']} | {c['gate_hold']} | {c['p_lt_05']} | {100 * c['mean_d']:+.1f}pp | {100 * c['truth']:+.1f}pp | "
                   f"{100 * c['bias']:+.1f} ({100 * c['bias_sd']:.1f}) | {bay} | {lp} | {100 * c['loss_fixed']:+.1f}pp | {c['lambda_dist']} | {c['n_selected_mean']:.1f} | {c['a_hat_dist']} |")
     md += ["", "손실 분해 (K4 기준선 통일): 정책 학습 손실 = (베이즈 − 참 최선 고정) − (학습 정책 − 참 최선 고정); 고정 선택 손실 = 참 최선 고정 − 탐색 선택 고정 â. "
            "참 이득(π̂ − â) = (베이즈 − 참최선) − 정책 학습 손실 + 고정 선택 손실.",
            "보정: " + "; ".join(f"{k}: Δ={v['delta']:.3f}, BETA={v['beta']}, 베이즈 {100 * v['bayes_check']:.1f}pp" for k, v in calib.items()),
            "귀무 (b) 의 베이즈 열은 '—': v3 우도가 난도 대리를 모른다. 최선 arm 불변은 참 이득 ≈ 0 과 â 분포로 본다.",
-           "풀 관문: 합성 생성기(BETA 기저)의 최고 arm 성공률이 ≈ 80% 근처라 대부분의 복제가 '보류' 다 — 이는 생성기 기저의 성질이지 실제 풀(프로브 B-solo 75%)에 대한 진술이 아니다. "
-           "그래서 '관문 무시' 열을 같이 둔다: 관문을 지난 뒤의 판정 성질은 그 열로 읽는다.", f"소요 {out['elapsed_s']}s"]
+           "풀 관문: 합성 생성기(BETA 기저)의 최고 arm 성공률이 ≈ 80% 근처라 많은 복제가 '보류' 다 — 생성기 기저의 성질이지 실제 풀(프로브 B-solo 75%)에 대한 진술이 아니다. "
+           "세 양의 구분(L6): (a) 전체 절차 통과율 = 관문 보류를 '통과 아님'으로 센 것; (b) 관문 제거 절차의 통과율 = 관문이 없다고 가정한 절차의 통과율(관문 통과 후의 조건부 결과가 아니다); "
+           "(c) 관문을 통과한 복제에 한정한 확인 판정 통과율 = 조건부 결과. 참 기대 이득(truth·베이즈)은 N=5000 표본의 몬테카를로 근사다.",
+           f"소요 {out['elapsed_s']}s"]
     Path(args.out + ".md").write_text("\n".join(md) + "\n", encoding="utf-8")
     print("\n".join(md))
     return 0

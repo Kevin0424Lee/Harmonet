@@ -294,21 +294,21 @@ def _cv_gain(Y: np.ndarray, C: np.ndarray, feats, X: np.ndarray, learner: str, r
 
 def _null_chunk(args):
     """워커: 특징 순열 seed 목록 → 귀무 통계량 (병렬용, picklable 인자만)."""
-    Y, C, feats, X, learner, R, n_num, cv_seed, perm_seeds, lam, nested = args
+    Y, C, feats, X, learner, R, n_num, cv_seed, perm_seeds, lam, nested, K = args
     out = []
     for ps in perm_seeds:
         p = np.random.default_rng(ps).permutation(len(feats))
-        out.append(_cv_gain(Y, C, [feats[i] for i in p], X[p], learner, np.random.default_rng(cv_seed), R=R, n_num=n_num, lam=lam, nested=nested)[0])
+        out.append(_cv_gain(Y, C, [feats[i] for i in p], X[p], learner, np.random.default_rng(cv_seed), K=K, R=R, n_num=n_num, lam=lam, nested=nested)[0])
     return out
 
 
 def _boot_chunk(args):
-    Y, C, feats, X, learner, R, n_num, boot_seeds, lam, nested = args
+    Y, C, feats, X, learner, R, n_num, boot_seeds, lam, nested, K = args
     out = []
     for bs in boot_seeds:
         rng = np.random.default_rng(bs)
         idx = rng.integers(0, len(feats), len(feats))
-        out.append(_cv_gain(Y[idx], C[idx], [feats[i] for i in idx], X[idx], learner, rng, R=R, n_num=n_num, groups=idx, lam=lam, nested=nested)[0])   # 원본 id 로 겹 나눔
+        out.append(_cv_gain(Y[idx], C[idx], [feats[i] for i in idx], X[idx], learner, rng, K=K, R=R, n_num=n_num, groups=idx, lam=lam, nested=nested)[0])   # 원본 id 로 겹 나눔
     return out
 
 
@@ -322,8 +322,8 @@ def _parallel(fn, jobs, workers: int):
 
 def policy_gain(rows: Sequence[Dict[str, Any]], learner: str = "P1", n_perm: int = 2000, n_boot: int = 1000, seed: int = 0,
                 with_ci: bool = True, R: int = CV_R, spec: Optional[Dict[str, List[str]]] = None, workers: int = 1, lam: float = P2_LAMBDA,
-                nested_max_selected: Optional[int] = None) -> Dict[str, Any]:
-    """nested_max_selected 가 있으면 spec 을 **메뉴**로 보고 겹 안에서 특징을 선택한다 (K5 nested CV)."""
+                nested_max_selected: Optional[int] = None, K: int = CV_K) -> Dict[str, Any]:
+    """nested_max_selected 가 있으면 spec 을 **메뉴**로 보고 겹 안에서 특징을 선택한다 (K5 nested CV). K·R 은 설정 파일에서 넘긴다 (L3)."""
     if learner not in ("P1", "P2"):
         raise ValueError(learner)
     nested = {"menu": spec or DEFAULT_SPEC, "max_selected": nested_max_selected} if nested_max_selected else None
@@ -332,11 +332,11 @@ def policy_gain(rows: Sequence[Dict[str, Any]], learner: str = "P1", n_perm: int
     Y, C, feats, tasks = policy_tensor(rows)
     X, cats = design_matrix(feats, spec=spec)
     picks: list = []
-    obs, cpol, cfix = _cv_gain(Y, C, feats, X, learner, np.random.default_rng(seed + 1), R=R, n_num=n_num, picks_out=picks, lam=lam, nested=nested)
+    obs, cpol, cfix = _cv_gain(Y, C, feats, X, learner, np.random.default_rng(seed + 1), K=K, R=R, n_num=n_num, picks_out=picks, lam=lam, nested=nested)
     # 특징 순열(결과 고정). 순열 seed 는 (seed, b) 로 결정적 → 워커 수와 무관하게 같은 결과
     perm_seeds = [seed * 100_003 + 7 + b for b in range(n_perm)]
     chunks = max(1, workers * 4)
-    jobs = [(Y, C, feats, X, learner, R, n_num, seed + 1, perm_seeds[i::chunks], lam, nested) for i in range(chunks)]
+    jobs = [(Y, C, feats, X, learner, R, n_num, seed + 1, perm_seeds[i::chunks], lam, nested, K) for i in range(chunks)]
     null = np.array(_parallel(_null_chunk, jobs, workers)) if n_perm > 0 else np.array([])
     pval = float((int((null >= obs).sum()) + 1) / (len(null) + 1)) if n_perm > 0 else None   # (count+1)/(B+1), 진단용; n_perm=0 → 없음
     pick_dist = {ARMS[a]: 0 for a in range(len(ARMS))}
@@ -345,13 +345,13 @@ def policy_gain(rows: Sequence[Dict[str, Any]], learner: str = "P1", n_perm: int
     tot = max(1, len(picks))
     pick_dist = {k: v / tot for k, v in pick_dist.items()}
     out = {"learner": learner, "n_tasks": len(tasks), "gain": obs, "p_value": pval, "null_mean": float(null.mean()) if n_perm > 0 else None,
-           "cost_policy_usd": cpol, "cost_fixed_usd": cfix, "n_unpriced": int(np.isnan(C).sum()), "n_perm": n_perm, "cv": {"K": CV_K, "R": R}, "lambda": lam,
+           "cost_policy_usd": cpol, "cost_fixed_usd": cfix, "n_unpriced": int(np.isnan(C).sum()), "n_perm": n_perm, "cv": {"K": K, "R": R}, "lambda": lam,
            "features": spec, "nested_selection": nested is not None, "pick_dist": pick_dist,
            "diag_R2": ("통과" if (pval < 0.05 and obs >= 0.10) else "미확인") if pval is not None else None,
            "rule": "진단 전용 — 특징 순열 p 는 '특징 ⟂ 결과' 의 검정이지 '정책 이득 ≤ 0' 의 검정이 아니다 (J). 판정은 PREREG v4 의 대응 McNemar"}
     if with_ci and n_boot > 0:                              # 과제 부트스트랩, 복제마다 CV 전체 재수행
         boot_seeds = [seed * 100_003 + 500_000 + b for b in range(n_boot)]
-        jobs = [(Y, C, feats, X, learner, R, n_num, boot_seeds[i::chunks], lam, nested) for i in range(chunks)]
+        jobs = [(Y, C, feats, X, learner, R, n_num, boot_seeds[i::chunks], lam, nested, K) for i in range(chunks)]
         vals = np.array(_parallel(_boot_chunk, jobs, workers))
         valid = vals[~np.isnan(vals)]                       # 극소 N 의 복제는 평가 가능한 겹이 없어 NaN (실제 N=100 에선 없음)
         out["ci95"] = [float(np.quantile(valid, 0.025)), float(np.quantile(valid, 0.975))] if len(valid) else None
@@ -398,6 +398,23 @@ def select_features(feats: Sequence[Dict[str, Any]], Y: np.ndarray, spec: Dict[s
     score = np.abs(np.array(m["beta"])[:, 1:1 + len(spec["num"])]).mean(axis=0)
     top = sorted(np.argsort(-score)[:keep_num].tolist())
     return {"num": [spec["num"][i] for i in top], "cat": list(spec["cat"])}
+
+
+# ── Week2-L3: 탐색 절차 (실행기 pilot_dryrun 과 시뮬레이터 pilot_power_v4 가 같은 함수를 호출) ──────────
+def explore_fit(rows: Sequence[Dict[str, Any]], feats: Sequence[Dict[str, Any]], Y: np.ndarray, menu: Dict[str, List[str]], fcfg: Dict[str, Any], seed: int,
+                workers: int = 1, n_perm: int = 0, n_boot: int = 0) -> Dict[str, Any]:
+    """사전 등록 탐색 절차 (PREREG v4 §3): (1) λ ∈ fcfg["lambda_menu"] 마다 nested CV(겹 안에서 select_features ≤ max_selected, 학습 겹으로만 표준화·범주 결정,
+    K=fcfg["cv"]["K"], R=fcfg["cv"]["R"]) → CV 이득 최대 λ* (동점은 메뉴 앞) (2) 동결용 부분집합 = 탐색 전체에서 select_features 1회 (3) 탐색 전체 재적합 fit_p2.
+    n_perm/n_boot 은 진단·CI 용(λ 선택에 영향 없음). 반환 {"cv": {λ: policy_gain 결과}, "lambda": λ*, "subset": spec, "model": fit_p2 모델, "n_features"}."""
+    cv = {}
+    for lam in fcfg["lambda_menu"]:
+        cv[str(lam)] = policy_gain(rows, "P2", n_perm=n_perm, n_boot=n_boot, seed=seed, spec=menu, workers=workers, K=fcfg["cv"]["K"], R=fcfg["cv"]["R"],
+                                   lam=float(lam), nested_max_selected=fcfg["max_selected"], with_ci=n_boot > 0)
+    lam_star = float(max(fcfg["lambda_menu"], key=lambda l: cv[str(l)]["gain"]))       # max 는 첫 최대값을 돌려준다 → 동점은 메뉴 앞
+    subset = select_features(feats, Y, menu, lam_star, fcfg["max_selected"])
+    model = fit_p2(feats, Y, subset, lam_star)
+    return {"cv": cv, "lambda": lam_star, "subset": subset, "model": model, "n_features": len(subset["num"]) + len(subset["cat"]),
+            "procedure": "nested-select-in-fold CV for λ → select on full explore → refit on full explore (PREREG v4 §3, L3 공통 함수)"}
 
 
 # ── Week2-J: 확인 단계 판정 (PREREG v4 §4) — 학습 없음 ─────────────────────────

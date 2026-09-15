@@ -205,6 +205,11 @@ def round0(ids: list, n: int, env: dict, tmp: Path, arms_root: Path, run_id: str
     return r0
 
 
+def tune_policy(rows, feats, Y, menu: dict, fcfg: dict, seed: int, workers: int = 1, n_perm: int = 0, n_boot: int = 0) -> dict:
+    """탐색 절차 = gap_analysis.explore_fit 그대로 (시뮬레이터 pilot_power_v4.fit_policy 와 같은 함수, L3)."""
+    return G.explore_fit(rows, feats, Y, menu, fcfg, seed, workers=workers, n_perm=n_perm, n_boot=n_boot)
+
+
 def explore_stage(args, cfg: dict, ids: dict, env: dict, tmp: Path, arms_root: Path, out_prefix: Path) -> dict:
     t0 = time.time()
     run_id = cfg["run_ids"]["explore"]
@@ -226,21 +231,16 @@ def explore_stage(args, cfg: dict, ids: dict, env: dict, tmp: Path, arms_root: P
     # 탐색에서만 (K5): nested CV — 겹 안에서 메뉴(≤ max_selected) 특징 선택, λ 는 메뉴에서 CV 로; P2-pre 는 자기 메뉴에서 따로 선택 (post 것을 물려받지 않음)
     fcfg = cfg["features"]
 
-    def tune(menu, learner="P2"):
-        cv = {}
-        for lam in fcfg["lambda_menu"]:
-            r = G.policy_gain(rows, learner, n_perm=args.n_perm, n_boot=args.n_boot, seed=cfg["sets"]["seed"], spec=menu, workers=args.workers, R=fcfg["cv"]["R"],
-                              lam=lam, nested_max_selected=fcfg["max_selected"])
-            cv[str(lam)] = {"gain": r["gain"], "ci95": r.get("ci95"), "diag_perm_p": r["p_value"], "pick_dist": r["pick_dist"], "nested": r["nested_selection"]}
-        lam_star = float(max(fcfg["lambda_menu"], key=lambda l: cv[str(l)]["gain"]))
-        subset = G.select_features(feats, Y, menu, lam_star, fcfg["max_selected"])      # 동결용 부분집합은 탐색 전체에서 1회 (CV 수치는 nested 라 이 선택을 포함)
-        return cv, lam_star, subset
-    cv, lam_star, subset = tune(FEATURE_SPECS["post"])
-    cv_pre, lam_pre, pre_spec = tune(FEATURE_SPECS["pre"])
+    def tune(menu):                                     # L3: 실행기·시뮬레이터 공통 함수 (gap_analysis.explore_fit); 여기서만 진단 순열·CI 를 덧붙인다
+        fit = tune_policy(rows, feats, Y, menu, fcfg, cfg["sets"]["seed"], args.workers, args.n_perm, args.n_boot)
+        cv = {k: {"gain": r["gain"], "ci95": r.get("ci95"), "diag_perm_p": r["p_value"], "pick_dist": r["pick_dist"], "nested": r["nested_selection"]} for k, r in fit["cv"].items()}
+        return cv, fit["lambda"], fit["subset"], fit["model"]
+    cv, lam_star, subset, model_post = tune(FEATURE_SPECS["post"])
+    cv_pre, lam_pre, pre_spec, model_pre = tune(FEATURE_SPECS["pre"])            # P2-pre: 자기 메뉴·자기 튜닝 (K5)
     r_pre = cv_pre[str(lam_pre)]
-    r_p1 = G.policy_gain(rows, "P1", n_perm=args.n_perm, n_boot=0, seed=cfg["sets"]["seed"], spec=subset, workers=args.workers, R=fcfg["cv"]["R"], with_ci=False)
+    r_p1 = G.policy_gain(rows, "P1", n_perm=args.n_perm, n_boot=0, seed=cfg["sets"]["seed"], spec=subset, workers=args.workers, K=fcfg["cv"]["K"], R=fcfg["cv"]["R"], with_ci=False)
     frozen = {"version": "v4", "config_sha256": checks["config_sha256"], "features_version": FEATURES_VERSION, "feature_subset": subset, "pre_subset": pre_spec,
-              "lambda": lam_star, "lambda_pre": lam_pre, "p2_post": G.fit_p2(feats, Y, subset, lam_star), "p2_pre": G.fit_p2(feats, Y, pre_spec, lam_pre), "p1": G.fit_p1(feats, Y, best),
+              "lambda": lam_star, "lambda_pre": lam_pre, "p2_post": model_post, "p2_pre": model_pre, "p1": G.fit_p1(feats, Y, best),
               "a_hat": G.ARMS[best], "a_hat_idx": best, "b_cont": r0["b_cont"], "a_call_median": r0["a_call_median"], "seed": cfg["sets"]["seed"],
               "n_explore": len(tasks), "explore_ids": tasks, "pool_gate": gate}
     fz = arms_root / run_id / "frozen_policy.json"
