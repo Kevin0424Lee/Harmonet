@@ -297,7 +297,9 @@ def confirm_stage(args, cfg: dict, ids: dict, confirm_ids: list, env: dict, tmp:
 
 
 def deploy_cost(rows, tasks, C, pick, a_hat) -> dict:
-    """K5 두 관점: (1) 실험 총지출은 cost/원장. (2) 배포 비용 = 선택 arm 비용 + 상태 취득 비용(s0 $ + 가시 검증; B-solo 는 s0 를 안 쓰므로 자기 호출만).
+    """세 비용 관점 (K5 → L4): (1) 실험 총지출 = cost(원장). (2) arm 자체 비용 = 선택 arm 의 호출 비용만. (3) 정책 배포 비용 = 선택 arm 비용 + s0 취득 비용 —
+    post 정책은 상태를 생성·검증한 **뒤** 고르므로 선택 arm 이 B-solo 여도 s0 비용을 이미 지불했다(제외하지 않는다, L4).
+    고정 전략 배포 비용은 별도 관점: 고정 B-solo 는 처음부터 B-solo 만 실행하므로 s0 없이 자기 호출만; 다른 고정 arm 은 s0 + arm.
     가시 검증 $ 는 0 (로컬 docker) — wall_ms 로 따로 보고. None 은 미측정 (nanmean 금지)."""
     ti = {t: i for i, t in enumerate(tasks)}
     s0 = np.full(len(tasks), np.nan); wall = np.zeros(len(tasks))
@@ -305,13 +307,15 @@ def deploy_cost(rows, tasks, C, pick, a_hat) -> dict:
         s0[ti[r["task_id"]]] = np.nan if r["s0_cost_usd"] is None else float(r["s0_cost_usd"]); wall[ti[r["task_id"]]] = r["s0_verify_wall_ms"]
     bsolo = G.ARMS.index("B-solo")
     n = len(tasks)
-    state_pol = np.where(pick == bsolo, 0.0, s0); state_fix = np.zeros(n) if a_hat == bsolo else s0
+    state_fix = np.zeros(n) if a_hat == bsolo else s0
     cp, cf = C[np.arange(n), pick], C[:, a_hat]
     m = lambda x: None if np.isnan(x).any() else float(np.mean(x))
     return {"policy_usd_per_task": m(cp), "fixed_usd_per_task": m(cf), "state_acquisition_usd_per_task": m(s0),
-            "policy_deploy_usd_per_task": m(cp + state_pol), "fixed_deploy_usd_per_task": m(cf + state_fix),
+            "policy_deploy_usd_per_task": m(cp + s0), "fixed_deploy_usd_per_task": m(cf + state_fix),
+            "fixed_arm": G.ARMS[a_hat], "fixed_deploy_includes_s0": bool(a_hat != bsolo),
             "visible_verify_wall_ms_per_task": float(wall.mean()), "n_unpriced": int(np.isnan(C).sum()) + int(np.isnan(s0).sum()),
-            "note": "배포 비용 = arm + 상태 취득(s0 + 가시 검증, B-solo 제외); 실험 총지출은 cost(원장)"}
+            "note": "policy_deploy = 선택 arm + s0 (post 정책은 B-solo 를 골라도 s0 를 이미 지불); fixed_deploy = 고정 arm + s0 (고정 B-solo 만 자기 호출); "
+                    "실험 총지출은 cost(원장); 가시 검증은 wall_ms"}
 
 
 def flip_rates(flip_out: dict):
@@ -345,8 +349,9 @@ def write_report(report: dict, prefix: Path) -> None:
                f"oracle(기술) {100 * report['secondary']['oracle_descriptive']['oracle_minus_fixed_insample']:.1f}pp",
                "- 정책 선택 분포: " + ", ".join(f"{k} {100 * v:.0f}%" for k, v in report["pick_dist"].items())
                + f"; arm 만: 정책 ${report['policy_cost']['policy_usd_per_task']} / 고정 ${report['policy_cost']['fixed_usd_per_task']}; "
-               f"배포(+상태 취득 ${report['policy_cost']['state_acquisition_usd_per_task']}): 정책 ${report['policy_cost']['policy_deploy_usd_per_task']} / "
-               f"고정 ${report['policy_cost']['fixed_deploy_usd_per_task']} (과제당)"]
+               f"배포(정책 = arm + s0 ${report['policy_cost']['state_acquisition_usd_per_task']}): 정책 ${report['policy_cost']['policy_deploy_usd_per_task']} / "
+               f"고정 {report['policy_cost']['fixed_arm']} ${report['policy_cost']['fixed_deploy_usd_per_task']}"
+               f"{'(+s0)' if report['policy_cost']['fixed_deploy_includes_s0'] else '(자기 호출만)'} (과제당)"]
     a = report["arms"]
     md += ["", "| arm | 히든 성공률 | 거부율 | arm 단독 $ | 호출 수 평균 |", "|---|---|---|---|---|"]
     for arm in G.ARMS:

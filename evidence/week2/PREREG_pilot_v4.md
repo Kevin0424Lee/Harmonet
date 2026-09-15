@@ -64,8 +64,10 @@ temp 0.2, max_tokens 4096, 시스템 프롬프트)·토큰 출처(measured)를 `
 - **부차** (전부 기술·대응 검정, 판정에 안 씀): P2-post vs P2-pre 과제별 차이(대응 McNemar) = 실행 후 상태 특징의 추가 가치(각자 튜닝된 두 정책의 절제); P1 대응 차이;
   oracle(1회 실행 최대의 표본 내 통계 — 상한 아님, J6 구분); arm 별 성공률·$·거부율; 정책 선택 분포와 $.
 - **비용 두 관점** (K5): (1) **실험 총지출** = 원장 (arm + s0 생성 + 가시 검증 + 0회차 + 뒤집힘, 가져온 s0 원 생성비는 역사적 취득 비용 별도).
-  (2) **배포 비용(과제당)** = 선택 arm 비용 + **상태 취득 비용(s0 $ + 가시 검증)**; B-solo 배포 비용 = 자기 호출만(s0 불필요); T = 상태 취득 비용만.
-  보고: `policy_usd_per_task`(arm 만), `state_acquisition_usd_per_task`, `policy_deploy_usd_per_task`, `fixed_deploy_usd_per_task`(â 가 B-solo 면 상태 취득 제외),
+  (2) **arm 자체 비용(과제당)** = 선택 arm 의 호출 비용만 (`policy_usd_per_task`, `fixed_usd_per_task`).
+  (3) **정책 배포 비용(과제당)** = 선택 arm 비용 + **s0 취득 비용** — post 정책은 s0 를 생성·검증한 뒤 고르므로 **선택 arm 이 B-solo 여도 s0 비용을 제외하지 않는다**(L4);
+  T 를 고르면 s0 비용만. `policy_deploy_usd_per_task`, `state_acquisition_usd_per_task`.
+  **고정 전략 배포 비용은 별도 관점**: 고정 B-solo 는 처음부터 B-solo 만 실행하므로 자기 호출만(s0 없음); 다른 고정 arm 은 s0 + arm (`fixed_deploy_usd_per_task`, `fixed_deploy_includes_s0`).
   가시 검증 $ 는 0(로컬 docker) 이고 wall_ms 로 따로.
 - **금지**: 확인 결과 열람 후 문턱·과제·분석 변경. 확인 집합에서 어떤 학습도 하지 않는다.
 - **결론 범위** = 이 BCB 적격 풀(403). 다른 풀·모델로 일반화하지 않는다. 방법을 바꾸면 이 200 은 재사용 불가 → 예비 103.
@@ -86,7 +88,7 @@ temp 0.2, max_tokens 4096, 시스템 프롬프트)·토큰 출처(measured)를 `
 
 | 항목 | 값 |
 |---|---|
-| 설정 파일 sha256 | `cc053e328144c02abde9764be4fa68beae5b6eed30d7b1089de0646c2b4b9c4a` |
+| 설정 파일 sha256 | `4953c2f5e57a92fd7e90c4e407054e529ec7b91c3f5ada14df4f458093f74b95` |
 | 탐색 N_e | 100 = 프로브 재사용 59 + 신규 s0 41 |
 | 뒤집힘 부분집합 | 30 × k=2 (A-self, B-expert) |
 | 확인 N_c | 200 |
@@ -99,7 +101,7 @@ temp 0.2, max_tokens 4096, 시스템 프롬프트)·토큰 출처(measured)를 `
 | 특징 메뉴 / 상한 | benchmark/features.FEATURE_SPECS['post'] (pre 17 + post 11 = 28 열) / ≤ 20 열 |
 | λ 메뉴 (기본) | [0.3, 1.0, 3.0] (1.0) |
 | 탐색 CV | K=5 × R=20, 부트스트랩 1000, 순열(진단) 2000, 특징 선택 nested (겹 안), P2-pre 자기 메뉴 선택 True; 규칙 select_features: 메뉴 전체 1회 적합 → arm 평균 |표준화 계수| 상위 ≤ max_selected (범주 열 유지) |
-| 비용 관점 | 실험 총지출 = ledger; 배포 비용(과제당) = arm + state acquisition (s0 $ + visible verify); B-solo = own call only |
+| 비용 관점 | 실험 총지출 = ledger; arm 자체 = selected arm call cost only; 정책 배포 = selected arm + s0 acquisition (post policy pays s0 before choosing; NOT excluded when B-solo is chosen); 고정 배포 = fixed arm + s0, except fixed B-solo = own call only (runs B-solo from the start) |
 | 동결 항목 | feature_subset, lambda, P2-post coef, P2-pre coef, P1 table, a_hat (탐색 최고 arm), b_cont, seed |
 | 주 판정 | d_i = y[i, pi_post(i)] − y[i, a_hat]; 정확 McNemar 단측(b = #(정책 성공, â 실패) > c = #(정책 실패, â 성공)), p = P(Bin(b+c, ½) ≥ b); α=0.05, 문턱 10pp; p < 0.05 ∧ mean d ≥ 0.10 → 통과, 그 외 미확인 |
 | CI | 대응 차이 d_i 의 과제 부트스트랩 1000 (학습 없음) |

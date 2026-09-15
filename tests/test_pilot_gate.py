@@ -181,3 +181,22 @@ def test_committed_approval_is_still_a_draft_and_real_stage_all_is_refused():
                        cwd=str(ROOT), capture_output=True, text=True)
     assert p.returncode != 0 and "--stage all 금지" in p.stderr
     assert all((ROOT / f).exists() for f in AP.SCOPE)
+
+
+# ── Week2-L4: post 정책의 B-solo 선택 비용 ─────────────────────────────────
+def test_l4_post_policy_pays_s0_even_when_choosing_b_solo():
+    import numpy as np
+    import gap_analysis as G
+    tasks = ["t0", "t1"]
+    C = np.full((2, 6), 0.002); C[:, G.ARMS.index("B-solo")] = 0.005; C[:, G.ARMS.index("T")] = 0.0
+    rows = [{"task_id": t, "s0_cost_usd": 0.003, "s0_verify_wall_ms": 100} for t in tasks]
+    bsolo = G.ARMS.index("B-solo")
+    r = PD.deploy_cost(rows, tasks, C, pick=np.array([bsolo, bsolo]), a_hat=bsolo)
+    assert abs(r["policy_deploy_usd_per_task"] - 0.008) < 1e-12 and abs(r["fixed_deploy_usd_per_task"] - 0.005) < 1e-12
+    assert r["policy_usd_per_task"] == 0.005 and r["state_acquisition_usd_per_task"] == 0.003 and r["fixed_deploy_includes_s0"] is False
+    r2 = PD.deploy_cost(rows, tasks, C, pick=np.array([G.ARMS.index("A-self"), G.ARMS.index("T")]), a_hat=G.ARMS.index("B-expert"))
+    assert abs(r2["policy_deploy_usd_per_task"] - (0.002 + 0.003 + 0.0 + 0.003) / 2) < 1e-12        # A-self+s0, T+s0
+    assert abs(r2["fixed_deploy_usd_per_task"] - 0.005) < 1e-12 and r2["fixed_deploy_includes_s0"] is True   # B-expert 0.002 + s0 0.003
+    rows[1]["s0_cost_usd"] = None                                                                     # 미측정 전파
+    r3 = PD.deploy_cost(rows, tasks, C, pick=np.array([bsolo, bsolo]), a_hat=bsolo)
+    assert r3["policy_deploy_usd_per_task"] is None and r3["state_acquisition_usd_per_task"] is None and r3["fixed_deploy_usd_per_task"] == 0.005 and r3["n_unpriced"] == 1

@@ -35,7 +35,8 @@ def render(cfg: dict, sha: str) -> str:
             ("특징 메뉴 / 상한", f"{cfg['features']['menu']} / ≤ {cfg['features']['max_selected']} 열"), ("λ 메뉴 (기본)", f"{cfg['features']['lambda_menu']} ({cfg['features']['lambda_default']})"),
             ("탐색 CV", f"K={cfg['features']['cv']['K']} × R={cfg['features']['cv']['R']}, 부트스트랩 {cfg['features']['n_boot_explore']}, 순열(진단) {cfg['features']['n_perm_diag']}, "
                         f"특징 선택 {cfg['features']['cv_selection']} (겹 안), P2-pre 자기 메뉴 선택 {cfg['features']['pre_own_selection']}; 규칙 {cfg['features']['selection_rule']}"),
-            ("비용 관점", f"실험 총지출 = {cfg['cost_views']['experiment_total']}; 배포 비용(과제당) = {cfg['cost_views']['deploy_per_task']}"),
+            ("비용 관점", f"실험 총지출 = {cfg['cost_views']['experiment_total']}; arm 자체 = {cfg['cost_views']['arm_only_per_task']}; "
+                      f"정책 배포 = {cfg['cost_views']['policy_deploy_per_task']}; 고정 배포 = {cfg['cost_views']['fixed_deploy_per_task']}"),
             ("동결 항목", ", ".join(cfg["freeze"]["items"])), ("주 판정", f"{r['primary']}; α={r['alpha']}, 문턱 {r['threshold_pp']}pp; {r['pass']} → 통과, 그 외 {r['else']}"),
             ("CI", r["ci"]), ("의미", r["meaning"]), ("부차", "; ".join(cfg["secondary"])), ("금지", "; ".join(cfg["forbidden"])),
             ("비용", f"탐색 ≈ ${cfg['cost_usd']['explore_estimate']:.0f}, 확인 ≈ ${cfg['cost_usd']['confirm_estimate']:.0f}, 원장 cap ${cfg['cost_usd']['cap']:.0f} ({cfg['cost_usd']['basis']})"),

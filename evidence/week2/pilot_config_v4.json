@@ -169,6 +169,8 @@
  },
  "cost_views": {
   "experiment_total": "ledger",
-  "deploy_per_task": "arm + state acquisition (s0 $ + visible verify); B-solo = own call only"
+  "arm_only_per_task": "selected arm call cost only",
+  "policy_deploy_per_task": "selected arm + s0 acquisition (post policy pays s0 before choosing; NOT excluded when B-solo is chosen)",
+  "fixed_deploy_per_task": "fixed arm + s0, except fixed B-solo = own call only (runs B-solo from the start)"
  }
 }
