@@ -47,13 +47,42 @@ class Gate(RuntimeError):
 
 
 # ── 환경·실행 ─────────────────────────────────────────────────────────────
-def _env(backend: str, run_id: str, cfg: dict, extra: dict) -> dict:
-    env = dict(os.environ, HARMONET_LLM_BACKEND=backend, HARMONET_ALLOW_NO_REDIS="1", HARMONET_TRACE_RUN_ID=run_id, HARMONET_BUDGET_ID=cfg["ledger_id"],
-               HARMONET_BUDGET_CAP=str(cfg["cost_usd"]["cap"]), ANTHROPIC_MAX_TOKENS=str(cfg["models"]["max_tokens"]),
-               ANTHROPIC_TEMPERATURE=str(cfg["models"]["temperature"]), PYTHONIOENCODING="utf-8", **extra)
+def governed_env(cfg: dict, backend: str, extra: dict) -> dict:
+    """M4: 실행에 적용되는 값의 단일 출처 = 설정 파일. 채점 이미지/digest·timeout·margin·max_tokens·temperature·cap·원장 id·모델 id."""
+    g = {"HARMONET_BCB_IMAGE": cfg["grading"]["image"], "HARMONET_BCB_TIMEOUT_S": str(cfg["grading"]["timeout_s"]), "HARMONET_BCB_MARGIN_S": str(cfg["grading"]["margin_s"]),
+         "ANTHROPIC_MAX_TOKENS": str(cfg["models"]["max_tokens"]), "ANTHROPIC_TEMPERATURE": str(cfg["models"]["temperature"]),
+         "HARMONET_BUDGET_CAP": str(cfg["cost_usd"]["cap"]), "HARMONET_BUDGET_ID": cfg["ledger_id"]}
     if backend == "anthropic":
-        env["HARMONET_MODEL_BUILDER"], env["HARMONET_MODEL_REVIEWER"] = cfg["models"]["A"], cfg["models"]["B"]
+        g["HARMONET_MODEL_BUILDER"], g["HARMONET_MODEL_REVIEWER"] = cfg["models"]["A"], cfg["models"]["B"]
+    else:                                                    # mock: 모델 이름은 시나리오 mock 이 정한다 (extra), 그 외는 설정과 같다
+        g["HARMONET_MODEL_BUILDER"], g["HARMONET_MODEL_REVIEWER"] = extra["HARMONET_MODEL_BUILDER"], extra["HARMONET_MODEL_REVIEWER"]
+    return g
+
+
+def _same(a: str, b: str) -> bool:
+    try:
+        return float(a) == float(b)
+    except ValueError:
+        return a == b
+
+
+def _env(backend: str, run_id: str, cfg: dict, extra: dict) -> dict:
+    """자식 환경 = 부모 환경 + 설정에서 유도한 값. 부모 환경변수가 설정과 **다른 값**을 이미 가지고 있으면 조용히 덮어쓰지 않고 Gate (호출 0) — M4.
+    실효 설정은 env["HARMONET_EFFECTIVE_ENV"](JSON) 로 자식에 넘기고 보고서 effective_env 에 기록한다."""
+    g = governed_env(cfg, backend, extra)
+    conflicts = {k: (os.environ[k], v) for k, v in g.items() if k in os.environ and not _same(os.environ[k], v)}
+    if conflicts:
+        raise Gate("부모 환경변수가 승인된 설정과 다르다 (조용한 덮어쓰기 금지, 호출 0): " + "; ".join(f"{k}: env={a!r} vs 설정={b!r}" for k, (a, b) in conflicts.items()))
+    from harmonet.verify import BCB_IMAGE_DEFAULT, BCB_TASK_TIMEOUT_S
+    if BCB_IMAGE_DEFAULT != cfg["grading"]["image"] or float(BCB_TASK_TIMEOUT_S) != float(cfg["grading"]["timeout_s"]):
+        raise Gate(f"코드 기본값(verify.BCB_IMAGE_DEFAULT/BCB_TASK_TIMEOUT_S)이 설정 파일과 다르다 — 단일 출처 위반: {BCB_IMAGE_DEFAULT[:40]}… / {BCB_TASK_TIMEOUT_S}")
+    env = {**os.environ, "HARMONET_LLM_BACKEND": backend, "HARMONET_ALLOW_NO_REDIS": "1", "HARMONET_TRACE_RUN_ID": run_id, "PYTHONIOENCODING": "utf-8", **extra, **g}
+    env["HARMONET_EFFECTIVE_ENV"] = json.dumps(g)
     return env
+
+
+def effective_env(env: dict) -> dict:
+    return json.loads(env["HARMONET_EFFECTIVE_ENV"])
 
 
 def run_arms(ids_file: Path, out: Path, env: dict, k: int, arms: str, b_cont: float, a_med: float) -> dict:
@@ -250,7 +279,7 @@ def explore_stage(args, cfg: dict, ids: dict, env: dict, tmp: Path, arms_root: P
     fz_sha = hashlib.sha256(fz.read_bytes()).hexdigest()
     fz.with_suffix(".sha256").write_text(fz_sha, encoding="utf-8")
     spend = spend_report(env, [main_out, flip_out], r0["round0_arm_usd"])
-    report = {"stage": "explore", "mode": args.backend, "run_id": run_id, "n_tasks": len(tasks), "pool_gate": gate,
+    report = {"stage": "explore", "mode": args.backend, "run_id": run_id, "effective_env": effective_env(env), "n_tasks": len(tasks), "pool_gate": gate,
               "round0": {k: r0[k] for k in ("b_cont", "a_call_median", "n", "arm")}, "s0": {"imported": s0_imp["imported"], "generated": s0_gen["generated"]},
               "arms": main_out["summary"], "flip": flip_rates(flip_out),
               "explore_cv": {"lambda_menu": cv, "lambda_star": lam_star, "feature_subset": subset, "n_features": len(subset["num"]) + len(subset["cat"]),
@@ -290,7 +319,7 @@ def confirm_stage(args, cfg: dict, ids: dict, confirm_ids: list, env: dict, tmp:
     pick_dist = {G.ARMS[a]: float((pick == a).mean()) for a in range(len(G.ARMS))}
     policy_cost = deploy_cost(rows, tasks, C, pick, a_hat)
     spend = spend_report(env, [out], 0.0, prior_usd)
-    report = {"stage": "confirm", "mode": args.backend, "run_id": run_id, "n_tasks": len(tasks), "frozen_hash": checks["frozen_policy"], "primary": primary,
+    report = {"stage": "confirm", "mode": args.backend, "run_id": run_id, "effective_env": effective_env(env), "n_tasks": len(tasks), "frozen_hash": checks["frozen_policy"], "primary": primary,
               "secondary": secondary, "arms": out["summary"], "pick_dist": pick_dist, "policy_cost": policy_cost, "cost": spend,
               "stopped_reason": out.get("stopped_reason"), "elapsed_s": round(time.time() - t0)}
     assert list(report) == cfg["report_items"]["confirm"], (list(report), cfg["report_items"]["confirm"])
@@ -333,7 +362,8 @@ def flip_rates(flip_out: dict):
 
 def write_report(report: dict, prefix: Path) -> None:
     prefix.with_suffix(".json").write_text(json.dumps(report, ensure_ascii=False, indent=1), encoding="utf-8")
-    md = [f"# 파일럿 보고 — {report['stage']} ({report['mode']}, run_id={report['run_id']}, N={report['n_tasks']}, {report['elapsed_s']}s)", ""]
+    md = [f"# 파일럿 보고 — {report['stage']} ({report['mode']}, run_id={report['run_id']}, N={report['n_tasks']}, {report['elapsed_s']}s)", "",
+          f"- 실효 설정(env, 단일 출처 = pilot_config_v4.json): {json.dumps(report['effective_env'], ensure_ascii=False)}"]
     if report["stage"] == "explore":
         g, e = report["pool_gate"], report["explore_cv"]
         md += [f"- 풀 관문: 최고 arm {g['best_arm']} {100 * g['best_rate']:.1f}% (문턱 {100 * g['threshold']:.0f}%) → **{g['decision']}**",

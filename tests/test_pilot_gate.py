@@ -142,6 +142,7 @@ def test_l2_consistent_freeze_passes_and_explore_stage_separate(tmp_path):
     ({"review_ref": None}, "review_ref 비어 있음"),
     ({"scope_files": None}, "scope_files 없음"),
     ({"scope_files": {**SCOPE_NOW, "benchmark/arms.py": "0" * 64}}, "승인 이후 실행 관련 파일 변경"),
+    ({"scope_files": {**SCOPE_NOW, "benchmark/agents_single.py": "0" * 64}}, "승인 이후 실행 관련 파일 변경"),   # M4: 실제 시스템 프롬프트 파일
 ])
 def test_l2_approval_doc_mismatch_rejected(tmp_path, a_over, msg):
     repo, fz, c1, c2 = _repo(tmp_path, _frozen())
@@ -200,3 +201,47 @@ def test_l4_post_policy_pays_s0_even_when_choosing_b_solo():
     rows[1]["s0_cost_usd"] = None                                                                     # 미측정 전파
     r3 = PD.deploy_cost(rows, tasks, C, pick=np.array([bsolo, bsolo]), a_hat=bsolo)
     assert r3["policy_deploy_usd_per_task"] is None and r3["state_acquisition_usd_per_task"] is None and r3["fixed_deploy_usd_per_task"] == 0.005 and r3["n_unpriced"] == 1
+
+
+# ── Week2-M4: 승인 범위와 실제 실행 설정 연결 ────────────────────────────────
+MOCK_EXTRA = {"HARMONET_MODEL_BUILDER": "claude-haiku-4-5", "HARMONET_MODEL_REVIEWER": "claude-sonnet-4-6"}
+
+
+def test_m4_prompt_file_is_in_scope():
+    assert "benchmark/agents_single.py" in AP.SCOPE and (ROOT / "benchmark/agents_single.py").exists()
+
+
+@pytest.mark.parametrize("var,val", [("HARMONET_BCB_IMAGE", "bigcodebench/bigcodebench-evaluate:latest"), ("HARMONET_BCB_TIMEOUT_S", "5"),
+                                     ("HARMONET_BCB_MARGIN_S", "1"), ("ANTHROPIC_MAX_TOKENS", "1024"), ("ANTHROPIC_TEMPERATURE", "0.9"),
+                                     ("HARMONET_BUDGET_CAP", "100"), ("HARMONET_MODEL_BUILDER", "claude-opus-4-1")])
+def test_m4_conflicting_parent_env_is_refused_before_any_call(monkeypatch, var, val):
+    monkeypatch.setenv(var, val)
+    with pytest.raises(PD.Gate, match="승인된 설정과 다르다"):
+        PD._env("anthropic", "pilot_explore", CFG, {})
+    with pytest.raises(PD.Gate):                                             # mock 경로도 같은 규칙 (모델 이름만 시나리오 mock 값)
+        PD._env("mock-scenario", "pilot_explore", CFG, MOCK_EXTRA if var != "HARMONET_MODEL_BUILDER" else {**MOCK_EXTRA})
+
+
+def test_m4_effective_env_equals_config_when_no_conflict(monkeypatch):
+    for k in ("HARMONET_BCB_IMAGE", "HARMONET_BCB_TIMEOUT_S", "HARMONET_BCB_MARGIN_S", "ANTHROPIC_MAX_TOKENS", "ANTHROPIC_TEMPERATURE", "HARMONET_BUDGET_CAP"):
+        monkeypatch.delenv(k, raising=False)
+    env = PD._env("anthropic", "pilot_explore", CFG, {})
+    eff = PD.effective_env(env)
+    assert eff["HARMONET_BCB_IMAGE"] == CFG["grading"]["image"] == env["HARMONET_BCB_IMAGE"] and float(env["HARMONET_BCB_TIMEOUT_S"]) == CFG["grading"]["timeout_s"]
+    assert env["ANTHROPIC_MAX_TOKENS"] == str(CFG["models"]["max_tokens"]) and env["HARMONET_MODEL_BUILDER"] == CFG["models"]["A"] and env["HARMONET_BUDGET_ID"] == CFG["ledger_id"]
+    env_m = PD._env("mock-scenario", "pilot_explore", CFG, MOCK_EXTRA)          # mock: 모델 이름은 시나리오 값, 나머지는 설정
+    assert env_m["HARMONET_MODEL_BUILDER"] == "claude-haiku-4-5" and env_m["HARMONET_BCB_IMAGE"] == CFG["grading"]["image"]
+    monkeypatch.setenv("HARMONET_BCB_TIMEOUT_S", "241.0")                     # 같은 값(수치 동등)은 충돌이 아니다
+    assert PD.effective_env(PD._env("anthropic", "pilot_explore", CFG, {}))["HARMONET_BCB_TIMEOUT_S"] == "241.0"
+    import harmonet.verify as V
+    monkeypatch.setattr(V, "BCB_IMAGE_DEFAULT", "other@sha256:0")            # 코드 기본값이 설정과 다르면 단일 출처 위반
+    with pytest.raises(PD.Gate, match="단일 출처"):
+        PD._env("anthropic", "pilot_explore", CFG, {})
+
+
+def test_m4_cli_refuses_env_conflict_before_docker_or_calls():
+    import os
+    env = dict(os.environ, HARMONET_BCB_IMAGE="bigcodebench/bigcodebench-evaluate:latest")
+    p = subprocess.run([sys.executable, "-X", "utf8", "scripts/pilot_dryrun.py", "--backend", "mock-scenario", "--stage", "s0", "--out", "x"],
+                       cwd=str(ROOT), env=env, capture_output=True, text=True, timeout=120)
+    assert p.returncode != 0 and "승인된 설정과 다르다" in p.stderr and "HARMONET_BCB_IMAGE" in p.stderr

@@ -59,7 +59,17 @@
  "grading": {
   "visible": "doctest TestCases (공식 이미지)",
   "hidden": "공식 test, D2 채점기 d2.1, post_hoc 만",
-  "image": "bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405"
+  "image": "bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405",
+  "timeout_s": 241.0,
+  "margin_s": 90,
+  "limits": {
+   "max_as_limit": 30720,
+   "max_data_limit": 30720,
+   "max_stack_limit": 10,
+   "min_time_limit": 1.0,
+   "gt_time_limit": 1.0
+  },
+  "env_single_source": "HARMONET_BCB_IMAGE / HARMONET_BCB_TIMEOUT_S / HARMONET_BCB_MARGIN_S / ANTHROPIC_MAX_TOKENS / ANTHROPIC_TEMPERATURE / HARMONET_BUDGET_CAP / HARMONET_BUDGET_ID / HARMONET_MODEL_* 는 이 파일에서만 유도; 부모 환경변수가 다른 값이면 실행 거부 (M4)"
  },
  "features": {
   "menu": "benchmark/features.FEATURE_SPECS['post'] (pre 17 + post 11 = 28 열)",
@@ -138,6 +148,7 @@
    "stage",
    "mode",
    "run_id",
+   "effective_env",
    "n_tasks",
    "pool_gate",
    "round0",
@@ -155,6 +166,7 @@
    "stage",
    "mode",
    "run_id",
+   "effective_env",
    "n_tasks",
    "frozen_hash",
    "primary",

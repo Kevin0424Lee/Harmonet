@@ -23,7 +23,7 @@ APPROVAL = ROOT / "evidence" / "week2" / "APPROVAL.json"
 # 검증 범위 (L2-4): 실행에 영향을 주는 코드·설정·ID 파일. 문서(docs/, *.md)는 넣지 않는다.
 SCOPE: List[str] = [
     "benchmark/arms.py", "benchmark/runloop.py", "benchmark/s0_import.py", "benchmark/features.py", "benchmark/bcb.py", "benchmark/bcb_eligibility.py",
-    "benchmark/mock_scenario.py", "harmonet/budget.py", "harmonet/llm.py", "harmonet/verify.py", "harmonet/bcb_check.py", "harmonet/bcb_harness.py",
+    "benchmark/mock_scenario.py", "benchmark/agents_single.py", "harmonet/budget.py", "harmonet/llm.py", "harmonet/verify.py", "harmonet/bcb_check.py", "harmonet/bcb_harness.py",
     "harmonet/pricing.py", "harmonet/trace.py", "harmonet/usage.py", "scripts/gap_analysis.py", "scripts/pilot_dryrun.py", "scripts/approval.py",
     "scripts/prereg_render.py", "evidence/week2/pilot_config_v4.json", "evidence/week2/pilot_explore_ids_bcb.json", "evidence/week2/pilot_confirm_ids_bcb.json",
     "evidence/week2/pilot_reserve_ids_bcb.json", "evidence/week2/pool_probe_bcb_A.json", "evidence/week2/bcb_eligibility.json",
