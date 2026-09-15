@@ -166,11 +166,9 @@ def task_id_of(s0_dir: Path) -> str:
 
 
 def unresolved_incomplete(d: Path) -> List[Path]:
-    """d 아래 미해결 incomplete_*.json (완료 산출물 없이 남은 실패 이력). M1/M2 fail-closed: 있으면 자동 재실행을 거부한다."""
-    if not d.exists():
-        return []
-    done = (d / "result.json").exists() or (d / "sha256.txt").exists()
-    return [] if done else sorted(d.glob("incomplete_*.json"))
+    """d 아래 incomplete_*.json 전부 = 미해결 실패 이력. N1: result.json / sha256.txt 가 **있어도** 해결로 보지 않는다 (이전 설정의 결과일 수 있다 — 존재는 증거가 아니다).
+    해소·잔여 예산 복원 기능은 없다: 파일이 있는 한 자동 재실행·캐시 반환 모두 거부(fail-closed), 수동 판단 대상."""
+    return sorted(d.glob("incomplete_*.json")) if d.exists() else []
 
 
 def make_s0_guarded(task_id: str, task_prompt: str, spec_visible: Dict[str, Any], client_a, budget: Optional[Budget], root: Path,
@@ -220,15 +218,15 @@ def run_arm(arm: str, rep: int, s0_dir: Path, spec_full: Dict[str, Any], clients
             budget: Optional[Budget], run_id: str, unknown_counter: Optional[Dict[str, int]] = None) -> Dict[str, Any]:
     arm_dir = s0_dir.parent / _safe(arm) / f"rep{rep}"
     done = arm_dir / "result.json"
+    pend = unresolved_incomplete(arm_dir)                  # N1: 캐시 반환/재실행을 결정하기 **전에** 미해결 실패 이력을 본다 (호출 0)
+    if pend:
+        raise BudgetStop(f"[arms] {task_id_of(s0_dir)} {arm} rep{rep}: 미해결 incomplete {len(pend)}건 ({pend[-1].name}) — 자동 재실행·캐시 반환 거부 "
+                         f"(이전 result.json 존재 여부와 무관; 잔여 예산 복원 없음, 수동 판단 필요)", "unresolved_incomplete_arm")
     if done.exists():                                       # 멱등: 같은 config_hash 로 끝난 (arm, rep) 만 건너뛴다 (J2). 다르면 재실행(덮어씀)
         prev = json.loads(done.read_text(encoding="utf-8"))
         if prev.get("config_hash") == cfg["config_hash"]:
             return prev
         print(f"[arms] {task_id_of(s0_dir)} {arm} rep{rep}: config_hash 불일치 ({str(prev.get('config_hash'))[:8]} != {cfg['config_hash'][:8]}) → 재실행", flush=True)
-    pend = unresolved_incomplete(arm_dir)                  # M1 fail-closed: 미해결 실패 이력이 있으면 새 arm 예산으로 자동 재실행하지 않는다 (호출 0)
-    if pend:
-        raise BudgetStop(f"[arms] {task_id_of(s0_dir)} {arm} rep{rep}: 미해결 incomplete {len(pend)}건 ({pend[-1].name}) — 자동 재실행 거부 (잔여 예산 복원 없음, 수동 판단 필요)",
-                         "unresolved_incomplete_arm")
     s0 = load_s0(s0_dir)                                   # 디스크에서 재개 — 메모리 상태 재사용 금지
     task_id, ctx = s0["ctx"]["task_id"], s0["ctx"]
     spec_visible = ctx["spec_visible"]

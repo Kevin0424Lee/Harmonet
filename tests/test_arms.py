@@ -242,3 +242,33 @@ def test_m1_resume_with_unresolved_incomplete_is_refused_before_any_call(tmp_pat
     assert [i["path"] for i in d2["incomplete_arms"]] == [inc["path"]] and d2["rows"] == []
     assert not (tmp_path / "arms" / "m1" / "Mbpp_2" / "B-expert" / "rep1" / "result.json").exists()
     assert (tmp_path / "arms" / "m1" / "Mbpp_2" / "s0" / "sha256.txt").exists()                          # 완료 s0 보존, 재생성 없음
+
+
+# ── Week2-N1: 이전 result.json 이 있어도 미해결 실패 차단 ─────────────────────
+def test_n1_prior_result_does_not_resolve_incomplete_and_normal_paths_keep_working(tmp_path):
+    """코덱스 재현: (1) b_cont=1.0 로 B-expert 완료(이전 설정 result.json) → (2) b_cont=0.01 + timeout→400 중단(귀속 $0.00622) → (3) 같은 설정 재개.
+    패치 전: 재개 허용, 호출 2, 성공 $0.00450, 누적 $0.01072 > 상한 $0.010. 패치 후(B): 호출 0, 원장 불변, 이전 result 바이트 불변, incomplete 개수·내용 불변.
+    (C) incomplete 없는 동일 설정 캐시 재사용 = 호출 0. (D) incomplete 없는 0회차(b_cont=1.0)→본실행(b_cont=0.01) 전환 = 정상 재실행."""
+    E = {"ANTHROPIC_MAX_TOKENS": "1024"}
+    d0 = _run(tmp_path, "n1", k=1, cap="5", b_cont="1.0", arms="B-expert", extra_env=E)                 # 1: 이전 설정 결과
+    res = tmp_path / "arms" / "n1" / "Mbpp_2" / "B-expert" / "rep1" / "result.json"; b0 = res.read_bytes()
+    led0 = json.loads((tmp_path / "budget" / "n1" / "budget.json").read_text(encoding="utf-8"))
+    d1 = _run(tmp_path, "n1", k=1, cap="5", b_cont="0.01", arms="B-expert", extra_env={**E, "HARMONET_MOCK_FAIL_SCRIPT": "timeout,400"}, expect_rc=2)   # 2: 실패
+    led1 = json.loads((tmp_path / "budget" / "n1" / "budget.json").read_text(encoding="utf-8"))
+    inc = d1["incomplete_arms"]
+    assert d1["stopped_reason"] == "call_failed" and len(inc) == 1 and abs(inc[0]["cost_usd"] - 0.00622) < 1e-9 and led1["n_calls"] == led0["n_calls"] + 2
+    inc_bytes = Path(inc[0]["path"]).read_bytes()
+    d2 = _run(tmp_path, "n1", k=1, cap="5", b_cont="0.01", arms="B-expert", extra_env=E, expect_rc=2)      # 3 (B): 같은 설정 재개 → 거부
+    led2 = json.loads((tmp_path / "budget" / "n1" / "budget.json").read_text(encoding="utf-8"))
+    assert d2["stopped_reason"] == "unresolved_incomplete_arm" and led2["n_calls"] == led1["n_calls"] and led2["spent"] == led1["spent"]
+    assert res.read_bytes() == b0 and len(d2["incomplete_arms"]) == 1 and Path(inc[0]["path"]).read_bytes() == inc_bytes and d2["rows"] == []
+    d2b = _run(tmp_path, "n1", k=1, cap="5", b_cont="1.0", arms="B-expert", extra_env=E, expect_rc=2)      # 이전 설정으로 돌아와도 캐시 반환 없이 거부
+    assert d2b["stopped_reason"] == "unresolved_incomplete_arm" and json.loads((tmp_path / "budget" / "n1" / "budget.json").read_text(encoding="utf-8"))["n_calls"] == led1["n_calls"]
+    # (C)(D): incomplete 없는 별도 run — 캐시 재사용 호출 0, 0회차→본실행 전환은 정상 재실행
+    c0 = _run(tmp_path, "n1cd", k=1, cap="5", b_cont="1.0", arms="B-expert", extra_env=E)
+    n_a = json.loads((tmp_path / "budget" / "n1cd" / "budget.json").read_text(encoding="utf-8"))["n_calls"]
+    c1 = _run(tmp_path, "n1cd", k=1, cap="5", b_cont="1.0", arms="B-expert", extra_env=E)
+    assert json.loads((tmp_path / "budget" / "n1cd" / "budget.json").read_text(encoding="utf-8"))["n_calls"] == n_a and c1["rows"][0]["config_hash"] == c0["rows"][0]["config_hash"]
+    c2 = _run(tmp_path, "n1cd", k=1, cap="5", b_cont="0.01", arms="B-expert", extra_env=E)
+    n_c = json.loads((tmp_path / "budget" / "n1cd" / "budget.json").read_text(encoding="utf-8"))["n_calls"]
+    assert n_c == n_a + 2 and c2["rows"][0]["config_hash"] != c0["rows"][0]["config_hash"] and c2["stopped_reason"] is None and c2["incomplete_arms"] == []
