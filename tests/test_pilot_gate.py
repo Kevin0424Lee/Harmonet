@@ -213,7 +213,9 @@ def test_m4_prompt_file_is_in_scope():
 
 @pytest.mark.parametrize("var,val", [("HARMONET_BCB_IMAGE", "bigcodebench/bigcodebench-evaluate:latest"), ("HARMONET_BCB_TIMEOUT_S", "5"),
                                      ("HARMONET_BCB_MARGIN_S", "1"), ("ANTHROPIC_MAX_TOKENS", "1024"), ("ANTHROPIC_TEMPERATURE", "0.9"),
-                                     ("HARMONET_BUDGET_CAP", "100"), ("HARMONET_MODEL_BUILDER", "claude-opus-4-1")])
+                                     ("HARMONET_BUDGET_CAP", "100"), ("HARMONET_MODEL_BUILDER", "claude-opus-4-1"),
+                                     ("HARMONET_BCB_MEMORY", "64m"), ("HARMONET_BCB_CPUS", "0.1"),                                   # N2 (A)
+                                     ("HARMONET_BCB_LIMITS", '{"max_as_limit": 1, "max_data_limit": 30720, "max_stack_limit": 10, "min_time_limit": 1.0, "gt_time_limit": 1.0}')])
 def test_m4_conflicting_parent_env_is_refused_before_any_call(monkeypatch, var, val):
     monkeypatch.setenv(var, val)
     with pytest.raises(PD.Gate, match="승인된 설정과 다르다"):
@@ -245,3 +247,45 @@ def test_m4_cli_refuses_env_conflict_before_docker_or_calls():
     p = subprocess.run([sys.executable, "-X", "utf8", "scripts/pilot_dryrun.py", "--backend", "mock-scenario", "--stage", "s0", "--out", "x"],
                        cwd=str(ROOT), env=env, capture_output=True, text=True, timeout=120)
     assert p.returncode != 0 and "승인된 설정과 다르다" in p.stderr and "HARMONET_BCB_IMAGE" in p.stderr
+
+
+# ── Week2-N2: 메모리·CPU·내부 채점 제한값까지 설정에 연결 ────────────────────
+def test_n2_config_flows_to_docker_args_and_harness_limits(monkeypatch):
+    """(B) 무충돌 → 설정값 == docker 명령의 --memory/--cpus; (C) 설정 limits == 하네스 cfg 의 limits; (E) effective_env 에 전부 기록. 명령 문자열 생성 검사 (docker 실행 없음)."""
+    import harmonet.verify as V
+    for k in ("HARMONET_BCB_MEMORY", "HARMONET_BCB_CPUS", "HARMONET_BCB_LIMITS", "HARMONET_BCB_IMAGE"):
+        monkeypatch.delenv(k, raising=False)
+    env = PD._env("anthropic", "pilot_explore", CFG, {})
+    eff = PD.effective_env(env)
+    for k in ("HARMONET_BCB_MEMORY", "HARMONET_BCB_CPUS", "HARMONET_BCB_LIMITS"):
+        assert k in eff and eff[k] == env[k]
+    monkeypatch.setenv("HARMONET_BCB_MEMORY", env["HARMONET_BCB_MEMORY"]); monkeypatch.setenv("HARMONET_BCB_CPUS", env["HARMONET_BCB_CPUS"])
+    monkeypatch.setenv("HARMONET_BCB_LIMITS", env["HARMONET_BCB_LIMITS"]); monkeypatch.setenv("HARMONET_BCB_IMAGE", env["HARMONET_BCB_IMAGE"])
+    args = V.bcb_container_args("/w", "harness.py")
+    assert args[args.index("--memory") + 1] == str(CFG["grading"]["docker"]["memory"]) == "8g" and args[args.index("--cpus") + 1] == str(CFG["grading"]["docker"]["cpus"]) == "2"
+    assert args[args.index("--entrypoint") + 2] == CFG["grading"]["image"]
+    cmd = V.bcb_docker_cmd("/w", "harness.py")
+    assert cmd[:4] == ["docker", "run", "-i", "--rm"] and cmd[4:] == args
+    hc = V.harness_cfg("n" * 32, "result_x.json", "task_func", ["t1"])
+    assert hc["limits"] == CFG["grading"]["limits"] == V.BCB_LIMITS and eff["_effective_docker"]["limits"] == CFG["grading"]["limits"]
+    assert eff["_effective_docker"]["resources"] == {"memory": "8g", "cpus": "2"} and eff["_effective_docker"]["container_args"] == args
+    # 설정 limits 가 바뀌면 하네스에 그 값이 전달된다 (설정 → env → harness_cfg); 키가 다르면 예외
+    monkeypatch.setenv("HARMONET_BCB_LIMITS", json.dumps({**CFG["grading"]["limits"], "max_stack_limit": 7}))
+    assert V.harness_cfg("n" * 32, "r.json", "f", [])["limits"]["max_stack_limit"] == 7
+    monkeypatch.setenv("HARMONET_BCB_LIMITS", json.dumps({"max_as_limit": 1}))
+    with pytest.raises(RuntimeError, match="키 불일치"):
+        V.bcb_limits()
+
+
+def test_n2_code_defaults_must_match_config(monkeypatch):
+    """(D) 내부 상수(verify.BCB_MEMORY/CPUS/LIMITS)가 설정과 다르면 실행 전에 거부."""
+    import harmonet.verify as V
+    for k in ("HARMONET_BCB_MEMORY", "HARMONET_BCB_CPUS", "HARMONET_BCB_LIMITS"):
+        monkeypatch.delenv(k, raising=False)
+    monkeypatch.setattr(V, "BCB_LIMITS", {**V.BCB_LIMITS, "max_stack_limit": 99})
+    with pytest.raises(PD.Gate, match="단일 출처"):
+        PD._env("anthropic", "pilot_explore", CFG, {})
+    monkeypatch.setattr(V, "BCB_LIMITS", dict(CFG["grading"]["limits"]))
+    monkeypatch.setattr(V, "BCB_MEMORY_DEFAULT", "4g")
+    with pytest.raises(PD.Gate, match="단일 출처"):
+        PD._env("anthropic", "pilot_explore", CFG, {})

@@ -418,15 +418,42 @@ BCB_IMAGE_DEFAULT = "bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6
 BCB_LIMITS = {"max_as_limit": 30 * 1024, "max_data_limit": 30 * 1024, "max_stack_limit": 10, "min_time_limit": 1.0, "gt_time_limit": 1.0}
 #   ↑ 공식 evaluate 기본값(MB 단위 rlimit, min_time_limit 1s). 과제 타임아웃은 공식 max(240, gt)+1 = 241s.
 BCB_TASK_TIMEOUT_S = 241.0
+BCB_MEMORY_DEFAULT, BCB_CPUS_DEFAULT = "8g", "2"       # docker --memory / --cpus 기본값 (N2: pilot_config_v4.json grading.docker 와 일치해야 한다)
+
+
+def bcb_resources() -> Dict[str, str]:
+    """실효 docker 자원 (N2): HARMONET_BCB_MEMORY / HARMONET_BCB_CPUS — 파일럿에서는 pilot_dryrun._env 가 설정 파일에서만 유도한다."""
+    return {"memory": os.getenv("HARMONET_BCB_MEMORY", BCB_MEMORY_DEFAULT), "cpus": os.getenv("HARMONET_BCB_CPUS", BCB_CPUS_DEFAULT)}
+
+
+def bcb_limits() -> Dict[str, Any]:
+    """실효 내부 채점 제한값 (N2): HARMONET_BCB_LIMITS(JSON) 이 있으면 그것, 없으면 BCB_LIMITS. 키 집합이 다르면 예외 — 조용히 기본값으로 가지 않는다."""
+    raw = os.getenv("HARMONET_BCB_LIMITS")
+    if not raw:
+        return dict(BCB_LIMITS)
+    lim = json.loads(raw)
+    if set(lim) != set(BCB_LIMITS):
+        raise RuntimeError(f"[bcb] HARMONET_BCB_LIMITS 키 불일치: {sorted(lim)} vs {sorted(BCB_LIMITS)}")
+    return {k: type(BCB_LIMITS[k])(lim[k]) for k in BCB_LIMITS}
+
+
+def bcb_container_args(mount_dir: str, script: str) -> List[str]:
+    """docker create/run 공통 인자 (이미지·자원·마운트·엔트리포인트). 자원값은 bcb_resources() 한 곳에서."""
+    res = bcb_resources()
+    return ["--network", "none", "--memory", res["memory"], "--cpus", res["cpus"], "-v", f"{mount_dir}:/w", "-w", "/w", "--entrypoint", "python3",
+            bcb_image(), "-I", script]
+
+
+def harness_cfg(nonce: str, out_name: str, entry: str, tests: List[str]) -> Dict[str, Any]:
+    """컨테이너 하네스에 stdin 으로 넘기는 설정 — limits 는 bcb_limits() (설정 파일 → 환경 → 여기)."""
+    return {"nonce": nonce, "out_path": out_name, "entry_point": entry, "tests": tests, "limits": bcb_limits()}
 
 
 def bcb_docker_cmd(mount_dir: str, script: str) -> List[str]:
     """공식 이미지에서 script 를 python -I 로 실행하는 docker 명령. ENTRYPOINT(bigcodebench.evaluate) 를 덮는다."""
     if not shutil.which("docker"):
         raise RuntimeError("BigCodeBench 판정은 공식 Docker 이미지 안에서만 한다 — docker 실행 파일이 없습니다 (Windows 전사 금지)")
-    image = os.getenv("HARMONET_BCB_IMAGE", BCB_IMAGE_DEFAULT)
-    return ["docker", "run", "-i", "--rm", "--network", "none", "--memory", os.getenv("HARMONET_BCB_MEMORY", "8g"),
-            "--cpus", os.getenv("HARMONET_BCB_CPUS", "2"), "-v", f"{mount_dir}:/w", "-w", "/w", "--entrypoint", "python3", image, "-I", script]
+    return ["docker", "run", "-i", "--rm"] + bcb_container_args(mount_dir, script)
 
 
 _INFRA_RE = re.compile(r"error during connect|Cannot connect to the Docker daemon|docker daemon|No such image|Unable to find image|"
@@ -479,16 +506,14 @@ def _run_bcb_harness(artifact: str, entry: str, tests: List[str]) -> Dict[str, A
         shutil.copy(Path(__file__).parent / "bcb_harness.py", os.path.join(tmp, "harness.py"))
         shutil.copy(Path(__file__).parent / "bcb_check.py", os.path.join(tmp, "bcb_check.py"))
         out_name = f"result_{nonce[:8]}.json"
-        cfg = json.dumps({"nonce": nonce, "out_path": out_name, "entry_point": entry, "tests": tests, "limits": BCB_LIMITS})
+        cfg = json.dumps(harness_cfg(nonce, out_name, entry, tests))
         total_timeout = (bcb_task_timeout_s() + 60) * len(tests) + float(os.getenv("HARMONET_BCB_MARGIN_S", "90"))   # +60: 기대 수 계산 프로세스
         t0 = time.perf_counter()
         timed_out = False
         tail = ""
         if not shutil.which("docker"):
             raise RuntimeError("BigCodeBench 판정은 공식 Docker 이미지 안에서만 한다 — docker 실행 파일이 없습니다 (Windows 전사 금지)")
-        cr = _docker(["create", "-i", "--name", name, "--network", "none", "--memory", os.getenv("HARMONET_BCB_MEMORY", "8g"),
-                      "--cpus", os.getenv("HARMONET_BCB_CPUS", "2"), "-v", f"{tmp}:/w", "-w", "/w", "--entrypoint", "python3", image,
-                      "-I", "harness.py"])
+        cr = _docker(["create", "-i", "--name", name] + bcb_container_args(tmp, "harness.py"))
         if cr.returncode != 0:
             infra, tail = True, "docker create: " + (cr.stderr or cr.stdout)[-300:]
             rc = cr.returncode

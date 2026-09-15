@@ -69,7 +69,11 @@
    "min_time_limit": 1.0,
    "gt_time_limit": 1.0
   },
-  "env_single_source": "HARMONET_BCB_IMAGE / HARMONET_BCB_TIMEOUT_S / HARMONET_BCB_MARGIN_S / ANTHROPIC_MAX_TOKENS / ANTHROPIC_TEMPERATURE / HARMONET_BUDGET_CAP / HARMONET_BUDGET_ID / HARMONET_MODEL_* 는 이 파일에서만 유도; 부모 환경변수가 다른 값이면 실행 거부 (M4)"
+  "env_single_source": "HARMONET_BCB_IMAGE / HARMONET_BCB_TIMEOUT_S / HARMONET_BCB_MARGIN_S / HARMONET_BCB_MEMORY / HARMONET_BCB_CPUS / HARMONET_BCB_LIMITS(JSON) / ANTHROPIC_MAX_TOKENS / ANTHROPIC_TEMPERATURE / HARMONET_BUDGET_CAP / HARMONET_BUDGET_ID / HARMONET_MODEL_* 는 이 파일에서만 유도; 부모 환경변수가 다른 값이면 실행 거부 (M4/N2); 코드 기본값(verify.BCB_*)이 설정과 다르면 거부",
+  "docker": {
+   "memory": "8g",
+   "cpus": "2"
+  }
  },
  "features": {
   "menu": "benchmark/features.FEATURE_SPECS['post'] (pre 17 + post 11 = 28 열)",

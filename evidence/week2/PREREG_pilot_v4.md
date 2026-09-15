@@ -74,7 +74,8 @@ temp 0.2, max_tokens 4096, 시스템 프롬프트)·토큰 출처(measured)를 `
 
 ## 5. 실행·비용·중단
 - 실행 게이트(J5): `--backend anthropic` 명시 ∧ 이 설정 파일 해시 일치 ∧ s0 가져오기 완료 ∧ 0회차 b_cont 완료 ∧ 뒤집힘 설정 존재 ∧ Docker 사전 점검 — 하나라도 없으면 호출 0.
-- **실효 설정 단일 출처(M4)**: 채점 이미지/digest·timeout·margin·max_tokens·temperature·cap·원장 id·모델 id 는 이 설정 파일에서만 자식 환경으로 유도한다. 부모 환경변수가
+- **실효 설정 단일 출처(M4/N2)**: 채점 이미지/digest·timeout·margin·**docker memory 8g·cpus 2·내부 채점 limits**·max_tokens·temperature·cap·원장 id·모델 id 는 이 설정 파일에서만
+  자식 환경으로 유도하고(`HARMONET_BCB_LIMITS` JSON → `verify.harness_cfg` → 컨테이너 하네스 stdin), 실제 적용된 자원·제한값을 보고서 `effective_env._effective_docker` 에 기록한다. 부모 환경변수가
   다른 값을 가지면 **거부**(조용한 덮어쓰기 없음), 코드 기본값(`verify.BCB_IMAGE_DEFAULT` 등)이 설정과 다르면 거부. 실효값은 보고서 `effective_env` 에 기록. 실제 시스템
   프롬프트 파일(`benchmark/agents_single.py`)은 승인 범위(`approval.SCOPE`)에 포함.
 - **중단 후 재개(M1/M2, fail-closed)**: 같은 task/arm/rep(또는 s0)에 미해결 `incomplete_*.json` 이 있으면 자동 재실행·재생성을 거부한다(호출 0). 잔여 예산 복원 기능은 없다 —
@@ -93,7 +94,7 @@ temp 0.2, max_tokens 4096, 시스템 프롬프트)·토큰 출처(measured)를 `
 
 | 항목 | 값 |
 |---|---|
-| 설정 파일 sha256 | `16b22ea341a642e257e166aae68283135bc5ea576e06c6e538ec9b4321441740` |
+| 설정 파일 sha256 | `ffdc7bd1de7ba0c7e2541fbc3a53829e024fcbd4d926a9531337647dcc6cc3b5` |
 | 탐색 N_e | 100 = 프로브 재사용 59 + 신규 s0 41 |
 | 뒤집힘 부분집합 | 30 × k=2 (A-self, B-expert) |
 | 확인 N_c | 200 |
@@ -106,7 +107,7 @@ temp 0.2, max_tokens 4096, 시스템 프롬프트)·토큰 출처(measured)를 `
 | 특징 메뉴 / 상한 | benchmark/features.FEATURE_SPECS['post'] (pre 17 + post 11 = 28 열) / ≤ 20 열 |
 | λ 메뉴 (기본) | [0.3, 1.0, 3.0] (1.0) |
 | 탐색 CV | K=5 × R=20, 부트스트랩 1000, 순열(진단) 2000, 특징 선택 nested (겹 안), P2-pre 자기 메뉴 선택 True; 규칙 select_features: 메뉴 전체 1회 적합 → arm 평균 |표준화 계수| 상위 ≤ max_selected (범주 열 유지) |
-| 채점·실행 실효값(단일 출처) | image bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b…, timeout 241.0s, margin 90s, limits {'max_as_limit': 30720, 'max_data_limit': 30720, 'max_stack_limit': 10, 'min_time_limit': 1.0, 'gt_time_limit': 1.0}; HARMONET_BCB_IMAGE / HARMONET_BCB_TIMEOUT_S / HARMONET_BCB_MARGIN_S / ANTHROPIC_MAX_TOKENS / ANTHROPIC_TEMPERATURE / HARMONET_BUDGET_CAP / HARMONET_BUDGET_ID / HARMONET_MODEL_* 는 이 파일에서만 유도; 부모 환경변수가 다른 값이면 실행 거부 (M4) |
+| 채점·실행 실효값(단일 출처) | image bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b…, timeout 241.0s, margin 90s, limits {'max_as_limit': 30720, 'max_data_limit': 30720, 'max_stack_limit': 10, 'min_time_limit': 1.0, 'gt_time_limit': 1.0}; HARMONET_BCB_IMAGE / HARMONET_BCB_TIMEOUT_S / HARMONET_BCB_MARGIN_S / HARMONET_BCB_MEMORY / HARMONET_BCB_CPUS / HARMONET_BCB_LIMITS(JSON) / ANTHROPIC_MAX_TOKENS / ANTHROPIC_TEMPERATURE / HARMONET_BUDGET_CAP / HARMONET_BUDGET_ID / HARMONET_MODEL_* 는 이 파일에서만 유도; 부모 환경변수가 다른 값이면 실행 거부 (M4/N2); 코드 기본값(verify.BCB_*)이 설정과 다르면 거부 |
 | 비용 관점 | 실험 총지출 = ledger; arm 자체 = selected arm call cost only; 정책 배포 = selected arm + s0 acquisition (post policy pays s0 before choosing; NOT excluded when B-solo is chosen); 고정 배포 = fixed arm + s0, except fixed B-solo = own call only (runs B-solo from the start) |
 | 동결 항목 | feature_subset, lambda, P2-post coef, P2-pre coef, P1 table, a_hat (탐색 최고 arm), b_cont, seed |
 | 주 판정 | d_i = y[i, pi_post(i)] − y[i, a_hat]; 정확 McNemar 단측(b = #(정책 성공, â 실패) > c = #(정책 실패, â 성공)), p = P(Bin(b+c, ½) ≥ b); α=0.05, 문턱 10pp; p < 0.05 ∧ mean d ≥ 0.10 → 통과, 그 외 미확인 |

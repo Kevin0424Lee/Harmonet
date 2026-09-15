@@ -50,6 +50,8 @@ class Gate(RuntimeError):
 def governed_env(cfg: dict, backend: str, extra: dict) -> dict:
     """M4: 실행에 적용되는 값의 단일 출처 = 설정 파일. 채점 이미지/digest·timeout·margin·max_tokens·temperature·cap·원장 id·모델 id."""
     g = {"HARMONET_BCB_IMAGE": cfg["grading"]["image"], "HARMONET_BCB_TIMEOUT_S": str(cfg["grading"]["timeout_s"]), "HARMONET_BCB_MARGIN_S": str(cfg["grading"]["margin_s"]),
+         "HARMONET_BCB_MEMORY": str(cfg["grading"]["docker"]["memory"]), "HARMONET_BCB_CPUS": str(cfg["grading"]["docker"]["cpus"]),
+         "HARMONET_BCB_LIMITS": json.dumps(cfg["grading"]["limits"], sort_keys=True),
          "ANTHROPIC_MAX_TOKENS": str(cfg["models"]["max_tokens"]), "ANTHROPIC_TEMPERATURE": str(cfg["models"]["temperature"]),
          "HARMONET_BUDGET_CAP": str(cfg["cost_usd"]["cap"]), "HARMONET_BUDGET_ID": cfg["ledger_id"]}
     if backend == "anthropic":
@@ -63,6 +65,10 @@ def _same(a: str, b: str) -> bool:
     try:
         return float(a) == float(b)
     except ValueError:
+        pass
+    try:
+        return json.loads(a) == json.loads(b)                    # HARMONET_BCB_LIMITS 같은 JSON 값 (키 순서 무관)
+    except (ValueError, TypeError):
         return a == b
 
 
@@ -73,16 +79,33 @@ def _env(backend: str, run_id: str, cfg: dict, extra: dict) -> dict:
     conflicts = {k: (os.environ[k], v) for k, v in g.items() if k in os.environ and not _same(os.environ[k], v)}
     if conflicts:
         raise Gate("부모 환경변수가 승인된 설정과 다르다 (조용한 덮어쓰기 금지, 호출 0): " + "; ".join(f"{k}: env={a!r} vs 설정={b!r}" for k, (a, b) in conflicts.items()))
-    from harmonet.verify import BCB_IMAGE_DEFAULT, BCB_TASK_TIMEOUT_S
+    from harmonet.verify import BCB_CPUS_DEFAULT, BCB_IMAGE_DEFAULT, BCB_LIMITS, BCB_MEMORY_DEFAULT, BCB_TASK_TIMEOUT_S
     if BCB_IMAGE_DEFAULT != cfg["grading"]["image"] or float(BCB_TASK_TIMEOUT_S) != float(cfg["grading"]["timeout_s"]):
         raise Gate(f"코드 기본값(verify.BCB_IMAGE_DEFAULT/BCB_TASK_TIMEOUT_S)이 설정 파일과 다르다 — 단일 출처 위반: {BCB_IMAGE_DEFAULT[:40]}… / {BCB_TASK_TIMEOUT_S}")
+    if (BCB_MEMORY_DEFAULT, BCB_CPUS_DEFAULT) != (str(cfg["grading"]["docker"]["memory"]), str(cfg["grading"]["docker"]["cpus"])) or BCB_LIMITS != cfg["grading"]["limits"]:
+        raise Gate(f"코드 기본값(verify.BCB_MEMORY/CPUS/LIMITS)이 설정 파일과 다르다 — 단일 출처 위반: {BCB_MEMORY_DEFAULT}/{BCB_CPUS_DEFAULT}/{BCB_LIMITS} vs "
+                   f"{cfg['grading']['docker']}/{cfg['grading']['limits']}")
     env = {**os.environ, "HARMONET_LLM_BACKEND": backend, "HARMONET_ALLOW_NO_REDIS": "1", "HARMONET_TRACE_RUN_ID": run_id, "PYTHONIOENCODING": "utf-8", **extra, **g}
     env["HARMONET_EFFECTIVE_ENV"] = json.dumps(g)
     return env
 
 
 def effective_env(env: dict) -> dict:
-    return json.loads(env["HARMONET_EFFECTIVE_ENV"])
+    """보고용 실효 설정 = 자식 환경에 넘긴 governed 값 + 그 환경에서 verify 가 실제로 읽는 자원·제한값 (N2: 선언과 소비가 같은지 보고서에서 볼 수 있게)."""
+    g = json.loads(env["HARMONET_EFFECTIVE_ENV"])
+    saved = {k: os.environ.get(k) for k in ("HARMONET_BCB_MEMORY", "HARMONET_BCB_CPUS", "HARMONET_BCB_LIMITS", "HARMONET_BCB_IMAGE")}
+    try:
+        os.environ.update({k: env[k] for k in saved})
+        from harmonet.verify import bcb_container_args, bcb_limits, bcb_resources
+        args = bcb_container_args("/w", "harness.py")
+        g["_effective_docker"] = {"resources": bcb_resources(), "limits": bcb_limits(), "container_args": args}
+    finally:
+        for k, v in saved.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v
+    return g
 
 
 def run_arms(ids_file: Path, out: Path, env: dict, k: int, arms: str, b_cont: float, a_med: float) -> dict:
