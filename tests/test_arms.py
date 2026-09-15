@@ -202,10 +202,11 @@ def test_l5_incomplete_arm_recorded_and_ledger_matches(tmp_path):
     rep = PD.spend_report(env, [d], 0.0)
     assert rep["n_incomplete_arms"] == 1 and rep["arms_unknown_reserved_usd"] == inc["cost_usd"] and rep["check"].endswith("incomplete")
     assert not any((tmp_path / "arms" / "l5" / "Mbpp_2" / "B-expert" / "rep1").glob("result.json"))     # 미완료는 result.json 이 아니다
-    # 재개: 원장이 stopped 라 다시 예약 거부 → 새 incomplete 에피소드 1개 더, 이전 에피소드는 그대로 (파일 단위 유일 → 이중 계상 없음)
+    # 재개(M1 fail-closed): 미해결 incomplete 가 있으므로 호출 전에 거부 — 에피소드는 그대로 1개, 원장 불변 (파일 단위 유일 → 이중 계상 없음)
     d2 = _run(tmp_path, "l5", k=1, cap="0.022", arms="B-expert", extra_env={"ANTHROPIC_MAX_TOKENS": "1024"}, expect_rc=2)
     led2 = json.loads((tmp_path / "budget" / "l5" / "budget.json").read_text(encoding="utf-8"))
-    assert len(d2["incomplete_arms"]) == 2 and abs(d2["cost"]["total_spent_usd"] - led2["spent"]) < 1e-9 and led2["spent"] == led["spent"]
+    assert d2["stopped_reason"] == "unresolved_incomplete_arm" and len(d2["incomplete_arms"]) == 1
+    assert abs(d2["cost"]["total_spent_usd"] - led2["spent"]) < 1e-9 and led2["spent"] == led["spent"] and led2["n_calls"] == led["n_calls"]
 
 
 # ── Week2-M3: arm/s0 미완료 기록도 실측을 잃지 않는다 (cap_exceeded_post) ────────
@@ -225,3 +226,19 @@ def test_m3_cap_exceeded_post_incomplete_records_match_ledger(tmp_path):
     assert abs(led2["spent"] - (d2["cost"]["shared_s0_cost_total"] + inc2["cost_usd"])) < 1e-9
     rep = PD.spend_report({"HARMONET_BUDGET_ROOT": str(tmp_path / "budget"), "HARMONET_BUDGET_ID": "m3arm"}, [d2], 0.0)
     assert abs(rep["arms_measured_usd"] - 0.0045) < 1e-9 and rep["arms_unknown_reserved_usd"] == 0.0 and rep["total_spent_usd"] == led2["spent"]
+
+
+# ── Week2-M1: 중단 후 재개 시 arm 예산 초기화 차단 (fail-closed) ──────────────
+def test_m1_resume_with_unresolved_incomplete_is_refused_before_any_call(tmp_path):
+    """코덱스 재현: arm 상한 $0.010, 1차 timeout→400 귀속 $0.00622 (원장은 정지되지 않음, 추가 호출 가능 상태) → 패치 전 재개는 새 예산으로 성공 호출 $0.00450,
+    누적 $0.01072 > 상한. 패치 후: 실제 CLI 경로 재개 → 호출 0, 원장 불변, 기존 incomplete 보존, stopped_reason unresolved_incomplete_arm."""
+    d1 = _run(tmp_path, "m1", k=1, cap="5", b_cont="0.01", arms="B-expert", extra_env={"HARMONET_MOCK_FAIL_SCRIPT": "ok,timeout,400", "ANTHROPIC_MAX_TOKENS": "1024"}, expect_rc=2)
+    led1 = json.loads((tmp_path / "budget" / "m1" / "budget.json").read_text(encoding="utf-8"))
+    inc = d1["incomplete_arms"][0]
+    assert d1["stopped_reason"] == "call_failed" and led1["stopped_reason"] is None and abs(inc["cost_usd"] - 0.00622) < 1e-9 and led1["n_calls"] == 3
+    d2 = _run(tmp_path, "m1", k=1, cap="5", b_cont="0.01", arms="B-expert", extra_env={"ANTHROPIC_MAX_TOKENS": "1024"}, expect_rc=2)
+    led2 = json.loads((tmp_path / "budget" / "m1" / "budget.json").read_text(encoding="utf-8"))
+    assert d2["stopped_reason"] == "unresolved_incomplete_arm" and led2["n_calls"] == led1["n_calls"] and led2["spent"] == led1["spent"]
+    assert [i["path"] for i in d2["incomplete_arms"]] == [inc["path"]] and d2["rows"] == []
+    assert not (tmp_path / "arms" / "m1" / "Mbpp_2" / "B-expert" / "rep1" / "result.json").exists()
+    assert (tmp_path / "arms" / "m1" / "Mbpp_2" / "s0" / "sha256.txt").exists()                          # 완료 s0 보존, 재생성 없음

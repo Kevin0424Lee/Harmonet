@@ -225,6 +225,10 @@ def run_arm(arm: str, rep: int, s0_dir: Path, spec_full: Dict[str, Any], clients
         if prev.get("config_hash") == cfg["config_hash"]:
             return prev
         print(f"[arms] {task_id_of(s0_dir)} {arm} rep{rep}: config_hash 불일치 ({str(prev.get('config_hash'))[:8]} != {cfg['config_hash'][:8]}) → 재실행", flush=True)
+    pend = unresolved_incomplete(arm_dir)                  # M1 fail-closed: 미해결 실패 이력이 있으면 새 arm 예산으로 자동 재실행하지 않는다 (호출 0)
+    if pend:
+        raise BudgetStop(f"[arms] {task_id_of(s0_dir)} {arm} rep{rep}: 미해결 incomplete {len(pend)}건 ({pend[-1].name}) — 자동 재실행 거부 (잔여 예산 복원 없음, 수동 판단 필요)",
+                         "unresolved_incomplete_arm")
     s0 = load_s0(s0_dir)                                   # 디스크에서 재개 — 메모리 상태 재사용 금지
     task_id, ctx = s0["ctx"]["task_id"], s0["ctx"]
     spec_visible = ctx["spec_visible"]
