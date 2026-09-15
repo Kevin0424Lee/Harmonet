@@ -1,0 +1,191 @@
+\documentclass{article}
+\usepackage{iclr2027_conference,times}
+\input{math_commands.tex}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{xcolor}
+
+% ── Draft mode ───────────────────────────────────────────────────────────────
+% \draftmodetrue  → internal draft: \draftnote{...} renders in red, unfinished results are visibly marked.
+% \draftmodefalse → submission build: every \draftnote is an ERROR (scripts/check_submission.py also fails), so no
+%                    placeholder can survive into the PDF. Never ship a PDF built with \draftmodetrue.
+\newif\ifdraftmode
+\draftmodetrue
+\newcommand{\draftnote}[1]{\ifdraftmode{\color{red}\textbf{[DRAFT: #1]}}\else\PackageError{main}{draftnote left in submission build: #1}{}\fi}
+% Anonymous submission: keep \iclrfinalcopy commented out. Author block below is the template placeholder on purpose.
+
+\title{Does post-execution feedback improve the choice between stopping, self-revision, expert review and regeneration? \\
+A pre-registered, cost-accounted study on BigCodeBench}
+
+\author{Anonymous authors \\ Paper under double-blind review}
+% \iclrfinalcopy
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\draftnote{Abstract is written after the pre-registered analysis (decision package, 2026-09-17). Do not register a placeholder. The
+registered abstract must contain only results verified in \texttt{evidence/week2} at registration time; see
+\texttt{evidence/iclr\_2027/decision\_20260917.md} for the two admissible variants.}
+\end{abstract}
+
+\section{Introduction}
+\label{sec:intro}
+A code-generating agent that has just produced a candidate and run the visible checks faces a decision: submit the candidate as is
+(\emph{stop}), ask the same model to revise it (\emph{self-revise}), hand it to a stronger model for review (\emph{expert review}), or
+discard the state and let the stronger model \emph{regenerate} from scratch. Each continuation costs money, and the information that
+could justify it---the executed check outcome, the failure count, the error class, the size of the artifact---is only available
+\emph{after} paying for the first execution.
+
+We ask one question:
+\begin{quote}
+\emph{Does post-execution observable feedback improve the choice among stop / self-revise / review-by-another-model / regenerate on
+\textbf{new} tasks, and does the gain survive once the cost of acquiring that state and the cost of the executions used to learn the
+policy are counted?}
+\end{quote}
+We answer it with a two-stage, pre-registered design on BigCodeBench~\citep{zhuo2024bigcodebench} (Section~\ref{sec:design}):
+an \emph{exploration} set on which every action is executed and a small offline policy is learned and frozen, and a disjoint
+\emph{confirmation} set on which the frozen policy is compared, task by task, against the single best fixed action chosen on the
+exploration set. The primary estimand and the decision rule were fixed before any confirmation task was executed.
+
+\paragraph{Scope of the claims.} The policy is an offline routing rule fitted on exploration outcomes; the LLM weights are frozen
+throughout, but the router \emph{is} learned from labelled executions, and we count those executions as a cost. We do not claim
+training-free operation, online self-improvement, novelty of the action set, or superiority over routers we did not run
+(Section~\ref{sec:related}). Conclusions are restricted to the eligible BigCodeBench pool and the two models used.
+\draftnote{Numbers and the contribution list are filled from the decision package only.}
+
+\section{Problem definition}
+\label{sec:problem}
+Let a task $i$ have a first-pass candidate $s_0(i)$ produced by model $A$, together with the executed visible-check result. A
+\emph{continuation arm} $a\in\mathcal{A}=\{\text{T},\text{A-self},\text{A-self}{\times}k,\text{A-role},\text{B-expert},\text{B-solo}\}$
+maps the state to a final artifact: T submits $s_0$; A-self and A-self${\times}k$ ask $A$ to revise once or up to $k$ times
+(stopping on visible pass); A-role asks $A$ in a reviewer role; B-expert asks the stronger model $B$ to review and correct; B-solo
+discards $s_0$ and regenerates with $B$. The hidden outcome $y_{i,a}\in\{0,1\}$ is the official hidden test result of the final
+artifact, obtained post hoc and never shown to any model.
+
+A \emph{state-conditional policy} $\pi(x_i)\in\mathcal{A}$ chooses an arm from decision-time features $x_i$. We distinguish
+\emph{pre} features (computable from the task prompt alone) from \emph{post} features (computable only after $s_0$ was generated and
+checked). The quantity of interest is the \emph{policy gain over the best fixed strategy},
+\begin{equation}
+\Delta(\pi,\hat a)=\mathbb{E}_i\big[y_{i,\pi(x_i)}-y_{i,\hat a}\big],
+\end{equation}
+where $\hat a$ is the fixed arm with the highest exploration success rate. Three quantities must not be confused: (1) the
+\emph{true-probability oracle gain} $\mathbb{E}_i[\max_a q_{ia}]-\max_a\mathbb{E}_i[q_{ia}]$, an upper bound on any policy gain that is
+observable only in simulation; (2) the \emph{in-sample maximum of single realisations} $\frac1n\sum_i\max_a y_{ia}-\max_a\frac1n\sum_i y_{ia}$,
+which contains realisation luck and is reported only as a descriptive statistic; (3) the gain of a policy learned from observable
+features, which is what we test.
+
+\section{Method: an offline, frozen routing policy}
+\label{sec:method}
+\paragraph{Features.} Pre features: prompt length, number of docstring examples, argument count, presence of a Returns clause, and
+one-hot library requirements (12 most frequent in the eligible pool + other). Post features: visible outcome, number of failed checks,
+error class (8 most frequent + other/none), artifact size, AST statistics (functions, try-blocks, imports), and the token/dollar cost of
+$s_0$. Hidden results are never features. \draftnote{cite features.py version FEATURES\_VERSION=features-i1; list is fixed.}
+
+\paragraph{Learners.} P2 fits one $L_2$-regularised logistic model per arm, $\hat p_a(x)$, and picks $\arg\max_a\hat p_a(x)$; P2-post
+uses pre+post features, P2-pre uses pre features only, each with its own feature subset and $\lambda$ selected on its own menu. P1 is a
+lookup table on the visible-outcome category and serves as a diagnostic. Feature subsets (at most 20 of 28 columns) and
+$\lambda\in\{0.3,1,3\}$ are chosen by nested cross-validation inside the exploration set (selection inside each training fold); the
+frozen model is refit once on the full exploration set. \draftnote{The exact procedure is \texttt{gap\_analysis.explore\_fit}; the same
+function drives the simulator (Appendix).}
+
+\paragraph{Freezing.} After exploration, the feature subsets, $\lambda$, coefficients, the P1 table, $\hat a$, the continuation budget
+$b_{\mathrm{cont}}$ and the seed are written to a single file whose hash is recorded before any confirmation task is run.
+
+\section{Experimental design (pre-registered)}
+\label{sec:design}
+\paragraph{Pool.} BigCodeBench (Complete split, fixed revision), restricted to tasks whose canonical solution passes the official hidden
+tests in three independent runs inside the official evaluation image and whose visible doctests can be executed: 403 eligible tasks
+after removing six development tasks. \draftnote{eligibility: gate1 411, gate2 408, history-stable 407, eligible 403 --- cite
+bcb\_eligibility.json.}
+
+\paragraph{Splits.} Exploration $N_e=100$ = the 59 re-eligible tasks of an earlier 60-task probe (their first-pass candidates are
+\emph{reused} as $s_0$, without selection on outcome, with the original model id, prompt and cost preserved) + 41 tasks drawn with a
+fixed seed; confirmation $N_c=200$ drawn with the same seed from the 344 unused tasks and never touched before the frozen policy is
+applied; 103 sealed reserve tasks.
+
+\paragraph{Models and arms.} $A$ = claude-haiku-4-5, $B$ = claude-sonnet-4-6, temperature 0.2, 4096 output tokens; six arms with one
+repetition ($k=1$); a 30-task exploration subset additionally runs A-self and B-expert twice to report flip rates. A round-0 pass
+measures the median cost of one B-expert call to set $b_{\mathrm{cont}}$, the per-arm continuation budget that bounds
+\texttt{max\_tokens} on every attempt.
+
+\paragraph{Pool gate.} Confirmation proceeds only if the best exploration arm success rate is $\le 80\%$. The original registered
+ceiling for $B$ alone was 70\%; the probe measured $B$-solo at 75.0\% (45/60, 95\% CI [62.8, 84.2]), which was recorded as
+\emph{unconfirmed} under that rule, and the operating criterion was revised to 80\% (headroom $\ge 2\times$ the 10~pp practical
+threshold) \emph{before} the exploration set was assembled. Both values and the revision history are kept.
+
+\paragraph{Primary rule.} On the 200 confirmation tasks, $d_i=y_{i,\hat\pi_{\text{post}}(i)}-y_{i,\hat a}$; exact one-sided McNemar
+test on discordant pairs ($p<0.05$) \emph{and} mean $d\ge 10$~pp $\Rightarrow$ \emph{pass}, otherwise \emph{unconfirmed}. Passing
+means ``evidence of positive gain and a point estimate above the practical threshold''; it does \emph{not} establish that the true
+gain exceeds 10~pp. Unconfirmed is not ``no gain''. The rule, thresholds and sets are hashed into the approval record.
+
+\paragraph{Secondary analyses.} P2-post vs.\ P2-pre paired difference (an ablation of post-execution state, each policy tuned on its
+own menu), P1, per-arm success/cost/refusal, the arm distribution chosen by the policy, and cost from two viewpoints: total experiment
+spend (every arm executed on every task, from the budget ledger) and \emph{deployment cost} of the policy (chosen arm + $s_0$
+acquisition, charged even when the policy chooses B-solo; the fixed B-solo baseline pays only its own call).
+
+\paragraph{Operating characteristics (synthetic).} With the identical exploration procedure applied to a synthetic generator
+(100 exploration / 200 confirmation tasks, 20 seeds per condition, 60 per null), both null conditions---features independent of
+outcomes, and features that predict only difficulty with an invariant best arm---passed in 0/60 cells; observed pass rates at a
+calibrated Bayes-optimal gain of 15~pp were 16/20 with 6 features and fell with menu size, and at 10~pp were $\le 3/20$.
+\draftnote{Table from evidence/week2/pilot\_power\_v4.md; state that these are observed pass rates under those synthetic conditions, not
+power statements; gate hold rates are a property of the generator.}
+
+\section{Results}
+\label{sec:results}
+\draftnote{Exploration not yet executed (approval pending). Tables are generated by paper/make\_tables.py from evidence/week2 artifacts;
+nothing here is filled by hand.}
+\subsection{Exploration set}
+\draftnote{arm table; pool gate; frozen policy; spend from ledger.}
+\subsection{Confirmation set (primary)}
+\draftnote{$d$, $b$, $c$, McNemar $p$, bootstrap CI of $d$, verdict.}
+\subsection{Secondary and cost}
+\draftnote{post vs pre; P1; pick distribution; experiment spend vs deployment cost; measured vs conservatively attributed unknown cost.}
+
+\section{Related work}
+\label{sec:related}
+\textbf{Cascades with a learned quality scorer.} FrugalGPT~\citep{chen2023frugalgpt} (Sec.~3, ``LLM cascade'') scores a generated answer
+with a trained regression model and returns it if the score exceeds a threshold, otherwise queries the next API. We share the
+``look at the generation, then decide'' structure, but our signal is an executed check rather than a learned scorer, the action set
+includes revision by the same model and review by another, and we account for the cost of acquiring the state.
+\textbf{Belief-guided delegation.} REDEREF~\citep{hosseini2026rederef} routes recursively without training, updating per-agent beliefs
+from a programmatic or LLM judge, re-routing after reflection-driven critique and terminating on success or budget. Our P2-pre is
+\emph{not} a re-implementation or proxy of REDEREF; the pre/post comparison is an ablation of post-execution state within our own
+learner, and a direct comparison to REDEREF is future work.
+\textbf{Knowledge-aware expert selection.} KABB~\citep{zhang2025kabb} selects a subset of experts with knowledge-distance priors and
+Thompson sampling updated from task outcomes. \textbf{When collaboration helps.} \citet{kim2026outgrow} vary coordination structure and
+capability across 260 configurations and find single-agent baseline strength the most robust predictor of whether coordination helps;
+our question is the task-level, state-conditional version of theirs for one coding benchmark. \textbf{Sequential inspection and
+next-hop routing.} Pandora-style routing~\citep{fisch2026pandora} treats expert inspection as costly sequential search; BiRouter~\citep{yang2026birouter}
+learns a next-hop (including a finisher) from local state. \draftnote{Confirm each citation against
+docs/related\_work\_week1.md: which were read in full (arXiv HTML) vs abstract only; Pandora/BiRouter entries are abstract+partial.}
+
+\section{Limitations}
+\label{sec:limits}
+One benchmark, one model pair, one repetition per arm; the policy is learned from 100 tasks, and the synthetic study shows that the
+learned policy captures only part of the Bayes-optimal gain, increasingly so with larger feature menus. Passing the primary rule does
+not certify a $\ge 10$~pp true gain. Hidden tests of BigCodeBench are public, so contamination cannot be excluded for either model.
+Visible verification has zero API cost but non-zero compute and latency, which we report as wall time, not as \$0.
+\draftnote{Add: gate-hold behaviour, incomplete/unknown-cost attribution, what an unconfirmed result would and would not mean.}
+
+\subsubsection*{Reproducibility statement}
+All pre-registration documents, configuration, ID files, the budget ledger, and the exact commands are in the anonymised repository
+snapshot submitted as supplementary material. \draftnote{Anonymise paths, run ids, and remove the git remote before zipping; check PDF
+metadata.}
+
+\subsubsection*{AI use statement}
+\draftnote{Required section (not counted). Fill per ICLR 2027 AI Policy for Authors: generative AI tools were used to draft code,
+tests and text under the authors' direction; all code was tested and all claims were checked against artifacts by the authors. The
+authors must confirm this wording themselves.}
+
+\bibliography{main}
+\bibliographystyle{iclr2027_conference}
+
+\appendix
+\section{Pre-registration and approval record}
+\draftnote{Reproduce PREREG\_pilot\_v4.md config block and APPROVAL.json fields (anonymised).}
+\section{Synthetic operating characteristics}
+\draftnote{Full table from pilot\_power\_v4.md, three quantities (a)/(b)/(c) kept separate; aggregated truth-bin rows without CIs.}
+\end{document}
