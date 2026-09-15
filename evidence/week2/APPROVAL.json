@@ -13,5 +13,6 @@
   "reserve": null
  },
  "pool_gate": null,
- "note": "탐색 실행 승인 시 stage=explore 로, 동결 커밋 뒤 확인 실행 승인 시 stage=confirm 으로 갱신. scripts/approval.py 가 값을 대조한다."
+ "note": "탐색 실행 승인 시 stage=explore 로, 동결 커밋 뒤 확인 실행 승인 시 stage=confirm 으로 갱신. scripts/approval.py 가 값을 대조한다 (L2: 동결 파일 내부·관문 수치·freeze_commit blob·검증 범위 파일 해시 scope_files = `python scripts/approval.py --scope`).",
+ "scope_files": null
 }

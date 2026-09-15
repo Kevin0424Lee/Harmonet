@@ -14,6 +14,9 @@
 K 완료 → **코덱스 재검토** → `APPROVAL.json` 작성(stage=explore: 검토자·검토 참조·config_hash·추출기 버전·ID 집합 해시·status=approved) → **탐색 100 실행**
 (`--backend anthropic --stage explore`) → **동결 커밋**(frozen_policy.json + sha256) → `APPROVAL.json` 갱신(stage=confirm: freeze_commit·policy_hash·pool_gate="진행") →
 **확인 200 실행**(`--stage confirm`, 별도 호출 — 실제 백엔드에서 `--stage all` 은 코드가 거부) → **분석 1회** → 보고. 각 단계의 게이트는 `scripts/approval.py` 가 값 단위로 대조한다.
+승인 대조 범위(L2): 승인 문서 값(status·stage·reviewer·review_ref·config_hash·추출기 버전·ID 집합 해시) + **검증 범위 파일 해시** `scope_files`(`approval.SCOPE` = 실행에 영향을 주는
+코드·설정·ID 파일 25개, 승인 후 변경 → 거부; 문서는 범위 밖) + 확인 단계에서 동결 파일 내부(config_sha256·features_version·explore_ids·n_explore·pool_gate 수치/문턱/판정 일관성) +
+freeze_commit 에 동결 산출물이 실제 포함되고 blob == 현재 파일. 승인 기록 작성 시 `python scripts/approval.py --scope` 출력을 붙인다.
 
 ## 1. 두 단계, 두 자료
 

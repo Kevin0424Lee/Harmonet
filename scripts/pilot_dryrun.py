@@ -154,7 +154,8 @@ def gate_common(args, cfg: dict, ids: dict, arms_root: Path, stage: str) -> dict
     checks["s0_imported"] = len(ids.get("probe_reuse_ids", []))
     if args.backend == "anthropic":                        # K1: 승인 기록 대조 (값 하나하나). dry-run 은 승인 없이 배관만 점검
         fz_path = arms_root / cfg["run_ids"]["explore"] / "frozen_policy.json"
-        checks["approval"] = {k: v for k, v in check_approval(stage, sha, FEATURES_VERSION, id_set_hashes(cfg), fz_path).items() if k in ("reviewer", "review_ref", "freeze_commit")}
+        checks["approval"] = {k: v for k, v in check_approval(stage, sha, FEATURES_VERSION, id_set_hashes(cfg), fz_path, cfg=cfg, explore_ids=ids["ids"]).items()
+                              if k in ("reviewer", "review_ref", "freeze_commit")}
     from benchmark.bcb import bcb_preflight
     checks["docker_preflight"] = bcb_preflight()
     if stage == "confirm":
