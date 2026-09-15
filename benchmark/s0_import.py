@@ -19,7 +19,7 @@ import os
 from pathlib import Path
 
 from benchmark.agents_single import _DEFAULT_SYSTEM
-from benchmark.arms import S0_FILES, _s0_hash, _safe, make_s0
+from benchmark.arms import S0_FILES, _s0_hash, _safe, make_s0_guarded
 from benchmark.bcb import load_bcb
 from benchmark.features import ast_features, error_class
 from harmonet.verify import verify_visible
@@ -90,7 +90,7 @@ def prepare(ids_doc: dict, probe_rows: dict, root: Path, generate: bool, client_
         elif generate:
             t = tasks[tid]
             spec_visible = {kk: v for kk, v in t.spec(visible=True).items() if kk != "hidden_tests"}
-            d, created = make_s0(tid, t.prompt, spec_visible, client_a, budget, root)
+            d, created = make_s0_guarded(tid, t.prompt, spec_visible, client_a, budget, root, source="new")   # M2: 실패 기록·fail-closed 는 공통 경계에서
             if json.loads((d / "prompt_context.json").read_text(encoding="utf-8")).get("imported_from") is not None:
                 raise RuntimeError(f"[s0_import] new 인데 가져온 s0 가 있다: {tid}")
             out["generated"].append(tid)

@@ -165,6 +165,49 @@ def task_id_of(s0_dir: Path) -> str:
     return json.loads((s0_dir / "prompt_context.json").read_text(encoding="utf-8"))["task_id"]
 
 
+def unresolved_incomplete(d: Path) -> List[Path]:
+    """d 아래 미해결 incomplete_*.json (완료 산출물 없이 남은 실패 이력). M1/M2 fail-closed: 있으면 자동 재실행을 거부한다."""
+    if not d.exists():
+        return []
+    done = (d / "result.json").exists() or (d / "sha256.txt").exists()
+    return [] if done else sorted(d.glob("incomplete_*.json"))
+
+
+def make_s0_guarded(task_id: str, task_prompt: str, spec_visible: Dict[str, Any], client_a, budget: Optional[Budget], root: Path,
+                    source: str = "new", config_hash: Optional[str] = None) -> Tuple[Path, bool]:
+    """M2: 신규 s0 생성의 공통 경계 (arms.run_task_all_arms 와 s0_import.prepare 가 같이 쓴다).
+    - 미해결 incomplete 가 있으면 호출 전에 BudgetStop("unresolved_incomplete_s0") — 새 예산으로 조용히 재생성하지 않는다 (M1 원칙).
+    - BudgetStop·CallAborted 모두 s0/incomplete_<ts>.json 에 task/source/설정 식별자·시도 내역·실측/불명 귀속·중단 사유를 남긴 뒤 BudgetStop 으로 전달
+      (CallAborted 는 reason "s0_<reason>" 의 BudgetStop 으로 감싼다 — run_loop 가 부분 결과를 저장하도록). 실패한 s0 는 캐시가 아니다(sha256.txt 없음)."""
+    d = root / _safe(task_id) / "s0"
+    pend = unresolved_incomplete(d)
+    if pend:
+        e = BudgetStop(f"[arms] {task_id} s0 에 미해결 실패 이력 {len(pend)}건 ({pend[-1].name}) — 자동 재생성 거부, 호출 0회 (M1 fail-closed)", "unresolved_incomplete_s0")
+        e.incomplete = None
+        raise e
+    try:
+        return make_s0(task_id, task_prompt, spec_visible, client_a, budget, root)
+    except (BudgetStop, CallAborted) as exc:
+        attempts = list(getattr(exc, "attempts", []) or [])
+        tot = _attempt_totals(attempts)
+        reason = exc.reason if isinstance(exc, BudgetStop) else f"s0_{exc.reason}"
+        d.mkdir(parents=True, exist_ok=True)
+        inc = {"task_id": task_id, "arm": "s0", "rep": 0, "incomplete": True, "source": source, "stop_reason": reason, "n_calls_done": 0,
+               "n_attempts": len(attempts), "n_unknown_attempts": tot["n_unknown_attempts"], "measured_usd": tot["measured_usd"],
+               "unknown_reserved_usd": tot["unknown_reserved_usd"], "cost_usd": tot["cost_usd"], "attempts": attempts,
+               "max_tokens": [a.get("max_tokens") for a in attempts], "config_hash": config_hash,
+               "s0_config": {"model_a": getattr(client_a, "model", None), "system_prompt_sha256": hashlib.sha256(_DEFAULT_SYSTEM.encode()).hexdigest(),
+                             "max_tokens": os.getenv("ANTHROPIC_MAX_TOKENS", "4096"), "temperature": os.getenv("ANTHROPIC_TEMPERATURE")}, "t": time.time()}
+        p0 = d / f"incomplete_{int(inc['t'] * 1000)}.json"
+        p0.write_text(json.dumps(inc, ensure_ascii=False, indent=1), encoding="utf-8")
+        inc["path"] = str(p0)
+        e = exc if isinstance(exc, BudgetStop) else BudgetStop(str(exc), reason)
+        e.attempts, e.usd, e.measured_usd, e.unknown_reserved_usd, e.incomplete = attempts, tot["cost_usd"], tot["measured_usd"], tot["unknown_reserved_usd"], inc
+        if e is not exc:
+            e.__cause__ = exc
+        raise e
+
+
 def load_s0(d: Path) -> Dict[str, Any]:
     return {"artifact": (d / "artifact.py").read_text(encoding="utf-8").rstrip("\n"),
             "visible": json.loads((d / "verify_visible.json").read_text(encoding="utf-8")),
@@ -308,17 +351,9 @@ def run_task_all_arms(task_id: str, task_prompt: str, spec_full: Dict[str, Any],
                       k: int, arms: Sequence[str] = ARMS) -> Dict[str, Any]:
     spec_visible = {kk: v for kk, v in spec_full.items() if kk != "hidden_tests"}
     try:
-        s0_dir, created = make_s0(task_id, task_prompt, spec_visible, clients["A"], budget, root)
-    except BudgetStop as e:                                 # L5: s0 생성 중 중단 — arm 이 아니어도 시도 기록·비용 보존 (s0/incomplete_*.json)
-        inc0 = None
-        if getattr(e, "attempts", None):
-            tot = _attempt_totals(e.attempts)
-            d = root / _safe(task_id) / "s0"; d.mkdir(parents=True, exist_ok=True)
-            inc0 = {"task_id": task_id, "arm": "s0", "rep": 0, "incomplete": True, "stop_reason": e.reason, "n_calls_done": 0, "n_attempts": len(e.attempts),
-                    "n_unknown_attempts": tot["n_unknown_attempts"], "measured_usd": tot["measured_usd"], "unknown_reserved_usd": tot["unknown_reserved_usd"],
-                    "cost_usd": tot["cost_usd"], "attempts": e.attempts, "max_tokens": [a.get("max_tokens") for a in e.attempts], "t": time.time()}
-            p0 = d / f"incomplete_{int(inc0['t'] * 1000)}.json"; p0.write_text(json.dumps(inc0, ensure_ascii=False, indent=1), encoding="utf-8")
-            inc0["path"] = str(p0); e.incomplete = inc0
+        s0_dir, created = make_s0_guarded(task_id, task_prompt, spec_visible, clients["A"], budget, root, source="new", config_hash=cfg.get("config_hash"))
+    except BudgetStop as e:                                 # L5/M2: s0 생성 중 중단 — 기록은 make_s0_guarded 가 남겼다; 부분 결과만 싣는다
+        inc0 = getattr(e, "incomplete", None)
         e.partial = {"task_id": task_id, "order": [], "rows": [], "incomplete_arms": [inc0] if inc0 else [], "shared_s0_cost": 0.0, "s0_created": False,
                      "cost_usd": 0.0, "infra": False, "line": f"BUDGET STOP ({e.reason}) at s0"}
         raise
