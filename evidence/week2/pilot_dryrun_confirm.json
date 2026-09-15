@@ -3,7 +3,7 @@
  "mode": "mock-scenario",
  "run_id": "pilot_confirm",
  "n_tasks": 2,
- "frozen_hash": "3f735a2847f3ab97866a2ccf1b653f8b62b7c6a4d15a54e67e4693b038f08dc1",
+ "frozen_hash": "d0d8c6159a4a5d6b3231b09e610f890c2e958c34605b99680ad81f10cd78ab32",
  "primary": {
   "n": 2,
   "mean_d": 0.5,
@@ -56,7 +56,10 @@
    "refused_rate": 0.0,
    "cost_own_cost_usd": 0.0,
    "cost_own_n_unpriced": 0,
+   "cost_measured_usd": 0.0,
+   "cost_unknown_reserved_usd": 0.0,
    "n_calls_mean": 0.0,
+   "n_attempts_mean": 0.0,
    "models": []
   },
   "A-self": {
@@ -65,7 +68,10 @@
    "refused_rate": 0.0,
    "cost_own_cost_usd": 0.0058,
    "cost_own_n_unpriced": 0,
+   "cost_measured_usd": 0.0058,
+   "cost_unknown_reserved_usd": 0.0,
    "n_calls_mean": 1.0,
+   "n_attempts_mean": 1.0,
    "models": [
     "claude-haiku-4-5"
    ]
@@ -76,7 +82,10 @@
    "refused_rate": 0.0,
    "cost_own_cost_usd": 0.0029,
    "cost_own_n_unpriced": 0,
+   "cost_measured_usd": 0.0029,
+   "cost_unknown_reserved_usd": 0.0,
    "n_calls_mean": 0.5,
+   "n_attempts_mean": 0.5,
    "models": [
     "claude-haiku-4-5"
    ]
@@ -87,7 +96,10 @@
    "refused_rate": 0.0,
    "cost_own_cost_usd": 0.0058,
    "cost_own_n_unpriced": 0,
+   "cost_measured_usd": 0.0058,
+   "cost_unknown_reserved_usd": 0.0,
    "n_calls_mean": 1.0,
+   "n_attempts_mean": 1.0,
    "models": [
     "claude-haiku-4-5"
    ]
@@ -98,7 +110,10 @@
    "refused_rate": 0.0,
    "cost_own_cost_usd": 0.0174,
    "cost_own_n_unpriced": 0,
+   "cost_measured_usd": 0.0174,
+   "cost_unknown_reserved_usd": 0.0,
    "n_calls_mean": 1.0,
+   "n_attempts_mean": 1.0,
    "models": [
     "claude-sonnet-4-6"
    ]
@@ -109,7 +124,10 @@
    "refused_rate": 0.0,
    "cost_own_cost_usd": 0.0174,
    "cost_own_n_unpriced": 0,
+   "cost_measured_usd": 0.0174,
+   "cost_unknown_reserved_usd": 0.0,
    "n_calls_mean": 1.0,
+   "n_attempts_mean": 1.0,
    "models": [
     "claude-sonnet-4-6"
    ]
@@ -129,9 +147,11 @@
   "state_acquisition_usd_per_task": 0.0029,
   "policy_deploy_usd_per_task": 0.0087,
   "fixed_deploy_usd_per_task": 0.0116,
-  "visible_verify_wall_ms_per_task": 3711.0,
+  "fixed_arm": "B-expert",
+  "fixed_deploy_includes_s0": true,
+  "visible_verify_wall_ms_per_task": 3684.5,
   "n_unpriced": 0,
-  "note": "배포 비용 = arm + 상태 취득(s0 + 가시 검증, B-solo 제외); 실험 총지출은 cost(원장)"
+  "note": "policy_deploy = 선택 arm + s0 (post 정책은 B-solo 를 골라도 s0 를 이미 지불); fixed_deploy = 고정 arm + s0 (고정 B-solo 만 자기 호출); 실험 총지출은 cost(원장); 가시 검증은 wall_ms"
  },
  "cost": {
   "total_spent_usd": 0.2088,
@@ -140,7 +160,9 @@
    "cap": 16.0,
    "spent": 0.2088,
    "n_calls": 40,
-   "stopped_reason": null
+   "stopped_reason": null,
+   "unknown_cost_calls": 0,
+   "unbilled_failed_calls": 0
   },
   "prior_stage_usd": 0.1537,
   "round0_usd": 0.0,
@@ -149,8 +171,13 @@
   "s0_built_here_usd": 0.0058,
   "s0_imported_historical_usd": 0.0,
   "n_unpriced": 0,
-  "check": "ledger == prior + round0 + Σ arms_own + s0_built_here"
+  "incomplete_usd": 0,
+  "n_incomplete_arms": 0,
+  "arms_measured_usd": 0.0493,
+  "arms_unknown_reserved_usd": 0.0,
+  "note": "arms_measured_usd = 성공 시도 실측 합, arms_unknown_reserved_usd = 처리 여부 불명 시도의 보수적 예약 귀속 합 (실측 청구액 아님); s0/0회차는 별도",
+  "check": "ledger == prior + round0 + Σ arms_own + s0_built_here + incomplete"
  },
  "stopped_reason": null,
- "elapsed_s": 117
+ "elapsed_s": 118
 }

@@ -1,8 +1,8 @@
-# 파일럿 보고 — confirm (mock-scenario, run_id=pilot_confirm, N=2, 117s)
+# 파일럿 보고 — confirm (mock-scenario, run_id=pilot_confirm, N=2, 118s)
 
 ## 판정: **미확인** — 평균 d = +50.0pp (b=1, c=0, McNemar 단측 p=0.5000, CI95 [0.0, 100.0]); 정확 McNemar 단측 p < 0.05 ∧ 평균 d ≥ 0.10 (양의 이득 증거 + 점추정의 실용 문턱; '≥10% 입증' 아님)
 - 부차: post−pre +50.0pp (p 0.500); P2-pre vs â +0.0pp; P1 vs â +50.0pp; oracle(기술) 50.0pp
-- 정책 선택 분포: T 0%, A-self 0%, A-selfxk 0%, A-role 50%, B-expert 50%, B-solo 0%; arm 만: 정책 $0.0058 / 고정 $0.0087; 배포(+상태 취득 $0.0029): 정책 $0.0087 / 고정 $0.0116 (과제당)
+- 정책 선택 분포: T 0%, A-self 0%, A-selfxk 0%, A-role 50%, B-expert 50%, B-solo 0%; arm 만: 정책 $0.0058 / 고정 $0.0087; 배포(정책 = arm + s0 $0.0029): 정책 $0.0087 / 고정 B-expert $0.0116(+s0) (과제당)
 
 | arm | 히든 성공률 | 거부율 | arm 단독 $ | 호출 수 평균 |
 |---|---|---|---|---|
@@ -13,5 +13,5 @@
 | B-expert | 0.0% | 0% | $0.0174 | 1.0 |
 | B-solo | 50.0% | 0% | $0.0174 | 1.0 |
 
-- 총지출(원장 40 호출): $0.2088 = 앞 단계 $0.1537 + 0회차 $0.0 + arm $0.0493 + 여기서 만든 s0 $0.0058 (가져온 s0 원 생성비, 역사적 $0.0; 미측정 0; 검산 ledger == prior + round0 + Σ arms_own + s0_built_here)
+- 총지출(원장 40 호출): $0.2088 = 앞 단계 $0.1537 + 0회차 $0.0 + arm $0.0493 + 여기서 만든 s0 $0.0058 + 미완료 arm $0 (0건) (가져온 s0 원 생성비, 역사적 $0.0; 미측정 0; arm 실측 $0.0493 / 불명 귀속 $0.0; 검산 ledger == prior + round0 + Σ arms_own + s0_built_here + incomplete)
 - 중단 사유: None
