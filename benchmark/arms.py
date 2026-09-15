@@ -172,12 +172,16 @@ def unresolved_incomplete(d: Path) -> List[Path]:
 
 
 def make_s0_guarded(task_id: str, task_prompt: str, spec_visible: Dict[str, Any], client_a, budget: Optional[Budget], root: Path,
-                    source: str = "new", config_hash: Optional[str] = None) -> Tuple[Path, bool]:
-    """M2: 신규 s0 생성의 공통 경계 (arms.run_task_all_arms 와 s0_import.prepare 가 같이 쓴다).
+                    source: str = "new", arm_config_hash: Optional[str] = None, pilot_config_sha256: Optional[str] = None) -> Tuple[Path, bool]:
+    """M2/N3: 신규 s0 생성의 공통 경계 (arms.run_task_all_arms 와 s0_import.prepare 가 같이 쓴다).
+    설정 식별자 두 가지를 구분해 기록한다: pilot_config_sha256 = 승인 대상 **파일럿 설정 파일**(pilot_config_v4.json) 해시(필수, 없으면 호출 전 거부);
+    arm_config_hash = arms 실행 설정(모델·b_cont·채점기…) 해시(arms 경로만, s0_import 경로는 None).
     - 미해결 incomplete 가 있으면 호출 전에 BudgetStop("unresolved_incomplete_s0") — 새 예산으로 조용히 재생성하지 않는다 (M1 원칙).
     - BudgetStop·CallAborted 모두 s0/incomplete_<ts>.json 에 task/source/설정 식별자·시도 내역·실측/불명 귀속·중단 사유를 남긴 뒤 BudgetStop 으로 전달
       (CallAborted 는 reason "s0_<reason>" 의 BudgetStop 으로 감싼다 — run_loop 가 부분 결과를 저장하도록). 실패한 s0 는 캐시가 아니다(sha256.txt 없음)."""
     d = root / _safe(task_id) / "s0"
+    if not (isinstance(pilot_config_sha256, str) and pilot_config_sha256.strip()):
+        raise RuntimeError(f"[arms] {task_id} s0 생성: 승인된 파일럿 설정 식별자(pilot_config_sha256)가 없다 — 호출 0회 (N3)")
     pend = unresolved_incomplete(d)
     if pend:
         e = BudgetStop(f"[arms] {task_id} s0 에 미해결 실패 이력 {len(pend)}건 ({pend[-1].name}) — 자동 재생성 거부, 호출 0회 (M1 fail-closed)", "unresolved_incomplete_s0")
@@ -193,7 +197,7 @@ def make_s0_guarded(task_id: str, task_prompt: str, spec_visible: Dict[str, Any]
         inc = {"task_id": task_id, "arm": "s0", "rep": 0, "incomplete": True, "source": source, "stop_reason": reason, "n_calls_done": 0,
                "n_attempts": len(attempts), "n_unknown_attempts": tot["n_unknown_attempts"], "measured_usd": tot["measured_usd"],
                "unknown_reserved_usd": tot["unknown_reserved_usd"], "cost_usd": tot["cost_usd"], "attempts": attempts,
-               "max_tokens": [a.get("max_tokens") for a in attempts], "config_hash": config_hash,
+               "max_tokens": [a.get("max_tokens") for a in attempts], "pilot_config_sha256": pilot_config_sha256, "arm_config_hash": arm_config_hash,
                "s0_config": {"model_a": getattr(client_a, "model", None), "system_prompt_sha256": hashlib.sha256(_DEFAULT_SYSTEM.encode()).hexdigest(),
                              "max_tokens": os.getenv("ANTHROPIC_MAX_TOKENS", "4096"), "temperature": os.getenv("ANTHROPIC_TEMPERATURE")}, "t": time.time()}
         p0 = d / f"incomplete_{int(inc['t'] * 1000)}.json"
@@ -353,7 +357,8 @@ def run_task_all_arms(task_id: str, task_prompt: str, spec_full: Dict[str, Any],
                       k: int, arms: Sequence[str] = ARMS) -> Dict[str, Any]:
     spec_visible = {kk: v for kk, v in spec_full.items() if kk != "hidden_tests"}
     try:
-        s0_dir, created = make_s0_guarded(task_id, task_prompt, spec_visible, clients["A"], budget, root, source="new", config_hash=cfg.get("config_hash"))
+        s0_dir, created = make_s0_guarded(task_id, task_prompt, spec_visible, clients["A"], budget, root, source="new", arm_config_hash=cfg.get("config_hash"),
+                                          pilot_config_sha256=cfg.get("pilot_config_sha256"))
     except BudgetStop as e:                                 # L5/M2: s0 생성 중 중단 — 기록은 make_s0_guarded 가 남겼다; 부분 결과만 싣는다
         inc0 = getattr(e, "incomplete", None)
         e.partial = {"task_id": task_id, "order": [], "rows": [], "incomplete_arms": [inc0] if inc0 else [], "shared_s0_cost": 0.0, "s0_created": False,
@@ -441,6 +446,13 @@ def main() -> int:
     run_id = os.getenv("HARMONET_TRACE_RUN_ID") or f"arms_{time.strftime('%Y%m%d_%H%M%S')}"
     budget = budget_from_env(run_id)
     require_budget(budget)
+    pilot_id = os.getenv("HARMONET_PILOT_CONFIG_SHA256")          # N3: 승인된 파일럿 설정 식별자 (pilot_dryrun._env 가 설정 파일 해시로 넘긴다)
+    if not pilot_id:
+        if os.getenv("HARMONET_LLM_BACKEND", "").lower() in ("mock", "mock-scenario"):
+            pilot_id = "mock:no-pilot-config"                     # 무유료 mock 단독 실행(테스트)만 허용, 기록에 그대로 남는다
+            print("[arms] HARMONET_PILOT_CONFIG_SHA256 없음 — mock 백엔드라 'mock:no-pilot-config' 로 표기", flush=True)
+        else:
+            raise RuntimeError("[arms] 실제 백엔드는 HARMONET_PILOT_CONFIG_SHA256(승인된 파일럿 설정 파일 해시) 없이 돌지 않는다 — 호출 0회 (N3)")
     clients = {"A": get_llm_client("builder"), "B": get_llm_client("reviewer")}
     if clients["A"].model == clients["B"].model:
         raise RuntimeError("[arms] A 와 B 가 같은 모델 — B-expert / B-solo 가 A 와 구별되지 않는다 (HARMONET_MODEL_BUILDER / _REVIEWER)")
@@ -450,6 +462,7 @@ def main() -> int:
     cfg = {"b_cont": args.b_cont, "a_call_median": args.a_call_median, "k_max": args.k_max, "stop_on_visible_pass": True,
            "min_max_tokens": MIN_MAX_TOKENS, "k": args.k}
     cfg["config_hash"] = config_hash(clients, cfg, args.pool)   # k 는 키에 안 넣는다: 뒤집힘 부분집합(k=2)이 주 실행(k=1)의 rep1 을 재사용해야 한다
+    cfg["pilot_config_sha256"] = pilot_id
     root = Path(os.getenv("HARMONET_ARMS_ROOT") or (Path(__file__).resolve().parent.parent / "evidence" / "week2")) / run_id
     out = Path(args.output)
 

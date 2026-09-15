@@ -71,9 +71,12 @@ def check_imported(d: Path, row: dict, task) -> dict:
     return checks
 
 
-def prepare(ids_doc: dict, probe_rows: dict, root: Path, generate: bool, client_a=None, budget=None, log=print) -> dict:
-    """source 별 분기. 반환 {imported: [...], generated: [...], skipped_new: [...], failed: []} — 실패는 예외로 즉시 멈춘다(조용히 넘기지 않음)."""
+def prepare(ids_doc: dict, probe_rows: dict, root: Path, generate: bool, client_a=None, budget=None, log=print, pilot_config_sha256: str = None) -> dict:
+    """source 별 분기. 반환 {imported: [...], generated: [...], skipped_new: [...], failed: []} — 실패는 예외로 즉시 멈춘다(조용히 넘기지 않음).
+    generate=True 면 pilot_config_sha256(승인 대상 파일럿 설정 파일 해시)이 필수 — 없으면 어떤 호출도 하기 전에 거부 (N3)."""
     ids = ids_doc["ids"]
+    if generate and not (isinstance(pilot_config_sha256, str) and pilot_config_sha256.strip()):
+        raise RuntimeError("[s0_import] generate 에는 승인된 파일럿 설정 식별자(pilot_config_sha256)가 필요하다 — 호출 0회 (N3)")
     sources = ids_doc.get("sources")
     if sources is None or set(sources) != set(ids) or not set(sources.values()) <= {"probe_reuse", "new"}:
         raise RuntimeError("[s0_import] ID 파일에 source(probe_reuse|new) 가 전부 있어야 한다 (benchmark.pilot_split 재실행)")
@@ -90,7 +93,7 @@ def prepare(ids_doc: dict, probe_rows: dict, root: Path, generate: bool, client_
         elif generate:
             t = tasks[tid]
             spec_visible = {kk: v for kk, v in t.spec(visible=True).items() if kk != "hidden_tests"}
-            d, created = make_s0_guarded(tid, t.prompt, spec_visible, client_a, budget, root, source="new")   # M2: 실패 기록·fail-closed 는 공통 경계에서
+            d, created = make_s0_guarded(tid, t.prompt, spec_visible, client_a, budget, root, source="new", pilot_config_sha256=pilot_config_sha256)   # M2/N3 공통 경계
             if json.loads((d / "prompt_context.json").read_text(encoding="utf-8")).get("imported_from") is not None:
                 raise RuntimeError(f"[s0_import] new 인데 가져온 s0 가 있다: {tid}")
             out["generated"].append(tid)
@@ -107,6 +110,7 @@ def main() -> int:
     ap.add_argument("--run-id", required=True)
     ap.add_argument("--generate", action="store_true", help="source=new 도 생성한다 (유료 경로, 원장 필요)")
     ap.add_argument("--summary", default=None, help="결과 JSON 경로")
+    ap.add_argument("--config-sha256", default=None, help="승인 대상 파일럿 설정 파일(pilot_config_v4.json) 해시 — --generate 에 필수 (N3)")
     args = ap.parse_args()
     rows = {r["task_id"]: r for r in json.loads(Path(args.probe).read_text(encoding="utf-8"))["rows"]}
     ids_doc = json.loads(Path(args.ids).read_text(encoding="utf-8"))
@@ -119,7 +123,7 @@ def main() -> int:
         budget = budget_from_env(os.getenv("HARMONET_BUDGET_ID") or args.run_id)
         require_budget(budget)
         client_a = get_llm_client("builder")
-    out = prepare(ids_doc, rows, root, args.generate, client_a, budget, log=lambda m: print(m, flush=True))
+    out = prepare(ids_doc, rows, root, args.generate, client_a, budget, log=lambda m: print(m, flush=True), pilot_config_sha256=args.config_sha256)
     summary = {k: len(v) for k, v in out.items()}
     print(f"[s0_import] {summary}")
     if args.summary:

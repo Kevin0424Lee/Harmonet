@@ -132,6 +132,10 @@ Part A 진행 중 확정된 사실과, 2주차 설계(`docs/week2_design_draft.m
 | Claude Code | s0 가져오기 대상을 탐색 100 전체로 둠 — 프로브에 없는 신규 41 은 가져올 수 없다. K3 source 필드로 59/41 분기 (코덱스 지적) | `benchmark/s0_import.py` prepare, `pilot_explore_ids_bcb.json` sources |
 | Claude Code | J4 손실 분해 기준선 불일치 — "베이즈 − truth(π̂−â)" 는 베이즈(참 최선 고정 기준)와 truth(탐색 선택 â 기준)의 기준선이 달라 음수가 나옴(alt_5pp/f=6/seed=8: −3.96pp). K4 두 열로 분리, 코덱스 재계산 +3.29pp 재현 (코덱스 지적) | `scripts/pilot_power_v4.py`, `evidence/week2/pilot_power_v4.md` 검산 |
 | Claude Code | J4 시뮬레이션이 "탐색 절차 포함" 이라 하면서 특징 선택·λ 선택·풀 관문을 흉내내지 않음 (f 고정, λ 고정). K4 전체 절차 포함 — 풀 관문이 합성 기저에서 대부분 보류 (코덱스 지적) | `evidence/week2/pilot_power_v4.md` vs `pilot_power_v4_j4.md` |
+| Claude Code | M 보고에서 "406cea3(M2) 에 회귀 테스트 포함" 이라 적었으나 실제로는 테스트가 커밋되지 않았다 — 패치 스크립트가 중간에 실패해 `&&` 체인의 `cat >> tests/test_s0_import.py` 가 실행되지 않았고, "4 passed" 를 옛 테스트로 확인한 것을 새 테스트로 보고함. N3 에서 영구 테스트 추가 (코덱스 지적, 2026-09-15) | `tests/test_s0_import.py::test_m2_n3_*`, N3 커밋 |
+| Claude Code | M1 `unresolved_incomplete` 가 result.json/sha256.txt 존재만으로 실패를 해결된 것으로 간주 — 이전 설정의 result.json 이 있으면 fail-closed 가 무력화(재개 허용, 누적 $0.01072 > 상한). N1 (코덱스 지적) | `benchmark/arms.py` unresolved_incomplete |
+| Claude Code | M4 가 docker memory/cpus·내부 limits 를 governed 에 넣지 않아 부모 환경변수(64m/0.1)가 그대로 docker 명령에 반영되고 승인 해시·effective_env 에 안 잡힘; `grading.limits` 는 선언만 있고 미소비. N2 (코덱스 지적) | `harmonet/verify.py` bcb_resources/bcb_limits/harness_cfg |
+| Claude Code | M2 의 실제 `prepare(source=new)` 경로가 설정 식별자를 넘기지 않아 실패 기록에 null — 파일럿 설정 해시(pilot_config_sha256)와 arm 실행 설정 해시(arm_config_hash)도 구분 없이 `config_hash` 하나였다. N3 (코덱스 지적) | `benchmark/s0_import.py`, `benchmark/arms.py` make_s0_guarded |
 
 **패턴 (세 번째, 코덱스 지적으로 발견): "이름을 보고 구현을 읽지 않음."** A1 (validator 이름만 보고 LLM 호출 여부 미확인), A7 (하네스 종료 코드를
 통과 신호로 믿음), D2 (`n_run` 이라는 이름을 실행 수로 믿고 공식 채점기가 실행 수를 세지 않는다는 것을 읽지 않음), D5/F1 ("validate 통과" 를
@@ -273,3 +277,13 @@ Part A 진행 중 확정된 사실과, 2주차 설계(`docs/week2_design_draft.m
 - **M4**: 부모 환경변수(HARMONET_BCB_IMAGE 등)가 설정과 다르면 자식 환경으로 조용히 흘러가던 경로를 거부로 바꿨다(덮어쓰기 아님). 코드 기본값과 설정의 일치도 검사.
 - 예상과 달랐던 것: `dict(os.environ, **extra, **g)` 가 mock 에서 모델 키 중복으로 TypeError — 테스트가 anthropic 경로만 덮고 있었다(mock 무충돌 케이스 추가).
   M1 fail-closed 가 L5 의 "재개 시 에피소드 2건" 테스트와 충돌 — 재개 자체가 거부되므로 에피소드 1건·원장 불변으로 갱신.
+
+## Week2-N (2026-09-15) 기록 — 코덱스 M 검토 잔여 3건
+- **N1 재현**(CLI): b_cont=1.0 완료(result.json) → b_cont=0.01 timeout→400(귀속 $0.00622) → 같은 설정 재개: 패치 전 허용·호출 2·성공 $0.00450·누적 $0.01072 > 상한 $0.010, 이전 result 덮어씀.
+  패치 후 호출 0, 원장 불변, 이전 result 바이트 불변, incomplete 불변; 이전 설정으로 돌아와도 캐시 반환 없이 거부. 정상 캐시 재사용(호출 0)·0회차→본실행 전환(호출 2)은 유지.
+  실제 절차와의 연결: 0회차(b_cont=1.0)와 본실행이 같은 B-expert 결과 경로를 쓰므로, 0회차 뒤 본실행 중 실패가 나면 그 arm 은 수동 판단 전까지 잠긴다(의도).
+- **N2 재현**: `HARMONET_BCB_MEMORY=64m`, `HARMONET_BCB_CPUS=0.1` → `_env` 거부 없음, docker 명령에 그대로, effective_env 미기록; `grading.limits` 미소비. 패치 후 설정 → 환경 → `bcb_container_args`(docker run·create 공용)·`harness_cfg`(컨테이너 stdin) 로 연결, 충돌 거부, 코드 기본값 불일치 거부,
+  `effective_env._effective_docker` 에 실효 자원·limits·인자 기록. 검증은 명령 문자열·cfg 생성 검사(docker 미실행); 실제 docker 실행은 기존 BCB 테스트·dry-run 이 8g/2 로 수행. 주입한 64m/0.1 로 실제 후보를 돌리지 않았다.
+- **N3**: `pilot_config_sha256`(승인 대상 = pilot_config_v4.json 파일 해시) 과 `arm_config_hash`(arms 실행 설정 해시)를 구분해 실패 기록에 저장; `prepare(generate=True)`·`make_s0_guarded`·실제 백엔드 arms 는 식별자 없으면 호출 전 거부. mock 단독 arms 실행은 `mock:no-pilot-config` 로 표기(기록에 남음).
+  영구 테스트 `test_m2_n3_new_s0_failure_recorded_with_config_id_and_not_regenerated[timeout×2 / timeout→400]`, `test_n3_missing_pilot_config_id_refuses_before_any_call`.
+- 예상과 달랐던 것: 미완료 기록 파일이 text 모드로 쓰여 Windows 에서 CRLF — "기록 내용 불변" 검사를 바이트가 아니라 JSON 동등으로 했다(파일 자체는 그대로).

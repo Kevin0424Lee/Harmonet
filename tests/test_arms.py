@@ -105,7 +105,7 @@ def test_infra_at_s0_stops_before_any_further_call(tmp_path, monkeypatch):
     from benchmark.runloop import InfraStop
     with pytest.raises(InfraStop):
         A.run_task_all_arms("t/1", "p", {"kind": "code", "tests": ["assert True"], "hidden_tests": ["assert True"]}, clients,
-                            {"b_cont": 0.05, "a_call_median": 0.02, "k_max": 8}, None, tmp_path, "rid", 1, 2)
+                            {"b_cont": 0.05, "a_call_median": 0.02, "k_max": 8, "pilot_config_sha256": "mock:test"}, None, tmp_path, "rid", 1, 2)
     assert C.calls == 1                                   # s0 호출 1회 뒤 후속 호출 0회
 
 

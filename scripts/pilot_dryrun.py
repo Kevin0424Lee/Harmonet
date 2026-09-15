@@ -53,7 +53,8 @@ def governed_env(cfg: dict, backend: str, extra: dict) -> dict:
          "HARMONET_BCB_MEMORY": str(cfg["grading"]["docker"]["memory"]), "HARMONET_BCB_CPUS": str(cfg["grading"]["docker"]["cpus"]),
          "HARMONET_BCB_LIMITS": json.dumps(cfg["grading"]["limits"], sort_keys=True),
          "ANTHROPIC_MAX_TOKENS": str(cfg["models"]["max_tokens"]), "ANTHROPIC_TEMPERATURE": str(cfg["models"]["temperature"]),
-         "HARMONET_BUDGET_CAP": str(cfg["cost_usd"]["cap"]), "HARMONET_BUDGET_ID": cfg["ledger_id"]}
+         "HARMONET_BUDGET_CAP": str(cfg["cost_usd"]["cap"]), "HARMONET_BUDGET_ID": cfg["ledger_id"],
+         "HARMONET_PILOT_CONFIG_SHA256": config_sha256(CONFIG)}                      # N3: 신규 s0·arm 실패 기록의 승인 설정 식별자
     if backend == "anthropic":
         g["HARMONET_MODEL_BUILDER"], g["HARMONET_MODEL_REVIEWER"] = cfg["models"]["A"], cfg["models"]["B"]
     else:                                                    # mock: 모델 이름은 시나리오 mock 이 정한다 (extra), 그 외는 설정과 같다
@@ -235,7 +236,7 @@ def prepare_s0(ids: dict, cfg: dict, env: dict, tmp: Path, generate: bool) -> di
     ids_file = tmp / f"s0_ids_{'gen' if generate else 'imp'}.json"; ids_file.write_text(json.dumps(ids), encoding="utf-8")
     summ = tmp / f"s0_summary_{'gen' if generate else 'imp'}.json"
     cmd = [sys.executable, "-X", "utf8", "-m", "benchmark.s0_import", "--probe", str(ROOT / "evidence" / "week2" / "pool_probe_bcb_A.json"), "--ids", str(ids_file),
-           "--run-id", cfg["run_ids"]["explore"], "--summary", str(summ)] + (["--generate"] if generate else [])
+           "--run-id", cfg["run_ids"]["explore"], "--summary", str(summ), "--config-sha256", config_sha256(CONFIG)] + (["--generate"] if generate else [])
     rc = subprocess.run(cmd, cwd=str(ROOT), env=env).returncode
     if rc != 0:
         raise SystemExit(f"[pilot] s0 준비 종료 코드 {rc}")
