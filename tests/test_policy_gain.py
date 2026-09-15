@@ -109,3 +109,10 @@ def test_nested_selection_runs_and_is_flagged():
     r_plain = G.policy_gain(rows, "P2", n_perm=0, n_boot=0, seed=0, with_ci=False, R=2, spec=menu)
     assert r_nested["nested_selection"] is True and r_plain["nested_selection"] is False and r_nested["p_value"] is None
     assert isinstance(r_nested["gain"], float) and r_nested["gain"] != r_plain["gain"]
+
+
+def test_guard_incomplete_arm_record_rejected():
+    rows = PG.rows_from(PG.generate(10, 1, 0.0, 1.0))
+    rows[2] = dict(rows[2], incomplete=True)
+    with pytest.raises(ValueError, match="미완료"):
+        G.policy_tensor(rows)

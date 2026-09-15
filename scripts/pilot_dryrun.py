@@ -98,24 +98,31 @@ def spend_report(env: dict, outs: list, round0_usd: float, prior_usd: float = 0.
     own = None if any(v is None for v in cells.values()) else round(sum(cells.values()), 8)
     s0_here, s0_hist, seen = 0.0, 0.0, set()
     for o in outs:
-        for r in o["rows"]:
-            if r["task_id"] in seen:
+        for tid, c in o["shared_s0_cost"].items():        # 과제 단위 (행이 없는 과제 — s0 뒤 중단 — 도 s0 비용은 원장에 있다, L5)
+            if tid in seen or c is None and not o["s0_dirs"].get(tid):
                 continue
-            seen.add(r["task_id"])
-            ctx = json.loads((Path(r["s0_dir"]) / "prompt_context.json").read_text(encoding="utf-8"))
-            c = o["shared_s0_cost"][r["task_id"]]
+            seen.add(tid)
+            s0d = o["s0_dirs"].get(tid)
+            ctx = json.loads((Path(s0d) / "prompt_context.json").read_text(encoding="utf-8")) if s0d and (Path(s0d) / "prompt_context.json").exists() else {}
             if ctx.get("imported_from") is None:
                 s0_here = None if (c is None or s0_here is None) else s0_here + c
             else:
                 s0_hist += c or 0.0
     n_unpriced = sum(v is None for v in cells.values())
-    expected = None if (own is None or s0_here is None) else prior_usd + round0_usd + own + s0_here
+    inc = {i["path"]: i for o in outs for i in o.get("incomplete_arms", [])}          # L5: 미완료 arm 에피소드 (경로로 유일 — 이중 계상 없음)
+    inc_usd = round(sum(i["cost_usd"] for i in inc.values()), 10)
+    measured = round(sum((r.get("cost_measured_usd") or 0.0) for o in outs for r in o["rows"]) + sum(i["measured_usd"] for i in inc.values()), 10)
+    unknown = round(sum((r.get("cost_unknown_reserved_usd") or 0.0) for o in outs for r in o["rows"]) + sum(i["unknown_reserved_usd"] for i in inc.values()), 10)
+    expected = None if (own is None or s0_here is None) else prior_usd + round0_usd + own + s0_here + inc_usd
     if expected is not None and abs(expected - led["spent"]) > 1e-6:
-        raise RuntimeError(f"[pilot] 보고서 총지출 {expected:.8f} != 원장 총지출 {led['spent']:.8f} (prior {prior_usd}, round0 {round0_usd}, arm {own}, s0 {s0_here})")
-    rep = {"total_spent_usd": led["spent"], "source": "ledger", "ledger": {"cap": led["cap"], "spent": led["spent"], "n_calls": led["n_calls"], "stopped_reason": led["stopped_reason"]},
+        raise RuntimeError(f"[pilot] 보고서 총지출 {expected:.8f} != 원장 총지출 {led['spent']:.8f} (prior {prior_usd}, round0 {round0_usd}, arm {own}, s0 {s0_here}, incomplete {inc_usd})")
+    rep = {"total_spent_usd": led["spent"], "source": "ledger", "ledger": {"cap": led["cap"], "spent": led["spent"], "n_calls": led["n_calls"], "stopped_reason": led["stopped_reason"],
+                                                                             "unknown_cost_calls": led.get("unknown_cost_calls", 0), "unbilled_failed_calls": led.get("unbilled_failed_calls", 0)},
            "prior_stage_usd": prior_usd, "round0_usd": round0_usd, "arms_own_usd": own, "n_cells": len(cells), "s0_built_here_usd": s0_here,
            "s0_imported_historical_usd": round(s0_hist, 8), "n_unpriced": n_unpriced,
-           "check": "ledger == prior + round0 + Σ arms_own + s0_built_here" if expected is not None else "미측정 있음 — 검산 불가"}
+           "incomplete_usd": inc_usd, "n_incomplete_arms": len(inc), "arms_measured_usd": measured, "arms_unknown_reserved_usd": unknown,
+           "note": "arms_measured_usd = 성공 시도 실측 합, arms_unknown_reserved_usd = 처리 여부 불명 시도의 보수적 예약 귀속 합 (실측 청구액 아님); s0/0회차는 별도",
+           "check": "ledger == prior + round0 + Σ arms_own + s0_built_here + incomplete" if expected is not None else "미측정 있음 — 검산 불가"}
     assert rep["total_spent_usd"] == led["spent"]
     return rep
 
@@ -346,7 +353,8 @@ def write_report(report: dict, prefix: Path) -> None:
             md.append(f"| {arm} | {100 * a[arm]['hidden_pass']:.1f}% | {100 * a[arm]['refused_rate']:.0f}% | ${a[arm]['cost_own_cost_usd']} | {a[arm]['n_calls_mean']:.1f} |")
     s = report["cost"]
     md += ["", f"- 총지출(원장 {s['ledger']['n_calls']} 호출): ${s['total_spent_usd']} = 앞 단계 ${s['prior_stage_usd']} + 0회차 ${s['round0_usd']} + arm ${s['arms_own_usd']} "
-           f"+ 여기서 만든 s0 ${s['s0_built_here_usd']} (가져온 s0 원 생성비, 역사적 ${s['s0_imported_historical_usd']}; 미측정 {s['n_unpriced']}; 검산 {s['check']})",
+           f"+ 여기서 만든 s0 ${s['s0_built_here_usd']} + 미완료 arm ${s['incomplete_usd']} ({s['n_incomplete_arms']}건) (가져온 s0 원 생성비, 역사적 ${s['s0_imported_historical_usd']}; "
+           f"미측정 {s['n_unpriced']}; arm 실측 ${s['arms_measured_usd']} / 불명 귀속 ${s['arms_unknown_reserved_usd']}; 검산 {s['check']})",
            f"- 중단 사유: {report['stopped_reason']}"]
     prefix.with_suffix(".md").write_text("\n".join(md) + "\n", encoding="utf-8")
     print("\n".join(md))

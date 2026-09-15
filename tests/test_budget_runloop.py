@@ -372,3 +372,53 @@ def test_l1_timeout_with_enough_remaining_recomputes_max_tokens_and_matches_ledg
     assert abs(cost["unknown_reserved_usd"] - p1) < 1e-12 and abs(cost["measured_usd"] - m) < 1e-12 and abs(usd - (p1 + m)) < 1e-12
     assert abs(st["spent"] - usd) < 1e-12 and st["n_calls"] == 2 == c.calls and st["unknown_cost_calls"] == 1 and st["stopped_reason"] is None
     assert abs(arm.remaining_usd - (0.03 - p1 - m)) < 1e-12
+
+
+# ── Week2-L5: 성공 없이 끝나는 재시도도 귀속 기록 보존 ─────────────────────
+def _ledger_matches(b, attempts):
+    st = b.state()
+    tot = RL._attempt_totals(attempts)
+    return st["n_calls"] == len(attempts) and abs(st["spent"] - tot["unknown_reserved_usd"]) < 1e-12
+
+
+def test_l5_timeout_then_reserve_refused_keeps_attempts(tmp_path, monkeypatch):
+    monkeypatch.setattr(RL.time, "sleep", lambda s: None)
+    arm = _arm(0.5)
+    p1 = 330 * HAIKU_IN + 4096 * HAIKU_OUT
+    b = Budget(tmp_path / "budget.json", p1 + 0.001)                                 # 두 번째 예약이 cap 초과
+    c = _ArmClient(fail_first=1)
+    with pytest.raises(BudgetStop) as e:
+        RL.budgeted_generate(c, b, "p", "s", arm=arm)
+    assert e.value.reason == "budget" and c.calls == 1 and [a["kind"] for a in e.value.attempts] == ["unknown"]
+    assert abs(e.value.usd - p1) < 1e-12 and _ledger_matches(b, e.value.attempts) and b.state()["stopped_reason"] == "budget"
+
+
+def test_l5_timeout_then_fatal_http_keeps_both_attempts(tmp_path, monkeypatch):
+    monkeypatch.setattr(RL.time, "sleep", lambda s: None)
+
+    class C(_ArmClient):
+        def generate_once(self, prompt, system_prompt=None):
+            self.calls += 1
+            raise TimeoutError("t") if self.calls == 1 else _Http(400)
+    b = Budget(tmp_path / "budget.json", 1.0); c = C()
+    with pytest.raises(BudgetStop) as e:
+        RL.budgeted_generate(c, b, "p", "s", arm=_arm(0.5))
+    assert e.value.reason == "call_failed" and [a["kind"] for a in e.value.attempts] == ["unknown", "unbilled_fatal"] and c.calls == 2
+    assert _ledger_matches(b, e.value.attempts) and e.value.attempts[1]["usd"] == 0.0 and abs(e.value.usd - e.value.attempts[0]["usd"]) < 1e-12
+
+
+def test_l5_unbilled_retries_exhausted_keeps_three_attempts(tmp_path, monkeypatch):
+    monkeypatch.setattr(RL.time, "sleep", lambda s: None)
+    b = Budget(tmp_path / "budget.json", 1.0); c = _Flaky(99)
+    with pytest.raises(BudgetStop) as e:
+        RL.budgeted_generate(c, b, "p", "s", arm=_arm(0.5))
+    assert e.value.reason == "call_failed" and len(e.value.attempts) == 3 and e.value.usd == 0.0 and _ledger_matches(b, e.value.attempts) and b.state()["spent"] == 0.0
+
+
+def test_l5_two_unknown_failures_abort_with_records(tmp_path, monkeypatch):
+    monkeypatch.setattr(RL.time, "sleep", lambda s: None)
+    b = Budget(tmp_path / "budget.json", 1.0); c = _ArmClient(fail_first=9)
+    with pytest.raises(RL.CallAborted) as e:
+        RL.budgeted_generate(c, b, "p", "s", arm=_arm(0.5))
+    assert e.value.reason == "unknown_cost_x2" and len(e.value.attempts) == 2 and c.calls == 2 and _ledger_matches(b, e.value.attempts)
+    assert abs(e.value.usd - sum(a["usd"] for a in e.value.attempts)) < 1e-12 and b.state()["unknown_cost_calls"] == 2

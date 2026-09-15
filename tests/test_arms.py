@@ -182,3 +182,27 @@ def test_failed_attempts_are_attributed_to_arm_and_ledger_matches(tmp_path, monk
     assert rep["total_spent_usd"] == led["spent"] and rep["check"].startswith("ledger ==")
     first_s0 = min(d["shared_s0_cost"].items())  # Mbpp/2 가 먼저 → 그 s0 에 (c) 예약액이 얹힘
     assert first_s0[1] > 0.0135                    # 정상 s0 $0.0135 + 확정 예약액
+
+
+# ── Week2-L5: 미완료 arm 의 시도 기록 보존 (arms 경로) ───────────────────────
+def test_l5_incomplete_arm_recorded_and_ledger_matches(tmp_path):
+    """s0(sonnet, max_tokens 1024) 정상 → B-expert(haiku) timeout → 재시도 예약이 cap 초과 → BudgetStop(budget).
+    완료 행 0, incomplete_arms 1 (attempts=[unknown], 비용 = 확정 예약액), 원장 == s0 + incomplete, 재실행 시 이중 계상 없음."""
+    import pilot_dryrun as PD
+    d = _run(tmp_path, "l5", k=1, cap="0.022", arms="B-expert", extra_env={"HARMONET_MOCK_FAIL_SCRIPT": "ok,timeout", "ANTHROPIC_MAX_TOKENS": "1024"}, expect_rc=2)
+    led = json.loads((tmp_path / "budget" / "l5" / "budget.json").read_text(encoding="utf-8"))
+    assert d["stopped_reason"] == "budget" and d["rows"] == [] and len(d["incomplete_arms"]) == 1
+    inc = d["incomplete_arms"][0]
+    assert inc["arm"] == "B-expert" and inc["incomplete"] is True and inc["stop_reason"] == "budget" and [a["kind"] for a in inc["attempts"]] == ["unknown"]
+    assert inc["measured_usd"] == 0.0 and abs(inc["unknown_reserved_usd"] - inc["cost_usd"]) < 1e-12 and inc["n_attempts"] == 1
+    s0 = d["cost"]["shared_s0_cost_total"]
+    assert abs(led["spent"] - (s0 + d["cost"]["incomplete_usd"])) < 1e-9 and led["n_calls"] == 2 and led["unknown_cost_calls"] == 1
+    assert abs(d["cost"]["total_spent_usd"] - led["spent"]) < 1e-9 and d["cost"]["measured_usd"] == 0.0
+    env = {"HARMONET_BUDGET_ROOT": str(tmp_path / "budget"), "HARMONET_BUDGET_ID": "l5"}
+    rep = PD.spend_report(env, [d], 0.0)
+    assert rep["n_incomplete_arms"] == 1 and rep["arms_unknown_reserved_usd"] == inc["cost_usd"] and rep["check"].endswith("incomplete")
+    assert not any((tmp_path / "arms" / "l5" / "Mbpp_2" / "B-expert" / "rep1").glob("result.json"))     # 미완료는 result.json 이 아니다
+    # 재개: 원장이 stopped 라 다시 예약 거부 → 새 incomplete 에피소드 1개 더, 이전 에피소드는 그대로 (파일 단위 유일 → 이중 계상 없음)
+    d2 = _run(tmp_path, "l5", k=1, cap="0.022", arms="B-expert", extra_env={"ANTHROPIC_MAX_TOKENS": "1024"}, expect_rc=2)
+    led2 = json.loads((tmp_path / "budget" / "l5" / "budget.json").read_text(encoding="utf-8"))
+    assert len(d2["incomplete_arms"]) == 2 and abs(d2["cost"]["total_spent_usd"] - led2["spent"]) < 1e-9 and led2["spent"] == led["spent"]

@@ -168,6 +168,8 @@ def guard_rows(rows: Sequence[Dict[str, Any]]) -> None:
         who = f"{r.get('task_id')}/{r.get('arm')}/{r.get('rep')}"
         if r.get("infra") is True:
             raise ValueError(f"infra=True 행은 분석 입력이 될 수 없다: {who}")
+        if r.get("incomplete"):
+            raise ValueError(f"미완료 arm 기록은 분석 입력이 될 수 없다 (L5): {who}")
         if r.get("hidden_exposed", None) is not False:
             raise ValueError(f"hidden_exposed 가 명시적 False 가 아니다 ({r.get('hidden_exposed')!r}): {who}")
 
