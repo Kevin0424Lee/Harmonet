@@ -6,15 +6,49 @@
   "HARMONET_BCB_IMAGE": "bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405",
   "HARMONET_BCB_TIMEOUT_S": "241.0",
   "HARMONET_BCB_MARGIN_S": "90",
+  "HARMONET_BCB_MEMORY": "8g",
+  "HARMONET_BCB_CPUS": "2",
+  "HARMONET_BCB_LIMITS": "{\"gt_time_limit\": 1.0, \"max_as_limit\": 30720, \"max_data_limit\": 30720, \"max_stack_limit\": 10, \"min_time_limit\": 1.0}",
   "ANTHROPIC_MAX_TOKENS": "4096",
   "ANTHROPIC_TEMPERATURE": "0.2",
   "HARMONET_BUDGET_CAP": "16.0",
   "HARMONET_BUDGET_ID": "pilot_v4",
+  "HARMONET_PILOT_CONFIG_SHA256": "ffdc7bd1de7ba0c7e2541fbc3a53829e024fcbd4d926a9531337647dcc6cc3b5",
   "HARMONET_MODEL_BUILDER": "claude-haiku-4-5",
-  "HARMONET_MODEL_REVIEWER": "claude-sonnet-4-6"
+  "HARMONET_MODEL_REVIEWER": "claude-sonnet-4-6",
+  "_effective_docker": {
+   "resources": {
+    "memory": "8g",
+    "cpus": "2"
+   },
+   "limits": {
+    "max_as_limit": 30720,
+    "max_data_limit": 30720,
+    "max_stack_limit": 10,
+    "min_time_limit": 1.0,
+    "gt_time_limit": 1.0
+   },
+   "container_args": [
+    "--network",
+    "none",
+    "--memory",
+    "8g",
+    "--cpus",
+    "2",
+    "-v",
+    "/w:/w",
+    "-w",
+    "/w",
+    "--entrypoint",
+    "python3",
+    "bigcodebench/bigcodebench-evaluate@sha256:a3cd34ec3840a49d6b7afb240f4bdd47c350bc5991043fd0a91773830f7cd405",
+    "-I",
+    "harness.py"
+   ]
+  }
  },
  "n_tasks": 2,
- "frozen_hash": "5f9b609c5b6aa445978ba83e5e6c89bbeab5d2b53e28fa74a4336d029d4ec562",
+ "frozen_hash": "a63951a5d09e6e91487dcd728792d524a1b4fed8246c5fd10f33c2bf1ac15383",
  "primary": {
   "n": 2,
   "mean_d": 0.5,
@@ -160,7 +194,7 @@
   "fixed_deploy_usd_per_task": 0.0116,
   "fixed_arm": "B-expert",
   "fixed_deploy_includes_s0": true,
-  "visible_verify_wall_ms_per_task": 3830.0,
+  "visible_verify_wall_ms_per_task": 3816.0,
   "n_unpriced": 0,
   "note": "policy_deploy = 선택 arm + s0 (post 정책은 B-solo 를 골라도 s0 를 이미 지불); fixed_deploy = 고정 arm + s0 (고정 B-solo 만 자기 호출); 실험 총지출은 cost(원장); 가시 검증은 wall_ms"
  },
@@ -190,5 +224,5 @@
   "check": "ledger == prior + round0 + Σ arms_own + s0_built_here + incomplete"
  },
  "stopped_reason": null,
- "elapsed_s": 119
+ "elapsed_s": 118
 }
